@@ -1,0 +1,16 @@
+﻿{
+	"Pravidla":[
+		{
+			"TypTokenu":0,
+			"Regex":"((f.i.n.d)|(n.e.x.t)|(r.e.s.t)|(r.f.i.r.s.t)|(r.a.l.l)).\u0000"
+		},
+		{
+			"TypTokenu":10,
+			"Regex":"(\\(|\\)).\u0000"
+		},
+		{
+			"TypTokenu":8,
+			"Regex":"(\\*|\\.|\\|).\u0000"
+		}
+	]
+}

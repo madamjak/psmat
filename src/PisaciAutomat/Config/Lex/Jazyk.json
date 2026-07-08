@@ -1,0 +1,56 @@
+﻿{
+	"Pravidla":[
+		{
+			"TypTokenu":0,
+			"Regex":"((n.u.l.l)|(i.f)|(e.l.s.e)|(f.o.r.e.a.c.h)|(v.a.r)|(b.o.o.l)|(g.e.t)|(s.e.t)).\u0000"
+		},
+		{
+			"TypTokenu":0,
+			"Regex":"((v.o.i.d)|(u.s.i.n.g)|(r.e.t.u.r.n)|(n.a.m.e.s.p.a.c.e)|(p.u.b.l.i.c)).\u0000"
+		},
+		{
+			"TypTokenu":0,
+			"Regex":"((p.r.i.v.a.t.e)|(s.t.a.t.i.c)|(c.l.a.s.s)|(i.n.t)).\u0000"
+		},
+		{
+			"TypTokenu":0,
+			"Regex":"((c.h.a.r)|(n.e.w)|(i.n)|(s.t.r.i.n.g)).\u0000"
+		},
+		{
+			"TypTokenu":10,
+			"Regex":"((D.i.c.t.i.o.n.a.r.y)|(H.a.s.h.S.e.t)|(A.d.d)|(C.o.n.t.a.i.n.s.K.e.y)|(C.o.n.t.a.i.n.s)|(S.t.r.i.n.g.B.u.i.l.d.e.r)|(F.o.r.m.a.t)).\u0000"
+		},
+		{
+			"TypTokenu":1,
+			"Regex":"(q|w|e|r|t|y|u|i|o|p|a|s|d|f|g|h|j|k|l|z|x|c|v|b|n|m|Q|W|E|R|T|Y|U|I|O|P|A|S|D|F|G|H|J|K|L|Z|C|V|B|N|M).(q|w|e|r|t|y|u|i|o|p|a|s|d|f|g|h|j|k|l|z|x|c|v|b|n|m|Q|W|E|R|T|Y|U|I|O|P|A|S|D|F|G|H|J|K|L|Z|C|V|B|N|M|1|2|3|4|5|6|7|8|9|0)*.\u0000"
+		},
+		{
+			"TypTokenu":2,
+			"Regex":"(=|<|>|!|+|-|/).\u0000"
+		},
+		{
+			"TypTokenu":2,
+			"Regex":"((=.=)|(<.=)|(>.=)|(!.=)|+.+|-.-).\u0000"
+		},
+		{
+			"TypTokenu":4,
+			"Regex":"(1|2|3|4|5|6|7|8|9|0).\u0000"
+		},
+		{
+			"TypTokenu":8,
+			"Regex":"(;|{|}).\u0000"
+		},
+		{
+			"TypTokenu":5,
+			"Regex":"\".(q|w|e|r|t|y|u|i|o|p|a|s|d|f|g|h|j|k|l|z|x|c|v|b|n|m|Q|W|E|R|T|Y|U|I|O|P|A|S|D|F|G|H|J|K|L|Z|C|V|B|N|M|1|2|3|4|5|6|7|8|9|0|:|{|}|;|,|-| |\\.\")*.\".\u0000"
+		},
+		{
+			"TypTokenu":5,
+			"Regex":"'.(q|w|e|r|t|y|u|i|o|p|a|s|d|f|g|h|j|k|l|z|x|c|v|b|n|m|Q|W|E|R|T|Y|U|I|O|P|A|S|D|F|G|H|J|K|L|Z|C|V|B|N|M|1|2|3|4|5|6|7|8|9|0|:|{|}|;|-| |\\.\").'.\u0000"
+		},
+		{
+			"TypTokenu":6,
+			"Regex":"/./.(q|w|e|r|t|y|u|i|o|p|a|s|d|f|g|h|j|k|l|z|x|c|v|b|n|m|Q|W|E|R|T|Y|U|I|O|P|A|S|D|F|G|H|J|K|L|Z|C|V|B|N|M|1|2|3|4|5|6|7|8|9|0|:|{|}|;|-| |\\|\")*.\u0000"
+		}
+	]
+}
