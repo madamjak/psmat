@@ -151,6 +151,7 @@ namespace PisaciStroj.Vyhladavanie
         {
             if(_automat != null)
             {
+                _automat.Reset();
                 return _automat;
             }
 

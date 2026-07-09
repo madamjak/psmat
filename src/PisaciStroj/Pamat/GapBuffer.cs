@@ -36,7 +36,7 @@ namespace PisaciStroj.Pamat
                 return '\0';
             }
 
-            if (index >= _gapPosition && index <= _gapPosition + _gapSize)
+            if (index >= _gapPosition)
             {
                 index += _gapSize;
             }

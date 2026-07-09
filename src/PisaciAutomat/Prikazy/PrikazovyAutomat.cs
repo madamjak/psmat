@@ -281,21 +281,28 @@ namespace PisaciAutomat.Prikazy
 
         private LexGramatika NacitajLexGramatiku()
         {
-            var cesta = "Config/Lex/Commands.json";
-
-            LexGramatika gramatika;
-
-            using (var file = File.Open(cesta, FileMode.Open))
+            try
             {
-                using (var reader = new StreamReader(file))
+                var cesta = "Config/Lex/Commands.json";
+
+                LexGramatika gramatika;
+
+                using (var file = File.Open(cesta, FileMode.Open))
                 {
-                    var s = reader.ReadToEnd();
+                    using (var reader = new StreamReader(file))
+                    {
+                        var s = reader.ReadToEnd();
 
-                    gramatika = (LexGramatika)JsonConvert.DeserializeObject(s, typeof(LexGramatika));
+                        gramatika = (LexGramatika)JsonConvert.DeserializeObject(s, typeof(LexGramatika));
+                    }
                 }
-            }
 
-            return gramatika;
+                return gramatika;
+            }
+            catch (Exception ex)
+            {
+                return new LexGramatika();
+            }
         }
     }
 }
