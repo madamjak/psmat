@@ -31,7 +31,7 @@ namespace PisaciStroj.Pamat
 
         public char CharAt(int index)
         {
-            if (_array == null || index > _array.Length)
+            if (_length == 0)
             {
                 return '\0';
             }
