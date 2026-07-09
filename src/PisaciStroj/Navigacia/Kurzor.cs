@@ -26,7 +26,7 @@ namespace PisaciStroj.Navigacia
             }
         }
 
-        public static void PosunKurzorDoprava(ParametreVypisu parametreVypisu, List<GapBuffer> riadky)
+        public static bool PosunKurzorDoprava(ParametreVypisu parametreVypisu, List<GapBuffer> riadky)
         {
             if (parametreVypisu.IndexStlpec < riadky[parametreVypisu.IndexRiadok].Length())
             {
@@ -36,6 +36,8 @@ namespace PisaciStroj.Navigacia
                     parametreVypisu.OffsetStlpec++;
                     parametreVypisu.Stlpec--;
                 }
+
+                return true;
             }
             else if(parametreVypisu.IndexRiadok + 1 < riadky.Count)
             {
@@ -47,7 +49,11 @@ namespace PisaciStroj.Navigacia
                     parametreVypisu.OffsetRiadok++;
                     parametreVypisu.Riadok--;
                 }
+
+                return true;
             }
+
+            return false;
         }
 
         public static void PosunKurzorHore(ParametreVypisu parametreVypisu, List<GapBuffer> riadky)
@@ -81,7 +87,7 @@ namespace PisaciStroj.Navigacia
             }
         }
 
-        public static void PosunKurzorDolava(ParametreVypisu parametreVypisu, List<GapBuffer> riadky)
+        public static bool PosunKurzorDolava(ParametreVypisu parametreVypisu, List<GapBuffer> riadky)
         {
             if (parametreVypisu.IndexStlpec > 0)
             {
@@ -101,13 +107,19 @@ namespace PisaciStroj.Navigacia
                         NastavIndexStlpca(parametreVypisu, riadky, riadky[parametreVypisu.IndexRiadok].Length());
                     }
                 }
+
+                return true;
             }
             else if(parametreVypisu.IndexRiadok > 0)
             {
                 PosunKurzorHore(parametreVypisu, riadky);
 
                 NastavIndexStlpca(parametreVypisu, riadky, riadky[parametreVypisu.IndexRiadok].Length());
+
+                return true;
             }
+
+            return false;
         }
 
         private static void NastavIndexStlpca(ParametreVypisu parametreVypisu, List<GapBuffer> riadky, int pozadovanyIndex)

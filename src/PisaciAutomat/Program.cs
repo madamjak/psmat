@@ -35,8 +35,6 @@ namespace PisaciAutomat
 
     public class Program
     {
-        private HashSet<ConsoleKey> _sipky = new HashSet<ConsoleKey>() { ConsoleKey.LeftArrow, ConsoleKey.RightArrow, ConsoleKey.UpArrow, ConsoleKey.DownArrow };
-
         private IVyhladavac _vyhladavac;
         private PisaciStroj.Program _editor;
         private VykreslovaciAutomat _vykreslovaciAutomat;
@@ -45,6 +43,7 @@ namespace PisaciAutomat
         private bool _cmdMode;
 
         //kurzor
+        private NavigovaciPrikaz _navigovaciPrikaz;
         private ParametreVypisu _parametreVypisu;
 
         public bool MaZmenuVSubore { get; private set; }
@@ -71,8 +70,8 @@ namespace PisaciAutomat
             _vykreslovaciAutomat = new VykreslovaciAutomat(NacitajLexGramatiku(), _editor, _vyhladavac);
             _cmdLineEditor = new PrikazovyAutomat();
 
+            _navigovaciPrikaz = new NavigovaciPrikaz();
             _parametreVyberu = new ParametreVyberu();
-
             _parametreVypisu = new ParametreVypisu() 
             {
                 OkrajVlavo = 5,
@@ -119,6 +118,7 @@ namespace PisaciAutomat
                 _parametreVypisu.VyskaKonzoly = Console.BufferHeight;
             }
 
+            TypNavigacie? typNavigacie = null;
             if (_cmdMode)
             {
                 CommandLineMode();
@@ -158,12 +158,18 @@ namespace PisaciAutomat
 
                 Hlaska("Zmena rozmerov okna, prosim znova.");
             }
-            else if (_sipky.Contains(vstup.Key))
+            else if (Navigator.NavigovaciPrikaz(vstup, _navigovaciPrikaz))
             {
-                Naviguj(vstup.Key);
+                Navigator.Naviguj(_navigovaciPrikaz, _parametreVypisu, _editor.Riadky());
             }
             else if (vstup.Key == ConsoleKey.Backspace)
             {
+                _editor.ZmazText(_parametreVypisu);
+                MaZmenuVSubore = true;
+            }
+            else if (vstup.Key == ConsoleKey.Delete)
+            {
+                Kurzor.PosunKurzorDoprava(_parametreVypisu, _editor.Riadky());
                 _editor.ZmazText(_parametreVypisu);
                 MaZmenuVSubore = true;
             }
@@ -409,32 +415,6 @@ namespace PisaciAutomat
             return koniecNevybraty ||
                 (_parametreVyberu.KonecnyRiadok == zaciatocnyRiadok && _parametreVyberu.KonecnyStlpec > zaciatocnyStlpec) ||
                 (_parametreVyberu.KonecnyRiadok > zaciatocnyRiadok);
-        }
-
-        private void Naviguj(ConsoleKey key)
-        {
-            switch (key)
-            {
-                case ConsoleKey.LeftArrow:
-
-                    Kurzor.PosunKurzorDolava(_parametreVypisu, _editor.Riadky());
-                    break;
-
-                case ConsoleKey.RightArrow:
-
-                    Kurzor.PosunKurzorDoprava(_parametreVypisu, _editor.Riadky());
-                    break;
-
-                case ConsoleKey.UpArrow:
-
-                    Kurzor.PosunKurzorHore(_parametreVypisu, _editor.Riadky());
-                    break;
-
-                case ConsoleKey.DownArrow:
-
-                    Kurzor.PosunKurzorDole(_parametreVypisu, _editor.Riadky());
-                    break;
-            }
         }
 
         private LexGramatika NacitajLexGramatiku()
