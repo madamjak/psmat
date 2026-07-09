@@ -207,6 +207,8 @@ namespace PisaciAutomat
                     _editor.ZmazText(_parametreVyberu.ZaciatocnyStlpec.Value, _parametreVyberu.ZaciatocnyRiadok.Value,
                         _parametreVyberu.KonecnyStlpec.Value, _parametreVyberu.KonecnyRiadok.Value, _parametreVypisu);
 
+                    _parametreVyberu = new ParametreVyberu();
+
                     MaZmenuVSubore = true;
                 }
                 else if (vstup.Key == ConsoleKey.L && !string.IsNullOrEmpty(_skopirovanyText))
