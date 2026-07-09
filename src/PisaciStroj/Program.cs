@@ -138,7 +138,7 @@ namespace PisaciStroj
             {
                 var novyRiadok = new GapBuffer();
 
-                if (parametreVypisu.IndexStlpec < riadok.Length() - 1)
+                if (parametreVypisu.IndexStlpec < riadok.Length())
                 {
                     var text = riadok.Read(parametreVypisu.IndexStlpec);
 
@@ -291,7 +291,7 @@ namespace PisaciStroj
             else
             {
                 //mazanie riadkov a mozny join
-                sb.Append(_riadky[zaciatocnyRiadok].Read(zaciatocnyStlpec));
+                sb.AppendLine(_riadky[zaciatocnyRiadok].Read(zaciatocnyStlpec));
 
                 if (zmazPrecitany)
                 {
