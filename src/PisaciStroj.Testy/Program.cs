@@ -1,4 +1,5 @@
-﻿using PSMat.Testy.PrikazovyRiadok;
+﻿using PSMat.Testy.Pamat;
+using PSMat.Testy.PrikazovyRiadok;
 
 namespace PisaciStroj.Testy
 {
@@ -6,7 +7,10 @@ namespace PisaciStroj.Testy
     {
         static void Main(string[] args)
         {
-            var testy = new PrikazovyRiadokTesty();
+            //var testy = new PrikazovyRiadokTesty();
+            //testy.Spust();
+
+            var testy = new GapBufferTest();
             testy.Spust();
         }
     }

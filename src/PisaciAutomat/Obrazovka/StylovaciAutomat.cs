@@ -65,7 +65,7 @@ namespace PisaciAutomat.Obrazovka
         }
 
 
-        public static string SyntaxAndSearchHighligt(Dictionary<int, Token> tokens, GapBuffer riadok, int offset, int maxDlzka, Dictionary<int, VyhladaneSlovo> slova)
+        public static string SyntaxAndSearchHighligt(Dictionary<int, Token> tokens, GapBuffer riadok, int offset, int maxDlzka, Dictionary<int, VyhladaneSlovo> slova, VyhladaneSlovo? vyhladaneSlovo)
         {
             var sb = new StringBuilder();
             var index = offset;
@@ -74,6 +74,7 @@ namespace PisaciAutomat.Obrazovka
             var dlzkaSlova = 0;
             var dlzkaTokenu = 0;
             Token? lastToken = null;
+            bool extraZvyrazni = false;
 
             while (true)
             {
@@ -94,6 +95,7 @@ namespace PisaciAutomat.Obrazovka
                 if (dlzkaSlova == 0 && slova.TryGetValue(index, out s))
                 {
                     dlzkaSlova = s.Dlzka;
+                    extraZvyrazni = vyhladaneSlovo.HasValue && vyhladaneSlovo.Value.Pozicia == s.Pozicia;
                 }
 
                 Token t;
@@ -105,7 +107,7 @@ namespace PisaciAutomat.Obrazovka
 
                 if (dlzkaSlova > 0) 
                 { 
-                    sb.Append(StylSearchResult());
+                    sb.Append(extraZvyrazni ? StylSearchResultExtra() : StylSearchResult());
 
                     sb.Append(riadok.Read(index, 1));
 
@@ -157,6 +159,11 @@ namespace PisaciAutomat.Obrazovka
         private static string StylSearchResult()
         {
             return string.Format("\u001b[42;1m");
+        }
+
+        private static string StylSearchResultExtra()
+        {
+            return string.Format("\u001b[41;1m");
         }
 
         public static string AnsiReset()

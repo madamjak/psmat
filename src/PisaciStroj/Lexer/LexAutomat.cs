@@ -8,12 +8,10 @@ namespace PisaciStroj.Lexer
     {
         private SethiUllman _sethiUllman;
         private MultipleDfaSimulator _dfa;
-        private LexGramatika _gramatika;
 
         public LexAutomat(LexGramatika gramatika)
         {
             _sethiUllman = new SethiUllman();
-            _gramatika = gramatika;
             _dfa = BuildDfaAutomaton(gramatika);
         }
 
@@ -21,15 +19,18 @@ namespace PisaciStroj.Lexer
         {
             var result = new List<IDfaSimulator>();
 
-            foreach (var pravidlo in gramatika.Pravidla)
+            if(gramatika.Pravidla != null)
             {
-                result.Add(BuildDfaAutomatSimulator(pravidlo));
+                foreach (var pravidlo in gramatika.Pravidla)
+                {
+                    result.Add(BuildDfaAutomatSimulator(pravidlo));
+                }
             }
 
             return new MultipleDfaSimulator(result);
         }
 
-        protected virtual IDfaSimulator BuildDfaAutomatSimulator(LexPravidlo pravidlo)
+        private IDfaSimulator BuildDfaAutomatSimulator(LexPravidlo pravidlo)
         {
             return new DfaSimulator(_sethiUllman.BuildDfa(pravidlo));
         }

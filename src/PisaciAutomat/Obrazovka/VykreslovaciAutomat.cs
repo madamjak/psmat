@@ -42,14 +42,19 @@ namespace PisaciAutomat.Obrazovka
                 }
 
                 Dictionary<int, VyhladaneSlovo> vyhladaneSlova = new Dictionary<int, VyhladaneSlovo>();
+                VyhladaneSlovo? vSlovo = null;
                 if(search.VyhladavanyText != null)
                 {
                     vyhladaneSlova = _vyhladavac.VyhladajVsetky(_editor.Riadky()[i], search.VyhladavanyText);
                 }
+                if(search.VyhladaneSlovo.HasValue && search.VyhladaneSlovo.Value.Riadok == i)
+                {
+                    vSlovo = search.VyhladaneSlovo;
+                }
 
                 var t = _lexer.Lex(_editor.Riadky()[i]);
                 result.Riadky[riadokObrazovky] = string.Format("{0}  {1}", CislaRiadkov((i).ToString("D3")),
-                    StylovaciAutomat.SyntaxAndSearchHighligt(t, _editor.Riadky()[i], parametre.OffsetStlpec, parametre.Sirka, vyhladaneSlova));
+                    StylovaciAutomat.SyntaxAndSearchHighligt(t, _editor.Riadky()[i], parametre.OffsetStlpec, parametre.Sirka, vyhladaneSlova, vSlovo));
 
                 pocetRiadkov++;
                 riadokObrazovky++;

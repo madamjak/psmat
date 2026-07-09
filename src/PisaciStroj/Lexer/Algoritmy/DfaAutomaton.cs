@@ -95,7 +95,7 @@ namespace Lexer.Algoritmy
 
     public class MultipleDfaSimulator : IDfaSimulator
     {
-        public List<IDfaSimulator> _dfaSimulators;
+        private readonly List<IDfaSimulator> _dfaSimulators;
 
         public MultipleDfaSimulator(List<IDfaSimulator> dfaSimulators)
         {

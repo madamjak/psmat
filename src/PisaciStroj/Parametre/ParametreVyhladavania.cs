@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using PisaciStroj.Vyhladavanie;
 
 namespace PisaciStroj.Parametre
 {
-    public class ParametreVyhladavania
+    public struct ParametreVyhladavania
     {
         public string VyhladavanyText { get; set; }
+
+        public VyhladaneSlovo? VyhladaneSlovo { get; set; }
     }
 }

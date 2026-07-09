@@ -248,48 +248,71 @@ namespace PisaciAutomat
 
         private void CommandLineMode()
         {
-            //_cmdMode = true;
+            _cmdMode = true;
 
             var r = _cmdLineEditor.NacitajPrikaz();
 
             if (r.ZavriRiadok)
             {
                 _cmdMode = false;
+                _search.VyhladaneSlovo = null;
+                return;
             }
             else
             {
                 SpracujPrikaz(r.Prikaz);
+
+                if (_cmdMode)
+                {
+                    CommandLineMode();
+                }
             }
         }
 
         private void SpracujPrikaz(Prikaz prikaz)
         {
-            if(prikaz.VyhladavanyText != null)
+            if (prikaz.VyhladavanyText != null && prikaz.VyhladavanyText != _search.VyhladavanyText)
             {
                 _search.VyhladavanyText = prikaz.VyhladavanyText;
+                
+                _vyhladavac.NastavVyhladavaciAutomat(_search.VyhladavanyText);
             }
 
             if (prikaz.Typ == TypPrikazu.VyhladajReset)
             {
-                _search.VyhladavanyText = null;
+                _search = new ParametreVyhladavania();
+                _cmdMode = false;
             }
 
-            if(_search.VyhladavanyText != null)
+            if (prikaz.Typ == TypPrikazu.Vyhladaj)
             {
-                _vyhladavac.NastavVyhladavaciAutomat(_search.VyhladavanyText);
+                _search.VyhladaneSlovo = null;
+                _cmdMode = false;
             }
 
             if (prikaz.Typ == TypPrikazu.VyhladajDalsi)
             {
+                if (_search.VyhladaneSlovo.HasValue)
+                {
+                    Kurzor.PosunKurzorDoprava(_parametreVypisu, _editor.Riadky());
+                }
+
                 var s = _editor.Vyhladaj(prikaz.VyhladavanyText, _parametreVypisu);
                 if (s.HasValue)
                 {
+                    _search.VyhladaneSlovo = s.Value;
                     Kurzor.GoTo(s.Value.Riadok, s.Value.Pozicia, _parametreVypisu, _editor.Riadky());
-                };
+                }
+                
+                if(_search.VyhladaneSlovo.HasValue && !s.HasValue)
+                {
+                    Kurzor.PosunKurzorDolava(_parametreVypisu, _editor.Riadky());
+                }
             }
 
             if (prikaz.Typ == TypPrikazu.VyhladajNahrad)
             {
+                _search.VyhladaneSlovo = null;
                 if (_editor.VyhladajANahrad(prikaz.VyhladavanyText, prikaz.NovyText, _parametreVypisu)) 
                 {
                     MaZmenuVSubore = true;
@@ -298,10 +321,18 @@ namespace PisaciAutomat
 
             if (prikaz.Typ == TypPrikazu.VyhladajNahradVsetky)
             {
+                _search.VyhladaneSlovo = null;
+                _search.VyhladavanyText = null;
+                var aktualnyR = _parametreVypisu.IndexRiadok;
+                var aktualnyS = _parametreVypisu.IndexStlpec;
+                
                 if (_editor.VyhladajANahradVsetky(prikaz.VyhladavanyText, prikaz.NovyText, _parametreVypisu))
                 {
                     MaZmenuVSubore = true;
                 };
+
+                Kurzor.GoTo(aktualnyR, aktualnyS, _parametreVypisu, _editor.Riadky());
+                _cmdMode = false;
             }
 
             Prekresli();
@@ -324,6 +355,11 @@ namespace PisaciAutomat
         /// </summary>
         static bool IsPrintable(char c)
         {
+            if(c == '\t')
+            {
+                return true;
+            }
+
             // Exclude control characters
             if (char.IsControl(c))
                 return false;
@@ -403,21 +439,29 @@ namespace PisaciAutomat
 
         private LexGramatika NacitajLexGramatiku()
         {
-            var cesta = "Config/Lex/Jazyk.json";
-
-            LexGramatika gramatika;
-
-            using (var file = File.Open(cesta, FileMode.Open))
+            try
             {
-                using (var reader = new StreamReader(file))
+                var cesta = "Config/Lex/Jazyk.json";
+
+                LexGramatika gramatika;
+
+                using (var file = File.Open(cesta, FileMode.Open))
                 {
-                    var s = reader.ReadToEnd();
+                    using (var reader = new StreamReader(file))
+                    {
+                        var s = reader.ReadToEnd();
 
-                    gramatika = (LexGramatika)JsonConvert.DeserializeObject(s, typeof(LexGramatika));
+                        gramatika = (LexGramatika)JsonConvert.DeserializeObject(s, typeof(LexGramatika));
+                    }
                 }
-            }
 
-            return gramatika;
+                return gramatika;
+            }
+            catch(Exception ex)
+            {
+                return new LexGramatika();
+            }
+            
         }
 
         public void NacitajSuborAVykresli()
