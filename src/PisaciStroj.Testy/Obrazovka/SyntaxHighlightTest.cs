@@ -21,7 +21,8 @@ namespace PSMat.Testy.Obrazovka
                 parametreVykreslovania, 
                 SyntaxHighlightStubs.VysledkyVyhladavania(), 
                 SyntaxHighlightStubs.Tokeny(), 
-                SyntaxHighlightStubs.Riadky());
+                SyntaxHighlightStubs.Riadky(),
+                new PisaciStroj.Parametre.ParametreVyberu());
 
             var sb = new StringBuilder();
 

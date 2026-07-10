@@ -1,13 +1,13 @@
-﻿namespace PisaciStroj.Parametre
+﻿using PisaciStroj.Navigacia;
+
+namespace PisaciStroj.Parametre
 {
     public class ParametreVyberu
     {
-        public int? ZaciatocnyRiadok { get; set; }
+        public Pozicia? Zaciatok { get; set; }
 
-        public int? ZaciatocnyStlpec { get; set; }
+        public Pozicia? Koniec { get; set; }
 
-        public int? KonecnyRiadok { get; set; }
-
-        public int? KonecnyStlpec { get; set; }
+        public int? PocetZnakov { get; set; }
     }
 }

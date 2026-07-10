@@ -1,4 +1,5 @@
 ﻿using PisaciStroj.Lexer;
+using PisaciStroj.Navigacia;
 using PisaciStroj.Pamat;
 using PisaciStroj.Parametre;
 using PisaciStroj.Vyhladavanie;
@@ -24,14 +25,14 @@ namespace PisaciAutomat.Obrazovka
             _vyhladavac = vyhladavac;
         }
 
-        public EditorScreen Precitaj(ParametreVypisu parametre, ParametreVyhladavania search)
+        public EditorScreen Precitaj(ParametreVypisu parametre, ParametreVyhladavania search, ParametreVyberu parametreVyberu)
         {
             var lexResult = _lexer.Lex(_editor.Riadky());
 
-            return Precitaj2(parametre, search, lexResult, _editor.Riadky());
+            return Precitaj2(parametre, search, lexResult, _editor.Riadky(), parametreVyberu);
         }
 
-        public static EditorScreen Precitaj2(ParametreVypisu parametre, ParametreVyhladavania search, LexResult lexResult, List<GapBuffer> riadky)
+        public static EditorScreen Precitaj2(ParametreVypisu parametre, ParametreVyhladavania search, LexResult lexResult, List<GapBuffer> riadky, ParametreVyberu parametreVyberu)
         {
             var result = new EditorScreen(parametre.Sirka, parametre.Vyska)
             {
@@ -52,6 +53,7 @@ namespace PisaciAutomat.Obrazovka
                 VyhladaneSlovo? vSlovo = null;
                 Dictionary<int, Token> tokeny = null;
                 Dictionary<int, Zatvorka> zatvorky = null;
+                VyhladaneSlovo? zvyraznenyText = null;
 
                 if (search.VyhladaneSlova == null || !search.VyhladaneSlova.TryGetValue(i, out vyhladaneSlova)) 
                 {
@@ -75,11 +77,20 @@ namespace PisaciAutomat.Obrazovka
                 var poziciaKurzora = new Pozicia()
                 {
                     Riadok = parametre.IndexRiadok,
-                    Slpec = parametre.IndexStlpec
+                    Stlpec = parametre.IndexStlpec
                 };
 
+
+                if (Zvyraznovac.MaVybranyText(parametreVyberu))
+                {
+                    zvyraznenyText = Zvyraznovac.ZvyraznenyText(parametreVyberu, i, riadky[i].Length());
+                }
+
                 result.Riadky[riadokObrazovky] = string.Format("{0}  {1}", CislaRiadkov((i).ToString("D3")),
-                    StylovaciAutomat.SyntaxAndSearchHighligt2(riadky[i], parametre.OffsetStlpec, parametre.Sirka, vyhladaneSlova, vSlovo, tokeny, zatvorky, poziciaKurzora));
+                    StylovaciAutomat.SyntaxAndSearchHighligt2(riadky[i], 
+                    parametre.OffsetStlpec, parametre.Sirka, 
+                    vyhladaneSlova, vSlovo, tokeny, zatvorky, poziciaKurzora,
+                    zvyraznenyText));
 
                 pocetRiadkov++;
                 riadokObrazovky++;

@@ -2,7 +2,6 @@
 using PisaciStroj.Parametre;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace PisaciStroj.Navigacia
 {
@@ -36,8 +35,16 @@ namespace PisaciStroj.Navigacia
             ' ', '.', ',', ';', '-', '_', ')', '(', '[', ']', '{', '}', '+'
         };
 
-        public static void Naviguj(NavigovaciPrikaz prikaz, ParametreVypisu parametreVypisu, List<GapBuffer> riadky)
+        public static void Naviguj(NavigovaciPrikaz prikaz, ParametreVypisu parametreVypisu, List<GapBuffer> riadky, ParametreVyberu parametreVyberu)
         {
+            var posPred = new Pozicia();
+            var posPo = new Pozicia();
+            if (prikaz.Vyber)
+            {
+                posPred.Riadok = parametreVypisu.IndexRiadok;
+                posPred.Stlpec = parametreVypisu.IndexStlpec;
+            }
+
             switch (prikaz.Typ)
             {
                 case TypNavigacie.Dolava:
@@ -165,15 +172,25 @@ namespace PisaciStroj.Navigacia
                     Kurzor.GoTo(predIndexRiadku, predIndexStlpca, parametreVypisu, riadky);
                     break;
             }
+
+            if (prikaz.Vyber)
+            {
+                posPo.Riadok = parametreVypisu.IndexRiadok;
+                posPo.Stlpec = parametreVypisu.IndexStlpec;
+
+                Zvyraznovac.UpravVyber(posPred, posPo, parametreVyberu);
+            }
         }
 
         public static bool NavigovaciPrikaz(ConsoleKeyInfo vstup, NavigovaciPrikaz prikaz)
         {
-            if(vstup.Key == ConsoleKey.LeftArrow)
+            prikaz.Vyber = (vstup.Modifiers & ConsoleModifiers.Shift) != 0;
+
+            if (vstup.Key == ConsoleKey.LeftArrow)
             {
                 prikaz.Typ = TypNavigacie.Dolava;
 
-                if ((vstup.Modifiers & ConsoleModifiers.Control) == ConsoleModifiers.Control)
+                if ((vstup.Modifiers & ConsoleModifiers.Control) != 0)
                 {
                     prikaz.Typ = TypNavigacie.SlovoDolava;
                 }
@@ -184,7 +201,7 @@ namespace PisaciStroj.Navigacia
             {
                 prikaz.Typ = TypNavigacie.Doprava;
 
-                if ((vstup.Modifiers & ConsoleModifiers.Control) == ConsoleModifiers.Control)
+                if ((vstup.Modifiers & ConsoleModifiers.Control) != 0)
                 {
                     prikaz.Typ = TypNavigacie.SlovoDoprava;
                 }
@@ -205,7 +222,7 @@ namespace PisaciStroj.Navigacia
             {
                 prikaz.Typ = TypNavigacie.ZaciatokRiadku;
 
-                if ((vstup.Modifiers & ConsoleModifiers.Control) == ConsoleModifiers.Control)
+                if ((vstup.Modifiers & ConsoleModifiers.Control) != 0)
                 {
                     prikaz.Typ = TypNavigacie.ZaciatokTextu;
                 }
@@ -215,7 +232,7 @@ namespace PisaciStroj.Navigacia
             {
                 prikaz.Typ = TypNavigacie.KonecRiadku;
 
-                if ((vstup.Modifiers & ConsoleModifiers.Control) == ConsoleModifiers.Control)
+                if ((vstup.Modifiers & ConsoleModifiers.Control) != 0)
                 {
                     prikaz.Typ = TypNavigacie.KoniecTextu;
                 }

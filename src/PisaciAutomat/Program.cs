@@ -84,16 +84,13 @@ namespace PisaciAutomat
 
         public void Prekresli()
         {
-            var screen = _vykreslovaciAutomat.Precitaj(_parametreVypisu, _search);
+            var screen = _vykreslovaciAutomat.Precitaj(_parametreVypisu, _search, _parametreVyberu);
 
             var kurzor = string.Format("Riadok: {0} Stlpec: {1}",
                 _parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec);
 
-            var vyberTextu = string.Format("ZR: {0} ZS: {1} KR: {2} KS: {3}",
-                _parametreVyberu.ZaciatocnyRiadok.HasValue ? _parametreVyberu.ZaciatocnyRiadok.ToString() : "-",
-                _parametreVyberu.ZaciatocnyStlpec.HasValue ? _parametreVyberu.ZaciatocnyStlpec.ToString() : "-",
-                _parametreVyberu.KonecnyRiadok.HasValue ? _parametreVyberu.KonecnyRiadok.ToString() : "-",
-                _parametreVyberu.KonecnyStlpec.HasValue ? _parametreVyberu.KonecnyStlpec.ToString() : "-");
+            var vyberTextu = string.Format("Vyber: {0}",
+                _parametreVyberu.PocetZnakov.HasValue ? _parametreVyberu.PocetZnakov.ToString() : "-");
 
             var subor = string.Format("{0}{1}", _cestaKSuboru, MaZmenuVSubore ? "*" : "");
 
@@ -159,7 +156,12 @@ namespace PisaciAutomat
             }
             else if (Navigator.NavigovaciPrikaz(vstup, _navigovaciPrikaz))
             {
-                Navigator.Naviguj(_navigovaciPrikaz, _parametreVypisu, _editor.Riadky());
+                if (!_navigovaciPrikaz.Vyber)
+                {
+                    _parametreVyberu = new ParametreVyberu();
+                }
+
+                Navigator.Naviguj(_navigovaciPrikaz, _parametreVypisu, _editor.Riadky(), _parametreVyberu);
             }
             else if (vstup.Key == ConsoleKey.Backspace)
             {
@@ -187,40 +189,39 @@ namespace PisaciAutomat
                 {
                     _editor.ZopakujPoslednuOperaciu(_parametreVypisu);
                 }
-                else if (vstup.Key == ConsoleKey.O && SpravneKoniecTextu())
-                {
-                    _parametreVyberu.ZaciatocnyRiadok = _parametreVypisu.IndexRiadok;
-                    _parametreVyberu.ZaciatocnyStlpec = _parametreVypisu.IndexStlpec;
-                }
-                else if (vstup.Key == ConsoleKey.P && SpravneZaciatokTextu())
-                {
-                    _parametreVyberu.KonecnyRiadok = _parametreVypisu.IndexRiadok;
-                    _parametreVyberu.KonecnyStlpec = _parametreVypisu.IndexStlpec;
-                }
-                else if (vstup.Key == ConsoleKey.K && MaVybranyText())
+                else if (vstup.Key == ConsoleKey.K && Zvyraznovac.MaVybranyText(_parametreVyberu))
                 {
                     _skopirovanyText = _editor.PrecitajText(
-                        _parametreVyberu.ZaciatocnyRiadok.Value, _parametreVyberu.ZaciatocnyStlpec.Value,
-                        _parametreVyberu.KonecnyRiadok.Value, _parametreVyberu.KonecnyStlpec.Value);
-                }
-                else if (vstup.Key == ConsoleKey.M && MaVybranyText())
-                {
-                    _skopirovanyText = _editor.PrecitajText(
-                        _parametreVyberu.ZaciatocnyRiadok.Value, _parametreVyberu.ZaciatocnyStlpec.Value,
-                        _parametreVyberu.KonecnyRiadok.Value, _parametreVyberu.KonecnyStlpec.Value);
+                        _parametreVyberu.Zaciatok.Value.Riadok, _parametreVyberu.Zaciatok.Value.Stlpec,
+                        _parametreVyberu.Koniec.Value.Riadok, _parametreVyberu.Koniec.Value.Stlpec);
 
-                    _editor.ZmazText(_parametreVyberu.ZaciatocnyStlpec.Value, _parametreVyberu.ZaciatocnyRiadok.Value,
-                        _parametreVyberu.KonecnyStlpec.Value, _parametreVyberu.KonecnyRiadok.Value, _parametreVypisu);
+                    Clipboard.Clipboard.SkopirujDoClipboardu(_skopirovanyText);
+                }
+                else if (vstup.Key == ConsoleKey.M && Zvyraznovac.MaVybranyText(_parametreVyberu))
+                {
+                    _skopirovanyText = _editor.PrecitajText(
+                        _parametreVyberu.Zaciatok.Value.Riadok, _parametreVyberu.Zaciatok.Value.Stlpec,
+                        _parametreVyberu.Koniec.Value.Riadok, _parametreVyberu.Koniec.Value.Stlpec);
+
+                    Clipboard.Clipboard.SkopirujDoClipboardu(_skopirovanyText);
+
+                    _editor.ZmazText(_parametreVyberu.Zaciatok.Value.Stlpec, _parametreVyberu.Zaciatok.Value.Riadok,
+                        _parametreVyberu.Koniec.Value.Stlpec, _parametreVyberu.Koniec.Value.Riadok, _parametreVypisu);
 
                     _parametreVyberu = new ParametreVyberu();
 
                     MaZmenuVSubore = true;
                 }
-                else if (vstup.Key == ConsoleKey.L && !string.IsNullOrEmpty(_skopirovanyText))
+                else if (vstup.Key == ConsoleKey.L)
                 {
-                    _editor.NapisText(_skopirovanyText, _parametreVypisu);
-                    _parametreVyberu = new ParametreVyberu();
-                    MaZmenuVSubore = true;
+                    _skopirovanyText = Clipboard.Clipboard.PreciajZClipboardu();
+
+                    if (!string.IsNullOrEmpty(_skopirovanyText))
+                    {
+                        _editor.NapisText(_skopirovanyText, _parametreVypisu);
+                        _parametreVyberu = new ParametreVyberu();
+                        MaZmenuVSubore = true;
+                    }
                 }
                 else if (vstup.Key == ConsoleKey.H && MaZmenuVSubore)
                 {
@@ -386,36 +387,6 @@ namespace PisaciAutomat
                 default:
                     return true;
             }
-        }
-
-        private bool MaVybranyText()
-        {
-            return _parametreVyberu.ZaciatocnyRiadok.HasValue && _parametreVyberu.ZaciatocnyStlpec.HasValue
-                && _parametreVyberu.KonecnyRiadok.HasValue && _parametreVyberu.KonecnyStlpec.HasValue;
-        }
-
-        private bool SpravneZaciatokTextu()
-        {
-            var konecnyRiadok = _parametreVypisu.IndexRiadok;
-            var konecnyStlpec = _parametreVypisu.IndexStlpec;
-
-            var zaciatokNevybraty = !(_parametreVyberu.ZaciatocnyRiadok.HasValue && _parametreVyberu.ZaciatocnyStlpec.HasValue);
-
-            return zaciatokNevybraty ||
-                (_parametreVyberu.ZaciatocnyRiadok == konecnyRiadok && _parametreVyberu.ZaciatocnyStlpec < konecnyStlpec) ||
-                (_parametreVyberu.ZaciatocnyRiadok < konecnyRiadok);
-        }
-
-        private bool SpravneKoniecTextu()
-        {
-            var zaciatocnyRiadok = _parametreVypisu.IndexRiadok;
-            var zaciatocnyStlpec = _parametreVypisu.IndexStlpec;
-
-            var koniecNevybraty = !(_parametreVyberu.KonecnyRiadok.HasValue && _parametreVyberu.KonecnyStlpec.HasValue);
-
-            return koniecNevybraty ||
-                (_parametreVyberu.KonecnyRiadok == zaciatocnyRiadok && _parametreVyberu.KonecnyStlpec > zaciatocnyStlpec) ||
-                (_parametreVyberu.KonecnyRiadok > zaciatocnyRiadok);
         }
 
         private LexGramatika NacitajLexGramatiku()
