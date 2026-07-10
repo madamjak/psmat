@@ -54,6 +54,9 @@ namespace PisaciAutomat
         private ParametreVyberu _parametreVyberu;
         private string _skopirovanyText;
 
+        //formatovanie
+        private ParametreZapisu _parametreZapisu;
+
         private string _hlaska;
         private string _chyba;
         private TypDialogu? _dialog;
@@ -78,13 +81,14 @@ namespace PisaciAutomat
                 OkrajHore = 2,
                 OkrajDole = 2
             };
+            _parametreZapisu = new ParametreZapisu();
 
             _search = new ParametreVyhladavania();
         }
 
         public void Prekresli()
         {
-            var screen = _vykreslovaciAutomat.Precitaj(_parametreVypisu, _search, _parametreVyberu);
+            var screen = _vykreslovaciAutomat.Precitaj(_parametreVypisu, _search, _parametreVyberu, _parametreZapisu);
 
             var kurzor = string.Format("Riadok: {0} Stlpec: {1}",
                 _parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec);
@@ -176,7 +180,7 @@ namespace PisaciAutomat
             }
             else if (vstup.Key == ConsoleKey.Enter)
             {
-                _editor.NapisText(Environment.NewLine, _parametreVypisu);
+                _editor.NapisText(Environment.NewLine, _parametreVypisu, _parametreZapisu);
                 MaZmenuVSubore = true;
             }
             else if ((vstup.Modifiers & ConsoleModifiers.Control) == ConsoleModifiers.Control)

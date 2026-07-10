@@ -41,7 +41,8 @@ namespace PSMat.Testy.Lexer
                 SyntaxHighlightStubs.VysledkyVyhladavania(),
                 r,
                 text,
-                new PisaciStroj.Parametre.ParametreVyberu());
+                new PisaciStroj.Parametre.ParametreVyberu(),
+                new PisaciStroj.Parametre.ParametreZapisu());
 
             var sb = new StringBuilder();
 

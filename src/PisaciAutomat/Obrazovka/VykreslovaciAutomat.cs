@@ -25,14 +25,14 @@ namespace PisaciAutomat.Obrazovka
             _vyhladavac = vyhladavac;
         }
 
-        public EditorScreen Precitaj(ParametreVypisu parametre, ParametreVyhladavania search, ParametreVyberu parametreVyberu)
+        public EditorScreen Precitaj(ParametreVypisu parametre, ParametreVyhladavania search, ParametreVyberu parametreVyberu, ParametreZapisu parametreZapisu)
         {
             var lexResult = _lexer.Lex(_editor.Riadky());
 
-            return Precitaj2(parametre, search, lexResult, _editor.Riadky(), parametreVyberu);
+            return Precitaj2(parametre, search, lexResult, _editor.Riadky(), parametreVyberu, parametreZapisu);
         }
 
-        public static EditorScreen Precitaj2(ParametreVypisu parametre, ParametreVyhladavania search, LexResult lexResult, List<GapBuffer> riadky, ParametreVyberu parametreVyberu)
+        public static EditorScreen Precitaj2(ParametreVypisu parametre, ParametreVyhladavania search, LexResult lexResult, List<GapBuffer> riadky, ParametreVyberu parametreVyberu, ParametreZapisu parametreZapisu)
         {
             var result = new EditorScreen(parametre.Sirka, parametre.Vyska)
             {
@@ -91,6 +91,11 @@ namespace PisaciAutomat.Obrazovka
                     parametre.OffsetStlpec, parametre.Sirka, 
                     vyhladaneSlova, vSlovo, tokeny, zatvorky, poziciaKurzora,
                     zvyraznenyText));
+
+                if(parametre.IndexRiadok == i)
+                {
+                    Indentation.NastavOkraj(parametreZapisu, riadky[i]);
+                }
 
                 pocetRiadkov++;
                 riadokObrazovky++;
