@@ -213,9 +213,9 @@ namespace PisaciStroj.Pamat
 
         public string Read(int index, int length)
         {
-            if(length > _length)
+            if(index + length > _length)
             {
-                length = _length;
+                length = _length - index;
             }
 
             var a = new char[length];

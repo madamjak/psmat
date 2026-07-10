@@ -10,4 +10,10 @@
     <ProjectReference Include="..\PisaciStroj\PisaciStroj.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Lexer\Config\CSharp.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
