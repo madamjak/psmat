@@ -1,4 +1,5 @@
 ﻿using Lexer.Algoritmy;
+using PisaciStroj.Lexer.Algoritmy;
 using PisaciStroj.Pamat;
 using System.Collections.Generic;
 
@@ -9,10 +10,18 @@ namespace PisaciStroj.Lexer
         private SethiUllman _sethiUllman;
         private MultipleDfaSimulator _dfa;
 
+        private string _komentar;
+        private string _zaciatokKomentara;
+        private string _koniecKomentara;
+
         public LexAutomat(LexGramatika gramatika)
         {
             _sethiUllman = new SethiUllman();
             _dfa = BuildDfaAutomaton(gramatika);
+
+            _komentar = gramatika.JednoriadkovyKomentar;
+            _zaciatokKomentara = gramatika.ZaciatokKomentara;
+            _koniecKomentara = gramatika.KoniecKomentara;
         }
 
         private MultipleDfaSimulator BuildDfaAutomaton(LexGramatika gramatika)
@@ -133,6 +142,201 @@ namespace PisaciStroj.Lexer
             };
 
             return token;
+        }
+
+        public LexResult Lex(List<GapBuffer> text)
+        {
+            var bmAlgo = new StackBracketMatching();
+            var zatvorky = bmAlgo.GetMatchingBrackets(text);
+
+            var result = new Dictionary<int, Dictionary<int, Token>>();
+            
+            var riadok = 0;
+            
+            var jeKomentar = false;
+            Token komentar = new Token();
+
+            var jeRetazec = false;
+            Token retazec = new Token();
+            
+            foreach(var r in text)
+            {
+                var poziciaHlavy = 0;
+                var rowResult = new Dictionary<int, Token>();
+                while (true)
+                {
+                    if (poziciaHlavy == r.Length())
+                    {
+                        if (jeKomentar)
+                        {
+                            rowResult.Add(komentar.Pozicia, new Token() 
+                            {
+                                Typ = TypTokenu.Komentar,
+                                Pozicia = komentar.Pozicia,
+                                Dlzka = komentar.Dlzka
+                            });
+
+                            komentar.Pozicia = 0;
+                            komentar.Dlzka = 0;
+                        }
+
+                        if (jeRetazec)
+                        {
+                            rowResult.Add(retazec.Pozicia, new Token()
+                            {
+                                Typ = TypTokenu.Retazec,
+                                Pozicia = retazec.Pozicia,
+                                Dlzka = retazec.Dlzka
+                            });
+
+                            retazec.Pozicia = 0;
+                            retazec.Dlzka = 0;
+                            jeRetazec = false;
+                        }
+
+                        break;
+                    }
+
+                    if (jeKomentar)
+                    {
+                        var koniecKomentara = r.Read(poziciaHlavy, _koniecKomentara.Length);
+                        if(!(koniecKomentara == _koniecKomentara))
+                        {
+                            poziciaHlavy++;
+                            komentar.Dlzka++;
+                            continue;
+                        }
+                        else
+                        {
+                            rowResult.Add(komentar.Pozicia, new Token()
+                            {
+                                Typ = TypTokenu.Komentar,
+                                Pozicia = komentar.Pozicia,
+                                Dlzka = poziciaHlavy + _koniecKomentara.Length
+                            });
+
+                            jeKomentar = false;
+                            poziciaHlavy += koniecKomentara.Length;
+                            continue;
+                        }
+                        
+                    }
+                    else
+                    {
+                        if (!jeRetazec)
+                        {
+                            var jednoRiadkovyKomentar = r.Read(poziciaHlavy, _komentar.Length);
+                            if(jednoRiadkovyKomentar == _komentar)
+                            {
+                                rowResult.Add(poziciaHlavy, new Token()
+                                {
+                                    Typ = TypTokenu.Komentar,
+                                    Pozicia = poziciaHlavy,
+                                    Dlzka = r.Length() - poziciaHlavy
+                                });
+
+                                jeKomentar = false;
+                                break;
+                            }
+
+                            var zaciatokKomentara = r.Read(poziciaHlavy, _zaciatokKomentara.Length);
+                            if(zaciatokKomentara == _zaciatokKomentara)
+                            {
+                                jeKomentar = true;
+                                komentar.Pozicia = poziciaHlavy;
+                                komentar.Dlzka = 1;
+                                poziciaHlavy++;
+                                continue;
+                            }
+                        }
+                    }
+
+                    if (!jeRetazec)
+                    {
+                        if(r.CharAt(poziciaHlavy) == '"' || r.CharAt(poziciaHlavy) == '\'')
+                        {
+                            jeRetazec = true;
+                            retazec = new Token()
+                            {
+                                Pozicia = poziciaHlavy,
+                                Dlzka = 1
+                            };
+                            poziciaHlavy++;
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        if(poziciaHlavy < r.Length() - 1 && r.CharAt(poziciaHlavy) != '\\'
+                            && (r.CharAt(poziciaHlavy + 1) == '"' || r.CharAt(poziciaHlavy + 1) == '\'')) 
+                        {
+                            rowResult.Add(retazec.Pozicia, new Token()
+                            {
+                                Typ = TypTokenu.Retazec,
+                                Pozicia = retazec.Pozicia,
+                                Dlzka = retazec.Dlzka + 2
+                            });
+                            jeRetazec = false;
+
+                            poziciaHlavy += 2;
+                            continue;
+                        }
+                        else
+                        {
+                            retazec.Dlzka++;
+                            poziciaHlavy++;
+
+                            continue;
+                        }
+                    }
+
+                    if (zatvorky[riadok].ContainsKey(poziciaHlavy))
+                    {
+                        poziciaHlavy++;
+                        continue;
+                    }
+
+                    if (JeBielyZnak(r.CharAt(poziciaHlavy)))
+                    {
+                        poziciaHlavy++;
+
+                        continue;
+                    }
+
+                    if (_dfa.ReadSymbol(r.CharAt(poziciaHlavy)))
+                    {
+                        var token = VratNasledujuciToken(r, ref poziciaHlavy);
+
+                        rowResult.Add(token.Pozicia, token);
+                    }
+                    else
+                    {
+                        //result.Add(poziciaHlavy, new Token()
+                        //{
+                        //    Typ = TypTokenu.Chyba,
+                        //    Pozicia = poziciaHlavy,
+                        //    Dlzka = 1
+                        //});
+
+                        _dfa.Reset();
+
+                        poziciaHlavy++;
+
+                        continue;
+                    }
+                }
+
+                result.Add(riadok, rowResult);
+                riadok++;
+            }
+
+            var lr = new LexResult()
+            {
+                Tokeny = result,
+                Zatvorky = zatvorky
+            };
+
+            return lr;
         }
     }
 }

@@ -118,7 +118,6 @@ namespace PisaciAutomat
                 _parametreVypisu.VyskaKonzoly = Console.BufferHeight;
             }
 
-            TypNavigacie? typNavigacie = null;
             if (_cmdMode)
             {
                 CommandLineMode();
@@ -282,6 +281,8 @@ namespace PisaciAutomat
                 _search.VyhladavanyText = prikaz.VyhladavanyText;
                 
                 _vyhladavac.NastavVyhladavaciAutomat(_search.VyhladavanyText);
+
+                _search.VyhladaneSlova = _vyhladavac.VyhladajVsetky(_parametreVypisu, _editor.Riadky(), prikaz.VyhladavanyText);
             }
 
             if (prikaz.Typ == TypPrikazu.VyhladajReset)

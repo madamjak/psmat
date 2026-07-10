@@ -1,5 +1,6 @@
 ﻿using Lexer.Algoritmy;
 using PisaciStroj.Pamat;
+using PisaciStroj.Parametre;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -22,6 +23,8 @@ namespace PisaciStroj.Vyhladavanie
         VyhladaneSlovo? VyhladajNasledujuciRegex(GapBuffer text, int pozicia, string regex);
 
         Dictionary<int, VyhladaneSlovo> VyhladajVsetky(GapBuffer text, string vyhladavanyText);
+
+        Dictionary<int, Dictionary<int, VyhladaneSlovo>> VyhladajVsetky(ParametreVypisu parametre, List<GapBuffer> text, string vyhladavanyText);
 
         Dictionary<int, VyhladaneSlovo> VyhladajVsetkyRegex(GapBuffer text, string regex);
 
@@ -172,6 +175,27 @@ namespace PisaciStroj.Vyhladavanie
             sb.Append('\0');
 
             return sb.ToString();
+        }
+
+        public Dictionary<int, Dictionary<int, VyhladaneSlovo>> VyhladajVsetky(ParametreVypisu parametre, List<GapBuffer> text, string vyhladavanyText)
+        {
+            var pocetRiadkov = 0;
+
+            var result = new Dictionary<int, Dictionary<int, VyhladaneSlovo>>();
+            for (int i = parametre.OffsetRiadok; i < text.Count; i++)
+            {
+                if (pocetRiadkov == parametre.Vyska)
+                {
+                    break;
+                }
+
+                var vyhladaneSlova = VyhladajVsetky(text[i], vyhladavanyText);
+
+                result.Add(i, vyhladaneSlova);
+                pocetRiadkov++;
+            }
+
+            return result;
         }
     }
 }

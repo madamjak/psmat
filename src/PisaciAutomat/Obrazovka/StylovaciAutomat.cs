@@ -156,6 +156,118 @@ namespace PisaciAutomat.Obrazovka
             return sb.ToString();
         }
 
+        internal static string SyntaxAndSearchHighligt2(GapBuffer riadok, int offset, int maxDlzka, Dictionary<int, VyhladaneSlovo> slova, VyhladaneSlovo? vyhladaneSlovo, Dictionary<int, Token> tokeny, Dictionary<int, Zatvorka> zatvorky, Pozicia poziciaKurzora)
+        {
+            var sb = new StringBuilder();
+            var index = offset;
+            var dlzka = 0;
+
+            var dlzkaSlova = 0;
+            var dlzkaTokenu = 0;
+            Token? lastToken = null;
+            bool extraZvyrazni = false;
+            bool zvyrazniZatvorku = false;
+
+            while (true)
+            {
+                var precitalSlovo = false;
+                var precitalToken = false;
+                var precitalZatvorku = false;
+
+                if (index >= riadok.Length())
+                {
+                    break;
+                }
+
+                if (dlzka == maxDlzka)
+                {
+                    break;
+                }
+
+                VyhladaneSlovo s;
+                if (dlzkaSlova == 0 && slova.TryGetValue(index, out s))
+                {
+                    dlzkaSlova = s.Dlzka;
+                    extraZvyrazni = vyhladaneSlovo.HasValue && vyhladaneSlovo.Value.Pozicia == s.Pozicia;
+                }
+
+                Token t;
+                if (dlzkaTokenu == 0 && tokeny.TryGetValue(index, out t))
+                {
+                    dlzkaTokenu = t.Dlzka;
+                    lastToken = t;
+                }
+
+                Zatvorka z;
+                if(zatvorky.TryGetValue(index, out z))
+                {
+                    precitalZatvorku = true;
+                    zvyrazniZatvorku = (poziciaKurzora.Riadok == z.Start.Riadok && poziciaKurzora.Slpec == z.Start.Slpec)
+                        || (poziciaKurzora.Riadok == z.End.Riadok && poziciaKurzora.Slpec == z.End.Slpec);
+                }
+
+                if (dlzkaSlova > 0)
+                {
+                    sb.Append(extraZvyrazni ? StylSearchResultExtra() : StylSearchResult());
+
+                    sb.Append(riadok.Read(index, 1));
+
+                    if (dlzkaTokenu == 0)
+                    {
+                        sb.Append(AnsiReset());
+                    }
+
+                    dlzkaSlova--;
+                    precitalSlovo = true;
+                }
+
+                if (dlzkaTokenu > 0)
+                {
+                    var styl = VyberStyl(lastToken.Value.Typ);
+                    if (styl != StylTextu.Standard)
+                    {
+                        sb.Append(AnsiStyl(styl));
+                    }
+
+                    if (precitalSlovo)
+                    {
+                        sb.Append("\b");
+                    }
+
+                    sb.Append(riadok.Read(index, 1));
+
+                    if (styl != StylTextu.Standard || precitalSlovo)
+                    {
+                        sb.Append(AnsiReset());
+                    }
+
+                    dlzkaTokenu--;
+                    precitalToken = true;
+                }
+
+                if(!precitalToken && precitalZatvorku)
+                {
+                    sb.Append(AnsiStyl(StylTextu.RedBold));
+                    if (zvyrazniZatvorku)
+                    {
+                        sb.Append(StylZatvorky());
+                    }
+                    sb.Append(riadok.Read(index, 1));
+                    sb.Append(AnsiReset());
+                }
+
+                if (!precitalSlovo && !precitalToken && !precitalZatvorku)
+                {
+                    sb.Append(riadok.Read(index, 1));
+                }
+
+                index += 1;
+                dlzka += 1;
+            }
+
+            return sb.ToString();
+        }
+
         private static string StylSearchResult()
         {
             return string.Format("\u001b[42;1m");
@@ -164,6 +276,11 @@ namespace PisaciAutomat.Obrazovka
         private static string StylSearchResultExtra()
         {
             return string.Format("\u001b[41;1m");
+        }
+
+        private static string StylZatvorky()
+        {
+            return string.Format("\u001b[48;5;250m");
         }
 
         public static string AnsiReset()

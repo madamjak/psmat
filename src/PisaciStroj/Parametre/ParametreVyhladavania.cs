@@ -1,4 +1,5 @@
 ﻿using PisaciStroj.Vyhladavanie;
+using System.Collections.Generic;
 
 namespace PisaciStroj.Parametre
 {
@@ -7,5 +8,7 @@ namespace PisaciStroj.Parametre
         public string VyhladavanyText { get; set; }
 
         public VyhladaneSlovo? VyhladaneSlovo { get; set; }
+
+        public Dictionary<int, Dictionary<int, VyhladaneSlovo>> VyhladaneSlova { get; set; }
     }
 }
