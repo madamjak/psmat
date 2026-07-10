@@ -1,4 +1,5 @@
 ﻿using PisaciStroj.Lexer;
+using PisaciStroj.Navigacia;
 using PisaciStroj.Pamat;
 using PisaciStroj.Vyhladavanie;
 using System;
@@ -156,7 +157,15 @@ namespace PisaciAutomat.Obrazovka
             return sb.ToString();
         }
 
-        internal static string SyntaxAndSearchHighligt2(GapBuffer riadok, int offset, int maxDlzka, Dictionary<int, VyhladaneSlovo> slova, VyhladaneSlovo? vyhladaneSlovo, Dictionary<int, Token> tokeny, Dictionary<int, Zatvorka> zatvorky, Pozicia poziciaKurzora)
+        internal static string SyntaxAndSearchHighligt2(GapBuffer riadok, 
+            int offset, 
+            int maxDlzka, 
+            Dictionary<int, VyhladaneSlovo> slova, 
+            VyhladaneSlovo? vyhladaneSlovo, 
+            Dictionary<int, Token> tokeny, 
+            Dictionary<int, Zatvorka> zatvorky, 
+            Pozicia poziciaKurzora,
+            VyhladaneSlovo? zvyraznenyText)
         {
             var sb = new StringBuilder();
             var index = offset;
@@ -167,6 +176,8 @@ namespace PisaciAutomat.Obrazovka
             Token? lastToken = null;
             bool extraZvyrazni = false;
             bool zvyrazniZatvorku = false;
+            
+            var dlzkaZvyraznenehoTextu = 0;
 
             while (true)
             {
@@ -202,8 +213,13 @@ namespace PisaciAutomat.Obrazovka
                 if(zatvorky.TryGetValue(index, out z))
                 {
                     precitalZatvorku = true;
-                    zvyrazniZatvorku = (poziciaKurzora.Riadok == z.Start.Riadok && poziciaKurzora.Slpec == z.Start.Slpec)
-                        || (poziciaKurzora.Riadok == z.End.Riadok && poziciaKurzora.Slpec == z.End.Slpec);
+                    zvyrazniZatvorku = (poziciaKurzora.Riadok == z.Start.Riadok && poziciaKurzora.Stlpec == z.Start.Stlpec)
+                        || (poziciaKurzora.Riadok == z.End.Riadok && poziciaKurzora.Stlpec == z.End.Stlpec);
+                }
+
+                if (zvyraznenyText.HasValue && zvyraznenyText.Value.Pozicia == index)
+                {
+                    dlzkaZvyraznenehoTextu = zvyraznenyText.Value.Dlzka;
                 }
 
                 if (dlzkaSlova > 0)
@@ -255,10 +271,19 @@ namespace PisaciAutomat.Obrazovka
                     sb.Append(riadok.Read(index, 1));
                     sb.Append(AnsiReset());
                 }
-
+                
                 if (!precitalSlovo && !precitalToken && !precitalZatvorku)
                 {
                     sb.Append(riadok.Read(index, 1));
+                }
+
+                if (dlzkaZvyraznenehoTextu > 0)
+                {
+                    sb.Append(StylVyberuTextu());
+                    sb.Append("\b");
+                    sb.Append(riadok.Read(index, 1));
+                    sb.Append(AnsiReset());
+                    dlzkaZvyraznenehoTextu--;
                 }
 
                 index += 1;
@@ -281,6 +306,11 @@ namespace PisaciAutomat.Obrazovka
         private static string StylZatvorky()
         {
             return string.Format("\u001b[48;5;250m");
+        }
+
+        private static string StylVyberuTextu()
+        {
+            return string.Format("\u001b[1;37;44m");
         }
 
         public static string AnsiReset()

@@ -1,4 +1,5 @@
-﻿using PisaciStroj.Pamat;
+﻿using PisaciStroj.Navigacia;
+using PisaciStroj.Pamat;
 using System.Collections.Generic;
 
 namespace PisaciStroj.Lexer
@@ -45,13 +46,6 @@ namespace PisaciStroj.Lexer
         public int Dlzka { get; set; }
 
         public int Pozicia { get; set; }
-    }
-
-    public struct Pozicia
-    {
-        public int Riadok { get; set; }
-
-        public int Slpec { get; set; }
     }
 
     public struct Zatvorka

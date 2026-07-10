@@ -1,6 +1,6 @@
-﻿using PisaciStroj.Pamat;
+﻿using PisaciStroj.Navigacia;
+using PisaciStroj.Pamat;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace PisaciStroj.Lexer.Algoritmy
 {
@@ -37,7 +37,7 @@ namespace PisaciStroj.Lexer.Algoritmy
                         _stack1.Push(new Pozicia() 
                         {
                             Riadok = i,
-                            Slpec = index
+                            Stlpec = index
                         });
                     }
                     if (riadok.CharAt(index) == '{')
@@ -45,7 +45,7 @@ namespace PisaciStroj.Lexer.Algoritmy
                         _stack2.Push(new Pozicia()
                         {
                             Riadok = i,
-                            Slpec = index
+                            Stlpec = index
                         });
                     }
                     if (riadok.CharAt(index) == '[')
@@ -53,7 +53,7 @@ namespace PisaciStroj.Lexer.Algoritmy
                         _stack3.Push(new Pozicia()
                         {
                             Riadok = i,
-                            Slpec = index
+                            Stlpec = index
                         });
                     }
 
@@ -65,12 +65,12 @@ namespace PisaciStroj.Lexer.Algoritmy
                             End = new Pozicia()
                             {
                                 Riadok = i,
-                                Slpec = index
+                                Stlpec = index
                             }
                         };
 
                         rowResult.Add(index, z);
-                        result[z.Start.Riadok].Add(z.Start.Slpec, z);
+                        result[z.Start.Riadok].Add(z.Start.Stlpec, z);
                     }
 
                     if (riadok.CharAt(index) == '}' && _stack2.Count > 0)
@@ -81,12 +81,12 @@ namespace PisaciStroj.Lexer.Algoritmy
                             End = new Pozicia()
                             {
                                 Riadok = i,
-                                Slpec = index
+                                Stlpec = index
                             }
                         };
 
                         rowResult.Add(index, z);
-                        result[z.Start.Riadok].Add(z.Start.Slpec, z);
+                        result[z.Start.Riadok].Add(z.Start.Stlpec, z);
                     }
 
                     if (riadok.CharAt(index) == ']' && _stack3.Count > 0)
@@ -97,12 +97,12 @@ namespace PisaciStroj.Lexer.Algoritmy
                             End = new Pozicia()
                             {
                                 Riadok = i,
-                                Slpec = index
+                                Stlpec = index
                             }
                         };
 
                         rowResult.Add(index, z);
-                        result[z.Start.Riadok].Add(z.Start.Slpec, z);
+                        result[z.Start.Riadok].Add(z.Start.Stlpec, z);
                     }
 
                     index++;
