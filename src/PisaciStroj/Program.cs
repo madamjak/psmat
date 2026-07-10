@@ -41,11 +41,11 @@ namespace PisaciStroj
             }
         }
 
-        public void NapisText(string vstup, ParametreVypisu parametreVypisu)
+        public void NapisText(string vstup, ParametreVypisu parametreVypisu, ParametreZapisu parametreZapisu = null)
         {
             _pamatOperacii.VycistiOperacieNaZopakovanie();
 
-            var operacia = NapisTextInternal(vstup, parametreVypisu);
+            var operacia = NapisTextInternal(vstup, parametreVypisu, parametreZapisu);
 
             _pamatOperacii.PridajOperaciuNaVratenie(operacia);
         }
@@ -92,7 +92,7 @@ namespace PisaciStroj
             _pamatOperacii.PridajOperaciuNaVratenie(operacia);
         }
 
-        private Operacia NapisTextInternal(string vstup, ParametreVypisu parametreVypisu)
+        private Operacia NapisTextInternal(string vstup, ParametreVypisu parametreVypisu, ParametreZapisu parametreZapisu = null)
         {
             var operacia = new Operacia()
             {
@@ -107,12 +107,12 @@ namespace PisaciStroj
                 {
                     foreach (var b in "    ")
                     {
-                        NapisZnakInternal(b, parametreVypisu);
+                        NapisZnakInternal(b, parametreVypisu, parametreZapisu);
                     }
                 }
                 else
                 {
-                    NapisZnakInternal(c, parametreVypisu);
+                    NapisZnakInternal(c, parametreVypisu, parametreZapisu);
                 }
             }
 
@@ -122,7 +122,7 @@ namespace PisaciStroj
             return operacia;
         }
 
-        private void NapisZnakInternal(char c, ParametreVypisu parametreVypisu)
+        private void NapisZnakInternal(char c, ParametreVypisu parametreVypisu, ParametreZapisu parametreZapisu = null)
         {
             var koniecRiadka = LineFeed(c);
             var zaciatokNovehoRiadka = CarriageReturn(c);
@@ -162,6 +162,11 @@ namespace PisaciStroj
             }
 
             Kurzor.PosunKurzorDoprava(parametreVypisu, _riadky);
+
+            if (koniecRiadka && parametreZapisu != null)
+            {
+                Indentation.SimpleAutoIndent(_riadky, parametreVypisu, parametreZapisu);
+            }
         }
 
         public void VratPoslednuOperaciu(ParametreVypisu parametreVypisu)
@@ -313,7 +318,10 @@ namespace PisaciStroj
                 {
                     _riadky[konecnyRiadok].Delete(0, konecnyStlpec);
 
-                    _riadky[zaciatocnyRiadok].Append(_riadky[konecnyRiadok].Read(konecnyStlpec));
+                    if(_riadky[konecnyRiadok].Length() > 0)
+                    {
+                        _riadky[zaciatocnyRiadok].Append(_riadky[konecnyRiadok].Read(konecnyStlpec));
+                    }
 
                      riadkyNaZmazanie.Add(konecnyRiadok);
                 }
