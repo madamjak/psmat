@@ -156,31 +156,57 @@ namespace PisaciAutomat
             }
             else if (vstup.Key == ConsoleKey.Backspace)
             {
-                _editor.ZmazText(_parametreVypisu);
-                _maZmenuVSubore = true;
+                if (Zvyraznovac.MaVybranyText(_parametreVyberu))
+                {
+                    _editor.ZmazText(_parametreVyberu.Zaciatok.Value.Stlpec, _parametreVyberu.Zaciatok.Value.Riadok,
+                    _parametreVyberu.Koniec.Value.Stlpec, _parametreVyberu.Koniec.Value.Riadok, _parametreVypisu);
+
+                    _parametreVyberu = new ParametreVyberu();
+                }
+                else
+                {
+                    _editor.ZmazText(_parametreVypisu);
+                    _maZmenuVSubore = true;
+                }
             }
             else if (vstup.Key == ConsoleKey.Delete)
             {
-                Kurzor.PosunKurzorDoprava(_parametreVypisu, _editor.Riadky());
-                _editor.ZmazText(_parametreVypisu);
-                _maZmenuVSubore = true;
+                if (Zvyraznovac.MaVybranyText(_parametreVyberu))
+                {
+                    _editor.ZmazText(_parametreVyberu.Zaciatok.Value.Stlpec, _parametreVyberu.Zaciatok.Value.Riadok,
+                    _parametreVyberu.Koniec.Value.Stlpec, _parametreVyberu.Koniec.Value.Riadok, _parametreVypisu);
+
+                    _parametreVyberu = new ParametreVyberu();
+                }
+                else
+                {
+                    Kurzor.PosunKurzorDoprava(_parametreVypisu, _editor.Riadky());
+                    _editor.ZmazText(_parametreVypisu);
+                    _maZmenuVSubore = true;
+                }
             }
             else if (vstup.Key == ConsoleKey.Enter)
             {
-                _editor.NapisText(Environment.NewLine, _parametreVypisu, _parametreZapisu);
+                var newLine = Environment.NewLine;
+                if (_parametreZapisu != null && _parametreZapisu.Okraj > 0)
+                {
+                    newLine = Environment.NewLine + Indentation.SimpleAutoIndent(_parametreZapisu.Okraj);
+                }
+
+                _editor.NapisText(newLine, _parametreVypisu, _parametreZapisu);
                 _maZmenuVSubore = true;
             }
             else if ((vstup.Modifiers & ConsoleModifiers.Control) == ConsoleModifiers.Control)
             {
-                if (vstup.Key == ConsoleKey.U)
+                if (vstup.Key == ConsoleKey.Z)
                 {
                     _editor.VratPoslednuOperaciu(_parametreVypisu);
                 }
-                else if (vstup.Key == ConsoleKey.R)
+                else if (vstup.Key == ConsoleKey.Y)
                 {
                     _editor.ZopakujPoslednuOperaciu(_parametreVypisu);
                 }
-                else if (vstup.Key == ConsoleKey.K && Zvyraznovac.MaVybranyText(_parametreVyberu))
+                else if (vstup.Key == ConsoleKey.C && Zvyraznovac.MaVybranyText(_parametreVyberu))
                 {
                     _skopirovanyText = _editor.PrecitajText(
                         _parametreVyberu.Zaciatok.Value.Riadok, _parametreVyberu.Zaciatok.Value.Stlpec,
@@ -188,7 +214,7 @@ namespace PisaciAutomat
 
                     Clipboard.Clipboard.SkopirujDoClipboardu(_skopirovanyText);
                 }
-                else if (vstup.Key == ConsoleKey.M && Zvyraznovac.MaVybranyText(_parametreVyberu))
+                else if (vstup.Key == ConsoleKey.X && Zvyraznovac.MaVybranyText(_parametreVyberu))
                 {
                     _skopirovanyText = _editor.PrecitajText(
                         _parametreVyberu.Zaciatok.Value.Riadok, _parametreVyberu.Zaciatok.Value.Stlpec,
@@ -203,7 +229,7 @@ namespace PisaciAutomat
 
                     _maZmenuVSubore = true;
                 }
-                else if (vstup.Key == ConsoleKey.L)
+                else if (vstup.Key == ConsoleKey.V)
                 {
                     _skopirovanyText = Clipboard.Clipboard.PreciajZClipboardu();
 
@@ -217,6 +243,11 @@ namespace PisaciAutomat
                 else if (vstup.Key == ConsoleKey.F)
                 {
                     VyhladajZvyraznenyText();
+                }
+                else if (vstup.Key == ConsoleKey.A)
+                {
+                    VyberVsetko();
+
                 }
                 else if (vstup.Key == ConsoleKey.H && _maZmenuVSubore)
                 {
@@ -245,6 +276,21 @@ namespace PisaciAutomat
                 _editor.NapisZnak(vstup.KeyChar, _parametreVypisu);
                 _maZmenuVSubore = true;
             }
+        }
+
+        private void VyberVsetko()
+        {
+            _parametreVyberu = new ParametreVyberu();
+
+            _navigovaciPrikaz.Vyber = false;
+            _navigovaciPrikaz.Typ = TypNavigacie.ZaciatokTextu;
+
+            Navigator.Naviguj(_navigovaciPrikaz, _parametreVypisu, _editor.Riadky(), _parametreVyberu);
+
+            _navigovaciPrikaz.Vyber = true;
+            _navigovaciPrikaz.Typ = TypNavigacie.KoniecTextu;
+
+            Navigator.Naviguj(_navigovaciPrikaz, _parametreVypisu, _editor.Riadky(), _parametreVyberu);
         }
 
         private void VyhladajZvyraznenyText()

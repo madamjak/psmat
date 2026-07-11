@@ -1,5 +1,5 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using PSMat.Windows;
+using System;
 
 namespace PSMat
 {
@@ -7,27 +7,48 @@ namespace PSMat
     {
         private static PisaciAutomat.Program _editor;
 
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            var cestaKSuboru = args != null && args.Length == 1 ? args[0] : null;
-
-            _editor = new PisaciAutomat.Program(cestaKSuboru);
-            _editor.NacitajSuborAVykresli();
-
-            Console.TreatControlCAsInput = true;
-
-            while (true)
+            if (PisaciAutomat.OperatingSystem.IsWindows())
             {
-                var vstup = Console.ReadKey(intercept: true);
-                
-                _editor.SpracujVstup(vstup);
+                WindowsConsole.NastavRawMode();
+            }
 
-                if (_editor.Ukonci)
+            try
+            {
+                var cestaKSuboru = args != null && args.Length == 1 ? args[0] : null;
+
+                _editor = new PisaciAutomat.Program(cestaKSuboru);
+                _editor.NacitajSuborAVykresli();
+
+                Console.TreatControlCAsInput = true;
+
+                while (true)
                 {
-                    Environment.Exit(0);
+                    var vstup = Console.ReadKey(intercept: true);
+
+                    _editor.SpracujVstup(vstup);
+
+                    if (_editor.Ukonci)
+                    {
+                        break;
+                    }
+
+                    _editor.Prekresli();
                 }
-                
-                _editor.Prekresli();
+            }
+            catch (Exception ex)
+            {
+
+            }
+            finally
+            {
+                if (PisaciAutomat.OperatingSystem.IsWindows())
+                {
+                    WindowsConsole.VypniRawMode();
+                }
+
+                Environment.Exit(0);
             }
         }
     }
