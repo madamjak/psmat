@@ -191,11 +191,6 @@ namespace PisaciStroj
             }
 
             Kurzor.PosunKurzorDoprava(parametreVypisu, _riadky);
-
-            if (koniecRiadka && parametreZapisu != null)
-            {
-                Indentation.SimpleAutoIndent(_riadky, parametreVypisu, parametreZapisu);
-            }
         }
 
         public void VratPoslednuOperaciu(ParametreVypisu parametreVypisu)
@@ -342,14 +337,15 @@ namespace PisaciStroj
                     }
                 }
 
-                sb.AppendLine(_riadky[konecnyRiadok].Read(0, konecnyStlpec));
+                sb.Append(_riadky[konecnyRiadok].Read(0, konecnyStlpec));
+                
                 if (zmazPrecitany)
                 {
                     _riadky[konecnyRiadok].Delete(0, konecnyStlpec);
 
                     if(_riadky[konecnyRiadok].Length() > 0)
                     {
-                        _riadky[zaciatocnyRiadok].Append(_riadky[konecnyRiadok].Read(konecnyStlpec));
+                        _riadky[zaciatocnyRiadok].Append(_riadky[konecnyRiadok].Read());
                     }
 
                      riadkyNaZmazanie.Add(konecnyRiadok);

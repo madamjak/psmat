@@ -75,7 +75,7 @@ namespace PisaciStroj.Navigacia
                         break;
                     }
 
-                    var indexStlpca = Math.Min(parametreVypisu.IndexStlpec, riadky[parametreVypisu.IndexRiadok].Length() - 1);
+                    var indexStlpca = Math.Min(parametreVypisu.IndexStlpec - 1, riadky[parametreVypisu.IndexRiadok].Length() - 1);
                     var navigujNaSeparator = !_wordSeparators.Contains(riadky[parametreVypisu.IndexRiadok].CharAt(indexStlpca));
                     while(true)
                     {
@@ -84,7 +84,12 @@ namespace PisaciStroj.Navigacia
                             break;
                         }
 
-                        indexStlpca = Math.Min(parametreVypisu.IndexStlpec, riadky[parametreVypisu.IndexRiadok].Length() - 1);
+                        if (parametreVypisu.IndexStlpec == 0)
+                        {
+                            break;
+                        }
+
+                        indexStlpca = Math.Min(parametreVypisu.IndexStlpec - 1, riadky[parametreVypisu.IndexRiadok].Length() - 1);
                         if (navigujNaSeparator)
                         {
                             if (_wordSeparators.Contains(riadky[parametreVypisu.IndexRiadok].CharAt(indexStlpca)))

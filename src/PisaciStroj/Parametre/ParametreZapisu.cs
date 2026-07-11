@@ -35,16 +35,17 @@ namespace PisaciStroj.Parametre
             z.Okraj = i;
         }
 
-        public static void SimpleAutoIndent(List<GapBuffer> riadky, ParametreVypisu p, ParametreZapisu parametreZapisu)
+        public static string SimpleAutoIndent(int okraj)
         {
-            var nr = riadky[p.IndexRiadok];
+            var sb = new StringBuilder();
             var i = 0;
-            while (i != parametreZapisu.Okraj)
+            while (i != okraj)
             {
-                nr.Insert(' ', 0);
-                Kurzor.PosunKurzorDoprava(p, riadky);
+                sb.Append(' ');
                 i++;
             }
+
+            return sb.ToString();
         }
     }
 }
