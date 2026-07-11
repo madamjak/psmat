@@ -1,19 +1,32 @@
 ﻿using Newtonsoft.Json;
 using PisaciAutomat.Obrazovka;
 using PisaciStroj.Lexer;
+using PisaciStroj.Navigacia;
 using PisaciStroj.Pamat;
 using PisaciStroj.Parametre;
+using PisaciStroj.Vyhladavanie;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
 namespace PisaciAutomat.Prikazy
 {
+    public struct PrikazPrePrikazovyRiadok
+    {
+        public string VyhladavanyText { get; set; }
+    }
+
     public class PrikazovyAutomat
     {
         private GapBuffer _riadok;
+        private List<GapBuffer> _riadky;
+        
         private ILexer _lexer;
+
         private ParametreVypisu _parametreVypisu;
+        private NavigovaciPrikaz _navigovaciPrikaz;
+        private ParametreVyberu _vyber;
 
         private string _hlaska;
         private string _chyba;
@@ -22,15 +35,25 @@ namespace PisaciAutomat.Prikazy
         {
             _lexer = new LexAutomat(NacitajLexGramatiku());
             _riadok = new GapBuffer();
+            _riadky = new List<GapBuffer> { _riadok };
             _parametreVypisu = new ParametreVypisu()
             {
                 OkrajVlavo = 5
             };
+            _navigovaciPrikaz = new NavigovaciPrikaz();
+            _vyber = new ParametreVyberu();
         }
 
-        public PrikazovyAutomatResult NacitajPrikaz()
+        public PrikazovyAutomatResult NacitajPrikaz(PrikazPrePrikazovyRiadok? prikazZEditora = null)
         {
             _parametreVypisu.SirkaKonzoly = Console.BufferWidth;
+
+            if(prikazZEditora.HasValue && prikazZEditora.Value.VyhladavanyText != null)
+            {
+                var p = VyhladavaciPrikaz(prikazZEditora);
+                Prekresli();
+                return p;
+            }
 
             Prekresli();
 
@@ -53,6 +76,28 @@ namespace PisaciAutomat.Prikazy
             return r;
         }
 
+        private PrikazovyAutomatResult VyhladavaciPrikaz(PrikazPrePrikazovyRiadok? prikazZEditora)
+        {
+            _riadok.Delete(0, _riadok.Length());
+            _parametreVypisu.Stlpec = 0;
+            _parametreVypisu.OffsetStlpec = 0;
+
+            var prikaz = "next " + prikazZEditora.Value.VyhladavanyText;
+            foreach(char ch in prikaz)
+            {
+                NapisZnak(ch);
+            }
+
+            return new PrikazovyAutomatResult()
+            {
+                Prikaz = new Prikaz()
+                {
+                    Typ = TypPrikazu.VyhladajDalsi,
+                    VyhladavanyText = prikazZEditora.Value.VyhladavanyText
+                }
+            };
+        }
+
         public PrikazovyAutomatResult SpracujVstup(ConsoleKeyInfo vstup)
         {
             var r = new PrikazovyAutomatResult();
@@ -66,21 +111,14 @@ namespace PisaciAutomat.Prikazy
             {
                 Hlaska();
             }
-            else if (vstup.Key == ConsoleKey.RightArrow)
+            else if (Navigator.NavigujVPrikazovomRiadku(vstup, _navigovaciPrikaz))
             {
-                if (_parametreVypisu.IndexStlpec < _riadok.Length())
-                {
-                    PosunDoprava();
-                }
+                Navigator.Naviguj(_navigovaciPrikaz, _parametreVypisu, _riadky, _vyber);
 
-            }
-            else if (vstup.Key == ConsoleKey.LeftArrow)
-            {
-                if (_parametreVypisu.IndexStlpec > 0)
+                if (!_navigovaciPrikaz.Vyber)
                 {
-                    PosunDolava();
+                    _vyber = new ParametreVyberu();
                 }
-
             }
             else if (vstup.Key == ConsoleKey.Enter)
             {
@@ -104,11 +142,9 @@ namespace PisaciAutomat.Prikazy
                     _riadok.Delete(_parametreVypisu.IndexStlpec);
                 }
             }
-            else if (JeVytlacitelnyAsciiZnak(vstup.KeyChar))
+            else if (PisaciAutomat.Program.IsPrintable(vstup.KeyChar))
             {
-                _riadok.Insert(vstup.KeyChar, _parametreVypisu.IndexStlpec);
-
-                PosunDoprava();
+                NapisZnak(vstup.KeyChar);
             }
             else if (vstup.Key == ConsoleKey.Escape)
             {
@@ -120,6 +156,13 @@ namespace PisaciAutomat.Prikazy
             }
 
             return r;
+        }
+
+        private void NapisZnak(char ch)
+        {
+            _riadok.Insert(ch, _parametreVypisu.IndexStlpec);
+
+            PosunDoprava();
         }
 
         private bool ZmenaRozmerovKonzoly()
@@ -190,7 +233,14 @@ namespace PisaciAutomat.Prikazy
             if(_riadok.Length() > 0)
             {
                 var tokeny = _lexer.Lex(_riadok);
-                sb.Append(StylovaciAutomat.SyntaxHighligt(tokeny, _riadok, _parametreVypisu.OffsetStlpec, _parametreVypisu.Sirka));
+
+                VyhladaneSlovo? zvyraznenyText = null;
+                if (Zvyraznovac.MaVybranyText(_vyber))
+                {
+                    zvyraznenyText = Zvyraznovac.ZvyraznenyText(_vyber, 0, _riadok.Length());
+                }
+
+                sb.Append(StylovaciAutomat.SyntaxHighligt(tokeny, _riadok, _parametreVypisu.OffsetStlpec, _parametreVypisu.Sirka, zvyraznenyText));
             }
 
             sb.Append(VykreslovaciAutomat.NastavKurzor(1, _parametreVypisu.StlpecKurzora + 1));
@@ -222,56 +272,7 @@ namespace PisaciAutomat.Prikazy
 
         private Prikaz MapPrikaz()
         {
-            var p = new Prikaz();
-            try
-            {
-                var parts = _riadok.Read().Split(' ');
-
-                if(parts.Length == 2 && (parts[0] == "find"))
-                {
-                    p.Typ = TypPrikazu.Vyhladaj;
-                    p.VyhladavanyText = parts[1];
-
-                    return p;
-                }
-                if (parts.Length == 2 && (parts[0] == "next"))
-                {
-                    p.Typ = TypPrikazu.VyhladajDalsi;
-                    p.VyhladavanyText = parts[1];
-
-                    return p;
-                }
-                if (parts.Length == 1 && parts[0] == "rest")
-                {
-                    p.Typ = TypPrikazu.VyhladajReset;
-
-                    return p;
-                }
-                else if (parts.Length == 3 && (parts[0] == "rfirst"))
-                {
-                    p.Typ = TypPrikazu.VyhladajNahrad;
-                    p.VyhladavanyText = parts[1];
-                    p.NovyText = parts[2];
-
-                    return p;
-                }
-                else if (parts.Length == 3 && parts[0] == "rall")
-                {
-                    p.Typ = TypPrikazu.VyhladajNahradVsetky;
-                    p.VyhladavanyText = parts[1];
-                    p.NovyText = parts[2];
-
-                    return p;
-                }
-                else
-                {
-                    return null;
-                }
-            }
-            catch
-            {
-                return null;
-            }
+            return ProcessorPrikazov.NacitajPrikaz(_riadok);
         }
 
         private bool JeVytlacitelnyAsciiZnak(char keyChar)

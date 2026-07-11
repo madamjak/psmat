@@ -10,11 +10,12 @@ namespace PisaciAutomat.Obrazovka
 {
     public static class StylovaciAutomat
     {
-        public static string SyntaxHighligt(Dictionary<int, Token> tokens, GapBuffer riadok, int offset, int maxDlzka)
+        public static string SyntaxHighligt(Dictionary<int, Token> tokens, GapBuffer riadok, int offset, int maxDlzka, VyhladaneSlovo? zvyraznenyText)
         {
             var sb = new StringBuilder();
             var index = offset;
             var dlzka = 0;
+            var dlzkaZvyraznenehoTextu = 0;
 
             while (true)
             {
@@ -28,8 +29,22 @@ namespace PisaciAutomat.Obrazovka
                     break;
                 }
 
+                if (zvyraznenyText.HasValue && zvyraznenyText.Value.Pozicia == index)
+                {
+                    dlzkaZvyraznenehoTextu = zvyraznenyText.Value.Dlzka;
+                }
+
                 Token t;
-                if (tokens.TryGetValue(index, out t))
+                if (dlzkaZvyraznenehoTextu > 0)
+                {
+                    sb.Append(StylVyberuTextu());
+                    sb.Append(riadok.Read(index, 1));
+                    sb.Append(AnsiReset());
+                    dlzkaZvyraznenehoTextu--;
+                    index++;
+                    dlzka++;
+                }
+                else if (tokens.TryGetValue(index, out t))
                 {
                     var styl = VyberStyl(t.Typ);
 
@@ -261,7 +276,7 @@ namespace PisaciAutomat.Obrazovka
                     precitalToken = true;
                 }
 
-                if(!precitalToken && precitalZatvorku)
+                if(!precitalToken && !precitalSlovo && precitalZatvorku)
                 {
                     sb.Append(AnsiStyl(StylTextu.RedBold));
                     if (zvyrazniZatvorku)

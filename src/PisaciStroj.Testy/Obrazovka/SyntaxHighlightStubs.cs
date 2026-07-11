@@ -28,20 +28,6 @@ namespace PSMat.Testy.Obrazovka
         {
             return new ParametreVyhladavania()
             {
-                VyhladaneSlova = new Dictionary<int, Dictionary<int, VyhladaneSlovo>>() 
-                {
-                    { 5, new Dictionary<int, VyhladaneSlovo> 
-                        { 
-                            { 4, new VyhladaneSlovo()
-                                {
-                                    Riadok = 5,
-                                    Pozicia = 4,
-                                    Dlzka = 6
-                                }
-                            } 
-                        } 
-                    }
-                },
                 VyhladaneSlovo = new VyhladaneSlovo()
                 {
                     Riadok = 5,

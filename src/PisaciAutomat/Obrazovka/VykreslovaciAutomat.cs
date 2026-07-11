@@ -1,4 +1,5 @@
-﻿using PisaciStroj.Lexer;
+﻿using PisaciStroj;
+using PisaciStroj.Lexer;
 using PisaciStroj.Navigacia;
 using PisaciStroj.Pamat;
 using PisaciStroj.Parametre;
@@ -15,24 +16,27 @@ namespace PisaciAutomat.Obrazovka
         private EditorScreen _aktualnaObrazovka;
 
         private ILexer _lexer;
-        private PisaciStroj.Program _editor;
-        private IVyhladavac _vyhladavac;
+        private IPisaciStroj _editor;
 
-        public VykreslovaciAutomat(LexGramatika gramatika, PisaciStroj.Program editor, IVyhladavac vyhladavac)
+        public VykreslovaciAutomat(LexGramatika gramatika, IPisaciStroj editor)
         {
             _lexer = new LexAutomat(gramatika);
             _editor = editor;
-            _vyhladavac = vyhladavac;
         }
 
         public EditorScreen Precitaj(ParametreVypisu parametre, ParametreVyhladavania search, ParametreVyberu parametreVyberu, ParametreZapisu parametreZapisu)
         {
             var lexResult = _lexer.Lex(_editor.Riadky());
 
-            return Precitaj2(parametre, search, lexResult, _editor.Riadky(), parametreVyberu, parametreZapisu);
+            return Precitaj2(parametre, search, lexResult, _editor, parametreVyberu, parametreZapisu);
         }
 
-        public static EditorScreen Precitaj2(ParametreVypisu parametre, ParametreVyhladavania search, LexResult lexResult, List<GapBuffer> riadky, ParametreVyberu parametreVyberu, ParametreZapisu parametreZapisu)
+        public static EditorScreen Precitaj2(ParametreVypisu parametre, 
+            ParametreVyhladavania search, 
+            LexResult lexResult, 
+            IPisaciStroj editor, 
+            ParametreVyberu parametreVyberu, 
+            ParametreZapisu parametreZapisu)
         {
             var result = new EditorScreen(parametre.Sirka, parametre.Vyska)
             {
@@ -42,6 +46,7 @@ namespace PisaciAutomat.Obrazovka
 
             var pocetRiadkov = 0;
             var riadokObrazovky = 0;
+            var riadky = editor.Riadky();
             for (int i = parametre.OffsetRiadok; i < riadky.Count; i++)
             {
                 if (pocetRiadkov == parametre.Vyska)
@@ -49,15 +54,15 @@ namespace PisaciAutomat.Obrazovka
                     break;
                 }
 
-                Dictionary<int, VyhladaneSlovo> vyhladaneSlova = null;
+                Dictionary<int, VyhladaneSlovo> vyhladaneSlova = new Dictionary<int, VyhladaneSlovo>();
                 VyhladaneSlovo? vSlovo = null;
                 Dictionary<int, Token> tokeny = null;
                 Dictionary<int, Zatvorka> zatvorky = null;
                 VyhladaneSlovo? zvyraznenyText = null;
 
-                if (search.VyhladaneSlova == null || !search.VyhladaneSlova.TryGetValue(i, out vyhladaneSlova)) 
+                if (search.VyhladavanyText != null) 
                 {
-                    vyhladaneSlova = new Dictionary<int, VyhladaneSlovo>();
+                    vyhladaneSlova = editor.VyhladajVsetky(riadky[i], search.VyhladavanyText);
                 }
                 if (search.VyhladaneSlovo.HasValue && search.VyhladaneSlovo.Value.Riadok == i)
                 {
