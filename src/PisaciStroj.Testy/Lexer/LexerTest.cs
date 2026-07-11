@@ -40,7 +40,7 @@ namespace PSMat.Testy.Lexer
                 parametreVykreslovania,
                 SyntaxHighlightStubs.VysledkyVyhladavania(),
                 r,
-                text,
+                new PisaciStroj.Program(text),
                 new PisaciStroj.Parametre.ParametreVyberu(),
                 new PisaciStroj.Parametre.ParametreZapisu());
 

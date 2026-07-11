@@ -254,5 +254,15 @@ namespace PisaciStroj.Navigacia
 
             return false;
         }
+
+        public static bool NavigujVPrikazovomRiadku(ConsoleKeyInfo vstup, NavigovaciPrikaz prikaz)
+        {
+            if(!(vstup.Key == ConsoleKey.LeftArrow || vstup.Key == ConsoleKey.RightArrow || vstup.Key == ConsoleKey.Home || vstup.Key == ConsoleKey.End))
+            {
+                return false;
+            }
+
+            return NavigovaciPrikaz(vstup, prikaz);
+        }
     }
 }

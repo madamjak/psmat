@@ -8,11 +8,40 @@ using System.Text;
 
 namespace PisaciStroj
 {
-    public class Program
+    public interface IPisaciStroj
+    {
+        List<GapBuffer> Riadky();
+        
+        
+        void NapisZnak(char znak, ParametreVypisu parametreVypisu);
+        void NapisText(string vstup, ParametreVypisu parametreVypisu, ParametreZapisu parametreZapisu = null);
+        void NapisTextZoSuboru(string text);
+        void ZmazText(ParametreVypisu parametreVypisu);
+        void ZmazText(int zaciatocnyStlpecVyberu, int zaciatocnyRiadokVyberu, int konecnyStlpecVyberu, int konecnyRiadokVyberu, ParametreVypisu parametreVypisu);
+
+        void VratPoslednuOperaciu(ParametreVypisu parametreVypisu);
+        void ZopakujPoslednuOperaciu(ParametreVypisu parametreVypisu);
+        
+        string PrecitajText(int zaciatocnyRiadok, int zaciatocnyStlpec, int konecnyRiadok, int konecnyStlpec);
+        string PrecitajText();
+
+        VyhladaneSlovo? Vyhladaj(string vyhladavanyText, ParametreVypisu parametreVypisu);
+        bool VyhladajANahrad(string vyhladavanyText, string novyText, ParametreVypisu parametreVypisu);
+        bool VyhladajANahradVsetky(string vyhladavanyText, string novyText, ParametreVypisu parametreVypisu);
+        Dictionary<int, VyhladaneSlovo> VyhladajVsetky(GapBuffer riadok, string vyhladavanyText);
+        void NastavVyhladavanie(string vyhladavanyText);
+    }
+
+    public class Program : IPisaciStroj
     {
         private PamatOperacii _pamatOperacii;
         private List<GapBuffer> _riadky;
         private IVyhladavac _vyhladavac;
+
+        public Program(List<GapBuffer> riadky)
+        {
+            _riadky = riadky;
+        }
 
         public Program(IVyhladavac vyhladavac)
         {
@@ -368,7 +397,7 @@ namespace PisaciStroj
         }
 
 
-        public bool VyhladajANahrad(int zaciatocnyRiadok, int zaciatocnyStlpec, string vyhladavanyText, string novyText,  ParametreVypisu parametreVypisu)
+        private bool VyhladajANahrad(int zaciatocnyRiadok, int zaciatocnyStlpec, string vyhladavanyText, string novyText,  ParametreVypisu parametreVypisu)
         {
             var riadok = zaciatocnyRiadok;
 
@@ -473,6 +502,16 @@ namespace PisaciStroj
         private bool CarriageReturn(char c)
         {
             return c == '\r';
+        }
+
+        public Dictionary<int, VyhladaneSlovo> VyhladajVsetky(GapBuffer riadok, string vyhladavanyText)
+        {
+            return _vyhladavac.VyhladajVsetky(riadok, vyhladavanyText);
+        }
+
+        public void NastavVyhladavanie(string vyhladavanyText)
+        {
+            _vyhladavac.NastavVyhladavaciAutomat(vyhladavanyText);
         }
     }
 }

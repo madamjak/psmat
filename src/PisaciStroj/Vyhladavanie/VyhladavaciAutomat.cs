@@ -168,7 +168,15 @@ namespace PisaciStroj.Vyhladavanie
             var sb = new StringBuilder();
             for (int i = 0; i < vyhladavanyText.Length; i++)
             {
-                sb.Append(vyhladavanyText[i]);
+                var x = vyhladavanyText[i];
+                if (x == '(' || x == ')' || x == '.' || x == '*' || x == '|')
+                {
+                    sb.Append(string.Format("\\{0}", vyhladavanyText[i]));
+                }
+                else
+                {
+                    sb.Append(vyhladavanyText[i]);
+                }
                 sb.Append('.');
             }
 
