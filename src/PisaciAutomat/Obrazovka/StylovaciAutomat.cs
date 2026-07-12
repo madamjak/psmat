@@ -325,7 +325,8 @@ namespace PisaciAutomat.Obrazovka
 
         private static string StylVyberuTextu()
         {
-            return string.Format("\u001b[1;37;44m");
+            //return string.Format("\u001b[1;37;44m");
+            return string.Format("\u001b[44m");
         }
 
         public static string AnsiReset()

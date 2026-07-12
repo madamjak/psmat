@@ -1,7 +1,6 @@
 ﻿using PisaciStroj;
 using PisaciStroj.Lexer;
 using PisaciStroj.Navigacia;
-using PisaciStroj.Pamat;
 using PisaciStroj.Parametre;
 using PisaciStroj.Vyhladavanie;
 using PisaciStroj.Vypis;
@@ -11,6 +10,13 @@ using System.Text;
 
 namespace PisaciAutomat.Obrazovka
 {
+    public struct ParametrePrekreslenia
+    {
+        public bool Resize { get; set; }
+
+        public bool Necitaj { get; set; }
+    }
+
     public class VykreslovaciAutomat
     {
         private EditorScreen _aktualnaObrazovka;
@@ -24,24 +30,34 @@ namespace PisaciAutomat.Obrazovka
             _editor = editor;
         }
 
-        public EditorScreen Precitaj(ParametreVypisu parametre, ParametreVyhladavania search, ParametreVyberu parametreVyberu, ParametreZapisu parametreZapisu)
+        public EditorScreen Precitaj(ParametreVypisu parametre, ParametreVyhladavania search, ParametreVyberu parametreVyberu, ParametreZapisu parametreZapisu, ParametrePrekreslenia parametrePrekreslenia)
         {
-            var lexResult = _lexer.Lex(_editor.Riadky());
+            if (_aktualnaObrazovka != null && parametrePrekreslenia.Necitaj)
+            {
+                //TODO v pripade navigace na zatvorku sa zatvorka nezvyrazni
+                _aktualnaObrazovka.Riadok = parametre.RiadokKurzora + 1;
+                _aktualnaObrazovka.Stlpec = parametre.StlpecKurzora + 1;
 
-            return Precitaj2(parametre, search, lexResult, _editor, parametreVyberu, parametreZapisu);
+                return _aktualnaObrazovka;
+            }
+
+            var lexResult = _lexer.ZatvorkyAKomentare(_editor.Riadky());
+
+            return Precitaj2(parametre, search, lexResult, _editor, parametreVyberu, parametreZapisu, _lexer);
         }
 
-        public static EditorScreen Precitaj2(ParametreVypisu parametre, 
-            ParametreVyhladavania search, 
-            LexResult lexResult, 
-            IPisaciStroj editor, 
-            ParametreVyberu parametreVyberu, 
-            ParametreZapisu parametreZapisu)
+        public static EditorScreen Precitaj2(ParametreVypisu parametre,
+            ParametreVyhladavania search,
+            LexResult lexResult,
+            IPisaciStroj editor,
+            ParametreVyberu parametreVyberu,
+            ParametreZapisu parametreZapisu,
+            ILexer lexer)
         {
             var result = new EditorScreen(parametre.Sirka, parametre.Vyska)
             {
                 Riadok = parametre.RiadokKurzora + 1,
-                Stlpec = parametre.StlpecKurzora + 1
+                Stlpec = parametre.StlpecKurzora + 1,
             };
 
             var pocetRiadkov = 0;
@@ -60,7 +76,7 @@ namespace PisaciAutomat.Obrazovka
                 Dictionary<int, Zatvorka> zatvorky = null;
                 VyhladaneSlovo? zvyraznenyText = null;
 
-                if (search.VyhladavanyText != null) 
+                if (search.VyhladavanyText != null)
                 {
                     vyhladaneSlova = editor.VyhladajVsetky(riadky[i], search.VyhladavanyText);
                 }
@@ -69,12 +85,36 @@ namespace PisaciAutomat.Obrazovka
                     vSlovo = search.VyhladaneSlovo;
                 }
 
-                if(lexResult.Tokeny == null || !lexResult.Tokeny.TryGetValue(i, out tokeny))
+                if (lexResult.Tokeny == null || !lexResult.Tokeny.TryGetValue(i, out tokeny))
                 {
-                    tokeny = new Dictionary<int, Token>();
+                    tokeny = lexer.Lex(riadky[i]);
                 }
-                
-                if(lexResult.Zatvorky == null || !lexResult.Zatvorky.TryGetValue(i, out zatvorky))
+                else
+                {
+                    var r = new Dictionary<int, Token>();
+                    var t = lexer.Lex(riadky[i]);
+                    foreach(var to in t)
+                    {
+                        var zvyrazniToken = true;
+                        foreach(var koment in tokeny)
+                        {
+                            r.TryAdd(koment.Key, koment.Value);
+                            if(koment.Key <= to.Key && to.Key <= koment.Key + koment.Value.Dlzka)
+                            {
+                                zvyrazniToken = false;
+                            }
+                        }
+
+                        if (zvyrazniToken)
+                        {
+                            r.Add(to.Key, to.Value);
+                        }
+                    }
+
+                    tokeny = r;
+                }
+
+                if (lexResult.Zatvorky == null || !lexResult.Zatvorky.TryGetValue(i, out zatvorky))
                 {
                     zatvorky = new Dictionary<int, Zatvorka>();
                 }
@@ -92,12 +132,12 @@ namespace PisaciAutomat.Obrazovka
                 }
 
                 result.Riadky[riadokObrazovky] = string.Format("{0}  {1}", CislaRiadkov((i).ToString("D3")),
-                    StylovaciAutomat.SyntaxAndSearchHighligt2(riadky[i], 
-                    parametre.OffsetStlpec, parametre.Sirka, 
+                    StylovaciAutomat.SyntaxAndSearchHighligt2(riadky[i],
+                    parametre.OffsetStlpec, parametre.Sirka,
                     vyhladaneSlova, vSlovo, tokeny, zatvorky, poziciaKurzora,
                     zvyraznenyText));
 
-                if(parametre.IndexRiadok == i)
+                if (parametre.IndexRiadok == i)
                 {
                     Indentation.NastavOkraj(parametreZapisu, riadky[i]);
                 }
@@ -109,7 +149,7 @@ namespace PisaciAutomat.Obrazovka
             return result;
         }
 
-        public void VykresliNaKonzolu(EditorScreen novaObrazovka, string stavovyRiadok, ParametreVypisu parametre, string hlaska, bool _cmdMode, bool resize)
+        public void VykresliNaKonzolu(EditorScreen novaObrazovka, string stavovyRiadok, ParametreVypisu parametre, string hlaska, bool _cmdMode, ParametrePrekreslenia p)
         {
             var sb = new StringBuilder();
 
@@ -126,14 +166,14 @@ namespace PisaciAutomat.Obrazovka
                 VykresliHlasku(parametre, hlaska, sb);
             }
 
-            if (_aktualnaObrazovka == null || resize)
+            if (_aktualnaObrazovka == null || p.Resize)
             {
                 Vykresli(novaObrazovka, sb, stavovyRiadok, parametre);
                 _aktualnaObrazovka = novaObrazovka;
             }
             else
             {
-                Prekresli(novaObrazovka, sb, stavovyRiadok, parametre);
+                Prekresli(novaObrazovka, sb, stavovyRiadok, parametre, p);
                 _aktualnaObrazovka = novaObrazovka;
             }
 
@@ -147,20 +187,23 @@ namespace PisaciAutomat.Obrazovka
             sb.Append(ZmazOdKurzoraPoKoniecRiadku());
         }
 
-        private void Prekresli(EditorScreen novaObrazovka, StringBuilder sb, string stavovyRiadok, ParametreVypisu parametre)
+        private void Prekresli(EditorScreen novaObrazovka, StringBuilder sb, string stavovyRiadok, ParametreVypisu parametre, ParametrePrekreslenia p)
         {
-            for (int i = 0; i < novaObrazovka.Riadky.Count; i++)
+            if (!p.Necitaj)
             {
-                if (novaObrazovka.Riadky.Count != _aktualnaObrazovka.Riadky.Count)
+                for (int i = 0; i < novaObrazovka.Riadky.Count; i++)
                 {
-                    PrekresliRiadok(novaObrazovka, sb, parametre, i);
-                    continue;
-                }
-                else
-                {
-                    if (novaObrazovka.Riadky[i] != _aktualnaObrazovka.Riadky[i])
+                    if (novaObrazovka.Riadky.Count != _aktualnaObrazovka.Riadky.Count)
                     {
                         PrekresliRiadok(novaObrazovka, sb, parametre, i);
+                        continue;
+                    }
+                    else
+                    {
+                        if (novaObrazovka.Riadky[i] != _aktualnaObrazovka.Riadky[i])
+                        {
+                            PrekresliRiadok(novaObrazovka, sb, parametre, i);
+                        }
                     }
                 }
             }
@@ -169,7 +212,7 @@ namespace PisaciAutomat.Obrazovka
             sb.Append(ZmazOdKurzoraPoKoniecRiadku());
             sb.Append(StavovyRiadok(stavovyRiadok));
 
-            sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, parametre.StlpecKurzora + 1));
+            sb.Append(NastavKurzor(novaObrazovka.Riadok, novaObrazovka.Stlpec));
         }
 
         private static void PrekresliRiadok(EditorScreen novaObrazovka, StringBuilder sb, ParametreVypisu parametre, int i)
