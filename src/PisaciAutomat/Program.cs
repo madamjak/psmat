@@ -3,6 +3,7 @@ using PisaciAutomat.Obrazovka;
 using PisaciAutomat.Prikazy;
 using PisaciStroj;
 using PisaciStroj.Lexer;
+using PisaciStroj.Lexer.Algoritmy;
 using PisaciStroj.Navigacia;
 using PisaciStroj.Parametre;
 using PisaciStroj.Vyhladavanie;
@@ -89,9 +90,9 @@ namespace PisaciAutomat
             _search = new ParametreVyhladavania();
         }
 
-        public void Prekresli(bool? resize = null)
+        private void Prekresli(ParametrePrekreslenia p)
         {
-            var screen = _vykreslovaciAutomat.Precitaj(_parametreVypisu, _search, _parametreVyberu, _parametreZapisu);
+            var screen = _vykreslovaciAutomat.Precitaj(_parametreVypisu, _search, _parametreVyberu, _parametreZapisu, p);
 
             var kurzor = string.Format("Riadok: {0} Stlpec: {1}",
                 _parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec);
@@ -103,7 +104,7 @@ namespace PisaciAutomat
 
             var stavovyRiadok = string.Format("{0} | {1} | {2}", kurzor, vyberTextu, subor);
 
-            _vykreslovaciAutomat.VykresliNaKonzolu(screen, stavovyRiadok, _parametreVypisu, _hlaska, _cmdMode, resize ?? false);
+            _vykreslovaciAutomat.VykresliNaKonzolu(screen, stavovyRiadok, _parametreVypisu, _hlaska, _cmdMode, p);
 
             if (_dialog.HasValue)
             {
@@ -120,6 +121,8 @@ namespace PisaciAutomat
 
         public bool SpracujVstup(ConsoleKeyInfo vstup)
         {
+            bool necitaj = false;
+
             if (_cmdMode)
             {
                 CommandLineMode(vstup);
@@ -138,12 +141,43 @@ namespace PisaciAutomat
             }
             else if (Navigator.NavigovaciPrikaz(vstup, _navigovaciPrikaz))
             {
+                var malVybranyText = Zvyraznovac.MaVybranyText(_parametreVyberu);
                 if (!_navigovaciPrikaz.Vyber)
                 {
                     _parametreVyberu = new ParametreVyberu();
                 }
 
+                var indexRiadok = _parametreVypisu.IndexRiadok;
+                var indexStlpec = _parametreVypisu.IndexStlpec;
+                var offsetRiadok = _parametreVypisu.OffsetRiadok;
+                var offsetStlpec = _parametreVypisu.OffsetStlpec;
+
+                var bracketHighlighted = false;
+                if (_parametreVypisu.IndexStlpec < _editor.Riadky()[_parametreVypisu.IndexRiadok].Length())
+                {
+                    bracketHighlighted = StackBracketMatching.Zatvorky.Contains(_editor.Riadky()[_parametreVypisu.IndexRiadok].CharAt(_parametreVypisu.IndexStlpec));
+                }
+
                 Navigator.Naviguj(_navigovaciPrikaz, _parametreVypisu, _editor.Riadky(), _parametreVyberu);
+
+                var zmenaStranky = offsetRiadok != _parametreVypisu.OffsetRiadok || offsetStlpec != _parametreVypisu.OffsetStlpec;                
+                var zmenaVyberuTextu = (malVybranyText && !Zvyraznovac.MaVybranyText(_parametreVyberu))
+                    || (!malVybranyText && Zvyraznovac.MaVybranyText(_parametreVyberu))
+                    || (Zvyraznovac.MaVybranyText(_parametreVyberu) 
+                        && (indexRiadok != _parametreVypisu.IndexRiadok 
+                        || indexStlpec != _parametreVypisu.IndexStlpec));
+
+                var bracketHighlightedPo = false;
+                if (_parametreVypisu.IndexStlpec < _editor.Riadky()[_parametreVypisu.IndexRiadok].Length())
+                {
+                    bracketHighlightedPo = StackBracketMatching.Zatvorky.Contains(_editor.Riadky()[_parametreVypisu.IndexRiadok].CharAt(_parametreVypisu.IndexStlpec));
+                }
+                
+                var zmenaBracketHighlight = bracketHighlighted != bracketHighlightedPo;
+                if (!zmenaStranky && !zmenaVyberuTextu && !zmenaBracketHighlight)
+                {
+                    necitaj = true;
+                }
             }
             else if (vstup.Key == ConsoleKey.Backspace)
             {
@@ -244,6 +278,7 @@ namespace PisaciAutomat
                 {
                     UlozSubor();
                     _maZmenuVSubore = false;
+                    necitaj = true;
                 }
                 else if (vstup.Key == ConsoleKey.Q)
                 {
@@ -251,6 +286,7 @@ namespace PisaciAutomat
                     {
                         Hlaska("Neulozene zmeny v subore. Naozaj ukoncit? (a/n)");
                         _dialog = TypDialogu.PotvrdUkoncenie;
+                        necitaj = true;
                     }
                     else
                     {
@@ -268,7 +304,11 @@ namespace PisaciAutomat
                 _maZmenuVSubore = true;
             }
 
-            Prekresli();
+            var p = new ParametrePrekreslenia()
+            {
+                Necitaj = necitaj
+            };
+            Prekresli(p);
 
             if (_cmdMode)
             {
@@ -277,7 +317,7 @@ namespace PisaciAutomat
 
             if (_ukonci)
             {
-                Console.Write(VykreslovaciAutomat.EraseScree());
+                Console.Write(VykreslovaciAutomat.EraseScree() + VykreslovaciAutomat.NastavKurzor(1, 1));
                 return false;
             }
             else
@@ -303,7 +343,11 @@ namespace PisaciAutomat
 
             Kurzor.GoTo(riadok, stlpec, _parametreVypisu, _editor.Riadky());
 
-            Prekresli(true);
+            var p = new ParametrePrekreslenia()
+            {
+                Resize = true
+            };
+            Prekresli(p);
 
             _cmdLineEditor.Resize(novaSirka);
 
@@ -391,7 +435,7 @@ namespace PisaciAutomat
         {
             ProcessorPrikazov.SpracujPrikaz(prikaz, _search, _parametreVypisu, _editor, ref _cmdMode, ref _maZmenuVSubore);
 
-            Prekresli();
+            Prekresli(new ParametrePrekreslenia());
         }
 
         private void Hlaska(string hlaska)

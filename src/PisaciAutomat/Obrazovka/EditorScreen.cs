@@ -22,10 +22,11 @@ namespace PisaciStroj.Vypis
 
         public int Sirka { get; set; }
 
+        public List<string> Riadky { get; set; }
+
+        //pozicia kurzora
         public int Riadok { get; set; }
 
         public int Stlpec { get; set; }
-
-        public List<string> Riadky { get; set; }
     }
 }

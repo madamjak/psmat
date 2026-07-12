@@ -11,6 +11,8 @@ namespace PisaciStroj.Lexer.Algoritmy
 
     public class StackBracketMatching : IBracketMatching
     {
+        public static HashSet<char> Zatvorky = new HashSet<char> { '(', ')', '{', '}', '[', ']' };
+
         private Stack<Pozicia> _stack1 = new Stack<Pozicia>(); // ( )
         private Stack<Pozicia> _stack2 = new Stack<Pozicia>(); // { }
         private Stack<Pozicia> _stack3 = new Stack<Pozicia>(); // [ ]
