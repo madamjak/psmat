@@ -109,7 +109,7 @@ namespace PisaciAutomat.Obrazovka
             return result;
         }
 
-        public void VykresliNaKonzolu(EditorScreen novaObrazovka, string stavovyRiadok, ParametreVypisu parametre, string hlaska, bool _cmdMode)
+        public void VykresliNaKonzolu(EditorScreen novaObrazovka, string stavovyRiadok, ParametreVypisu parametre, string hlaska, bool _cmdMode, bool resize)
         {
             var sb = new StringBuilder();
 
@@ -126,7 +126,7 @@ namespace PisaciAutomat.Obrazovka
                 VykresliHlasku(parametre, hlaska, sb);
             }
 
-            if (_aktualnaObrazovka == null)
+            if (_aktualnaObrazovka == null || resize)
             {
                 Vykresli(novaObrazovka, sb, stavovyRiadok, parametre);
                 _aktualnaObrazovka = novaObrazovka;
@@ -244,7 +244,7 @@ namespace PisaciAutomat.Obrazovka
             return sb.ToString();
         }
 
-        internal static string EraseScree()
+        public static string EraseScree()
         {
             return "\u001b[2J";
         }

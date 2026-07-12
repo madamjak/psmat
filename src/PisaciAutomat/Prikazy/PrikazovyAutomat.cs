@@ -28,7 +28,6 @@ namespace PisaciAutomat.Prikazy
         private NavigovaciPrikaz _navigovaciPrikaz;
         private ParametreVyberu _vyber;
 
-        private string _hlaska;
         private string _chyba;
 
         public PrikazovyAutomat()
@@ -44,36 +43,21 @@ namespace PisaciAutomat.Prikazy
             _vyber = new ParametreVyberu();
         }
 
-        public PrikazovyAutomatResult NacitajPrikaz(PrikazPrePrikazovyRiadok? prikazZEditora = null)
+        public PrikazovyAutomatResult NacitajPrikaz(PrikazPrePrikazovyRiadok? prikazZEditora = null, ConsoleKeyInfo? vstup = null)
         {
-            _parametreVypisu.SirkaKonzoly = Console.BufferWidth;
-
             if(prikazZEditora.HasValue && prikazZEditora.Value.VyhladavanyText != null)
             {
                 var p = VyhladavaciPrikaz(prikazZEditora);
-                Prekresli();
+                
                 return p;
-            }
-
-            Prekresli();
-
-            PrikazovyAutomatResult r = null;
-
-            while (true)
+            } else if (vstup.HasValue)
             {
-                var vstup = Console.ReadKey();
+                var r = SpracujVstup(vstup.Value);
 
-                r = SpracujVstup(vstup);
-
-                Prekresli();
-
-                if(r.Prikaz != null || r.ZavriRiadok)
-                {
-                    break;
-                }
+                return r;
             }
 
-            return r;
+            return new PrikazovyAutomatResult();
         }
 
         private PrikazovyAutomatResult VyhladavaciPrikaz(PrikazPrePrikazovyRiadok? prikazZEditora)
@@ -102,16 +86,7 @@ namespace PisaciAutomat.Prikazy
         {
             var r = new PrikazovyAutomatResult();
 
-            if(_parametreVypisu.SirkaKonzoly == 0 && _parametreVypisu.Stlpec == 0 && _parametreVypisu.OffsetStlpec == 0)
-            {
-                _parametreVypisu.SirkaKonzoly = Console.BufferWidth;
-            }
-
-            if (ZmenaRozmerovKonzoly())
-            {
-                Hlaska();
-            }
-            else if (Navigator.NavigujVPrikazovomRiadku(vstup, _navigovaciPrikaz))
+            if (Navigator.NavigujVPrikazovomRiadku(vstup, _navigovaciPrikaz))
             {
                 Navigator.Naviguj(_navigovaciPrikaz, _parametreVypisu, _riadky, _vyber);
 
@@ -165,18 +140,18 @@ namespace PisaciAutomat.Prikazy
             PosunDoprava();
         }
 
-        private bool ZmenaRozmerovKonzoly()
+        public void Resize(int novaSirka)
         {
-            if (_parametreVypisu.SirkaKonzoly != Console.BufferWidth)
+            var indexStlpec = _parametreVypisu.IndexStlpec;
+
+            _parametreVypisu.SirkaKonzoly = novaSirka;
+            _parametreVypisu.Stlpec = 0;
+            _parametreVypisu.OffsetStlpec = 0;
+
+            while(_parametreVypisu.IndexStlpec != indexStlpec)
             {
-                _parametreVypisu.SirkaKonzoly = Console.BufferWidth;
-                _parametreVypisu.Stlpec = 0;
-                _parametreVypisu.OffsetStlpec = 0;
-
-                return true;
+                PosunDoprava();
             }
-
-            return false;
         }
 
         private void PosunDoprava()
@@ -214,12 +189,6 @@ namespace PisaciAutomat.Prikazy
         {
             var sb = new StringBuilder();
 
-            if (_hlaska != null)
-            {
-                sb.Append(_hlaska);
-                _hlaska = null;
-            }
-
             if (_chyba != null)
             {
                 sb.Append(_chyba);
@@ -246,17 +215,6 @@ namespace PisaciAutomat.Prikazy
             sb.Append(VykreslovaciAutomat.NastavKurzor(1, _parametreVypisu.StlpecKurzora + 1));
 
             Console.Write(sb.ToString());
-        }
-
-        private void Hlaska()
-        {
-            var sb = new StringBuilder();
-            sb.Append(VykreslovaciAutomat.NastavKurzor(2, 1));
-            sb.Append(VykreslovaciAutomat.ZmazOdKurzoraPoKoniecRiadku());
-            sb.Append(VykreslovaciAutomat.NastavKurzor(2, _parametreVypisu.OkrajVlavo + 1));
-            sb.Append(VykreslovaciAutomat.Hlaska("Zmena rozmerov okna, prosim znova."));
-
-            _hlaska = sb.ToString();
         }
 
         private void Chyba()
