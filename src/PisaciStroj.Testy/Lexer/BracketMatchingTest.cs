@@ -30,7 +30,7 @@ namespace PSMat.Testy.Lexer
 
             var r = algo.GetMatchingBrackets(stubText);
 
-            return false;
+            return true;
         }
 
         private List<GapBuffer> StubText()

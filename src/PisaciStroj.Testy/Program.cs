@@ -59,7 +59,7 @@ namespace PisaciStroj.Testy
             if(failed.Count > 0)
             {
                 Console.WriteLine("                    ");
-                Console.WriteLine("*** FAILED TESTS ***:");
+                Console.WriteLine("*** FAILED TESTS ***");
                 foreach(var f in failed)
                 {
                     Console.WriteLine(f.TestName);
