@@ -26,7 +26,7 @@ try {
 	
 	Set-Location $currentDir
 	
-	if ($LASTEXITCODE = 1){
+	if ($LASTEXITCODE -eq 1){
 		Write-Error "Unit tests failed"
 	}
 }
