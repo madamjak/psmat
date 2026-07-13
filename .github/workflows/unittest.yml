@@ -1,0 +1,22 @@
+name: PSMat unit tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  run-multiple:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build
+        shell: pwsh
+        run: ./scripts/Build-DotNet.ps1 -ProjectPath "./src/PisaciStroj.Testy/PSMat.Testy.csproj" -Configuration Release
+          
+      - name: Test
+        shell: pwsh
+        run: ./src/PisaciStroj.Testy/Test-PSMat.ps1
