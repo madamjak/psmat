@@ -34,8 +34,8 @@ namespace PisaciStroj.Testy
             //var t = new SyntaxHighlightTest();
             //t.Spust();
 
-            //var t = new BracketMatchingTest();
-            //t.Spust();
+            var t = new BracketMatchingTest();
+            t.Spust();
 
             var testy = new List<ITest>() 
             {

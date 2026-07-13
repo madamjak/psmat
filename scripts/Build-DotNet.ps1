@@ -36,6 +36,26 @@ function Test-DotNetInstalled {
     }
 }
 
+$currentDir = Get-Location
+
+# Go to the solution directory
+$FolderPath = Split-Path -Path $ProjectPath
+Set-Location $FolderPath
+
+$ProjectPath = Split-Path -Path $ProjectPath -Leaf
+
+# Remove ALL bin and obj folders recursively
+Get-ChildItem -Path . -Include bin,obj -Recurse -Directory |
+    ForEach-Object {
+        try {
+            Remove-Item $_.FullName -Recurse -Force -ErrorAction Stop
+            Write-Host "Deleted $($_.FullName)" -ForegroundColor Green
+        }
+        catch {
+            Write-Host "Failed to delete $($_.FullName): $_" -ForegroundColor Red
+        }
+    }
+
 # Validate dotnet CLI
 if (-not (Test-DotNetInstalled)) {
     Write-Error "The .NET SDK (dotnet CLI) is not installed or not in PATH."
@@ -49,16 +69,29 @@ if (-not (Test-Path $ProjectPath)) {
 }
 
 Write-Host "Restoring dependencies for $ProjectPath..." -ForegroundColor Cyan
-if (-not (dotnet restore $ProjectPath)) {
-    Write-Error "Restore failed."
-    exit 1
+dotnet restore $ProjectPath
+# if (-not (dotnet restore $ProjectPath)) {
+    # Write-Error "Restore failed."
+    # exit 1
+#}
+
+if ($LASTEXITCODE -ne 0){
+	Write-Error "Restore failed."
 }
 
 Write-Host "Building project in $Configuration mode..." -ForegroundColor Cyan
-if (-not (dotnet build $ProjectPath --configuration $Configuration --no-restore)) {
-    Write-Error "Build failed."
-    exit 1
+dotnet build -v:detailed -p:WarningLevel=5 $ProjectPath --configuration $Configuration --no-restore
+# if (-not (dotnet build -v:detailed -p:WarningLevel=5 $ProjectPath --configuration $Configuration --no-restore)) {
+    # Write-Error "Build failed."
+    # exit 1
+#}
+
+if ($LASTEXITCODE -ne 0){
+	Write-Error "Build failed."
+}
+else{
+	Write-Host "Build succeeded!" -ForegroundColor Green
 }
 
-Write-Host "Build succeeded!" -ForegroundColor Green
+Set-Location $currentDir
 
