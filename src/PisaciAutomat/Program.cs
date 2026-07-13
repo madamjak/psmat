@@ -485,7 +485,7 @@ namespace PisaciAutomat
         {
             try
             {
-                var cesta = "Config/Lex/Jazyk.json";
+                var cesta = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Config/Lex/Jazyk.json");
 
                 LexGramatika gramatika;
 
