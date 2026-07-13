@@ -10,7 +10,7 @@ using System.Text;
 
 namespace PSMat.Testy.Lexer
 {
-    public class LexerTest
+    public class LexerTest : ITest
     {
         public List<TestResult> Spust()
         {
