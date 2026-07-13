@@ -25,6 +25,10 @@ try {
     }
 	
 	Set-Location $currentDir
+	
+	if ($LASTEXITCODE = 1){
+		Write-Error "Unit tests failed"
+	}
 }
 catch {
     Write-Error "Error running EXE: $_"

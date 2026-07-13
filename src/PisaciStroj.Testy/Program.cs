@@ -15,9 +15,14 @@ namespace PisaciStroj.Testy
         public bool Pass { get; set; }
     }
 
+    public interface ITest
+    {
+        List<TestResult> Spust();
+    }
+
     class Program
     {
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             var results = new List<TestResult>();
             //var testy = new PrikazovyRiadokTesty();
@@ -32,9 +37,17 @@ namespace PisaciStroj.Testy
             //var t = new BracketMatchingTest();
             //t.Spust();
 
-            var t = new LexerTest();
-            results.AddRange(t.Spust());
+            var testy = new List<ITest>() 
+            {
+                new LexerTest(),
+                new BracketMatchingTest()
+            };
 
+            foreach(var t in testy)
+            {
+                results.AddRange(t.Spust());
+            }
+            
             var failed = results.Where(x => !x.Pass).ToList();
             var passed = results.Count - failed.Count;
 
@@ -46,12 +59,18 @@ namespace PisaciStroj.Testy
             if(failed.Count > 0)
             {
                 Console.WriteLine("                    ");
-                Console.WriteLine("                    ");
-                Console.WriteLine("Tests failed:");
+                Console.WriteLine("*** FAILED TESTS ***:");
                 foreach(var f in failed)
                 {
                     Console.WriteLine(f.TestName);
                 }
+                Console.WriteLine("                    ");
+
+                return 1;
+            }
+            else
+            {
+                return 0;
             }
             
         }
