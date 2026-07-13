@@ -2,8 +2,10 @@ try {
     # Run the EXE and wait for it to finish
     # & "C:\Path\To\MyApp.exe" "arg1" "arg2"
 
+	$currentDir = Get-Location
+	Set-Location ".\src\PisaciStroj.Testy\bin\Release\net10.0"
     # Or capture its output
-    $rawOutput = & "./src/PisaciStroj.Testy/bin/Release/netcoreapp3.1/PSMat.Testy.exe"
+    $rawOutput = & "./PSMat.Testy.exe"
     
 	# Ensure output is treated as a single string
     if ($rawOutput -is [array]) {
@@ -21,6 +23,8 @@ try {
     foreach ($line in $lines) {
         Write-Host "$line"
     }
+	
+	Set-Location $currentDir
 }
 catch {
     Write-Error "Error running EXE: $_"
