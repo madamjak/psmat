@@ -8,6 +8,8 @@ namespace PisaciStroj.Parametre
 
         public Pozicia? Koniec { get; set; }
 
-        public int? PocetZnakov { get; set; }
+        public int PocetZnakov { get; set; }
+
+        public int PocetRiadkov { get; set; }
     }
 }

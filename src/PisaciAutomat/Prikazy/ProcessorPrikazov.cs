@@ -65,8 +65,7 @@ namespace PisaciAutomat.Prikazy
             ParametreVyhladavania search, 
             ParametreVypisu parametreVypisu,
             IPisaciStroj editor,
-            ref bool cmdMode,
-            ref bool maZmenuVSubore)
+            ref bool cmdMode)
         {
             if(prikaz.VyhladavanyText != search.VyhladavanyText)
             {
@@ -114,7 +113,7 @@ namespace PisaciAutomat.Prikazy
                 search.VyhladaneSlovo = null;
                 if (editor.VyhladajANahrad(prikaz.VyhladavanyText, prikaz.NovyText, parametreVypisu))
                 {
-                    maZmenuVSubore = true;
+                    
                 };
             }
 
@@ -127,7 +126,7 @@ namespace PisaciAutomat.Prikazy
 
                 if (editor.VyhladajANahradVsetky(prikaz.VyhladavanyText, prikaz.NovyText, parametreVypisu))
                 {
-                    maZmenuVSubore = true;
+                    
                 };
 
                 Kurzor.GoTo(aktualnyR, aktualnyS, parametreVypisu, editor.Riadky());

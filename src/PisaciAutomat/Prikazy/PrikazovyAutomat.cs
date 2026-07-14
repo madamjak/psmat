@@ -242,7 +242,7 @@ namespace PisaciAutomat.Prikazy
         {
             try
             {
-                var cesta = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Config/LexCommands.json");
+                var cesta = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Config/Lex/Commands.json");
 
                 LexGramatika gramatika;
 

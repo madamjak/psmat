@@ -1,5 +1,7 @@
-﻿using PisaciStroj.Parametre;
+﻿using PisaciStroj.Pamat;
+using PisaciStroj.Parametre;
 using PisaciStroj.Vyhladavanie;
+using System.Collections.Generic;
 
 namespace PisaciStroj.Navigacia
 {
@@ -41,15 +43,6 @@ namespace PisaciStroj.Navigacia
             {
                 dlzka = dlzkaRiadku;
             }
-
-            //if(parametere.Zaciatok.Value.Riadok == parametere.Koniec.Value.Riadok)
-            //{
-            //    parametere.PocetZnakov = dlzka;
-            //}
-            //else
-            //{
-            //    parametere.PocetZnakov = parametere.PocetZnakov.HasValue ? parametere.PocetZnakov + dlzka : dlzka;
-            //}
 
             return new VyhladaneSlovo()
             {
@@ -93,7 +86,37 @@ namespace PisaciStroj.Navigacia
             {
                 parametreVyberu.Zaciatok = null;
                 parametreVyberu.Koniec = null;
-                parametreVyberu.PocetZnakov = null;
+            }
+        }
+
+        public static void SpocitajVyber(ParametreVyberu parametreVyberu, List<GapBuffer> riadky)
+        {
+            parametreVyberu.PocetRiadkov = 0;
+            parametreVyberu.PocetZnakov = 0;
+
+            for (int i = parametreVyberu.Zaciatok.Value.Riadok; i <= parametreVyberu.Koniec.Value.Riadok; i++)
+            {
+                parametreVyberu.PocetRiadkov++;
+
+                if (parametreVyberu.Zaciatok.Value.Riadok == parametreVyberu.Koniec.Value.Riadok)
+                {
+                    parametreVyberu.PocetZnakov += parametreVyberu.Koniec.Value.Stlpec - parametreVyberu.Zaciatok.Value.Stlpec;
+                    continue;
+                }
+
+                if(i == parametreVyberu.Zaciatok.Value.Riadok)
+                {
+                    parametreVyberu.PocetZnakov += riadky[i].Length() - parametreVyberu.Zaciatok.Value.Stlpec;
+                    continue;
+                }
+
+                if (i == parametreVyberu.Koniec.Value.Riadok)
+                {
+                    parametreVyberu.PocetZnakov += parametreVyberu.Koniec.Value.Stlpec;
+                    continue;
+                }
+
+                parametreVyberu.PocetZnakov += riadky[i].Length();
             }
         }
     }

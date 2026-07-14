@@ -20,14 +20,17 @@ namespace PisaciAutomat.Obrazovka
     public class VykreslovaciAutomat
     {
         private EditorScreen _aktualnaObrazovka;
-
+        
         private ILexer _lexer;
         private IPisaciStroj _editor;
+
+        private StavovyRiadok _stavovyRiadok;
 
         public VykreslovaciAutomat(LexGramatika gramatika, IPisaciStroj editor)
         {
             _lexer = new LexAutomat(gramatika);
             _editor = editor;
+            _stavovyRiadok = new StavovyRiadok();
         }
 
         public EditorScreen Precitaj(ParametreVypisu parametre, ParametreVyhladavania search, ParametreVyberu parametreVyberu, ParametreZapisu parametreZapisu, ParametrePrekreslenia parametrePrekreslenia)
@@ -149,10 +152,11 @@ namespace PisaciAutomat.Obrazovka
             return result;
         }
 
-        public void VykresliNaKonzolu(EditorScreen novaObrazovka, string stavovyRiadok, ParametreVypisu parametre, string hlaska, bool _cmdMode, ParametrePrekreslenia p)
+        public void VykresliNaKonzolu(EditorScreen novaObrazovka, StavovyRiadokInfo stavovyRiadok, ParametreVypisu parametre, string hlaska, bool _cmdMode, ParametrePrekreslenia p)
         {
             var sb = new StringBuilder();
 
+            sb.Append(NastavKurzorUnVisible());
             if (!_cmdMode)
             {
                 sb.Append(NastavKurzor(1, 1));
@@ -166,6 +170,8 @@ namespace PisaciAutomat.Obrazovka
                 VykresliHlasku(parametre, hlaska, sb);
             }
 
+            sb.Append(_stavovyRiadok.Vykresli(p.Resize, stavovyRiadok, parametre));
+
             if (_aktualnaObrazovka == null || p.Resize)
             {
                 Vykresli(novaObrazovka, sb, stavovyRiadok, parametre);
@@ -177,6 +183,8 @@ namespace PisaciAutomat.Obrazovka
                 _aktualnaObrazovka = novaObrazovka;
             }
 
+            sb.Append(NastavKurzorVisible());
+
             Console.Write(sb.ToString());
         }
 
@@ -187,7 +195,7 @@ namespace PisaciAutomat.Obrazovka
             sb.Append(ZmazOdKurzoraPoKoniecRiadku());
         }
 
-        private void Prekresli(EditorScreen novaObrazovka, StringBuilder sb, string stavovyRiadok, ParametreVypisu parametre, ParametrePrekreslenia p)
+        private void Prekresli(EditorScreen novaObrazovka, StringBuilder sb, StavovyRiadokInfo stavovyRiadok, ParametreVypisu parametre, ParametrePrekreslenia p)
         {
             if (!p.Necitaj)
             {
@@ -207,11 +215,7 @@ namespace PisaciAutomat.Obrazovka
                     }
                 }
             }
-
-            sb.Append(NastavKurzor(parametre.VyskaKonzoly, parametre.OkrajVlavo + 1));
-            sb.Append(ZmazOdKurzoraPoKoniecRiadku());
-            sb.Append(StavovyRiadok(stavovyRiadok));
-
+            
             sb.Append(NastavKurzor(novaObrazovka.Riadok, novaObrazovka.Stlpec));
         }
 
@@ -222,16 +226,13 @@ namespace PisaciAutomat.Obrazovka
             sb.Append(novaObrazovka.Riadky[i]);
         }
 
-        public static void Vykresli(EditorScreen novaObrazovka, StringBuilder sb, string stavovyRiadok, ParametreVypisu parametre)
+        public static void Vykresli(EditorScreen novaObrazovka, StringBuilder sb, StavovyRiadokInfo stavovyRiadok, ParametreVypisu parametre)
         {
             sb.Append(NastavKurzor(parametre.OkrajHore + 1, 1));
             foreach (var riadok in novaObrazovka.Riadky)
             {
                 sb.AppendLine(riadok);
             }
-
-            sb.Append(NastavKurzor(parametre.VyskaKonzoly, parametre.OkrajVlavo + 1));
-            sb.Append(StavovyRiadok(stavovyRiadok));
 
             sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, parametre.StlpecKurzora + 1));
         }
@@ -241,15 +242,27 @@ namespace PisaciAutomat.Obrazovka
             return string.Format("\u001b[{0};{1}H", riadok, stlpec);
         }
 
+        public static string NastavKurzorVisible()
+        {
+            return string.Format("\u001b[?25h");
+        }
+
+        public static string NastavKurzorUnVisible()
+        {
+            return string.Format("\u001b[?25l");
+        }
+
         public static string ZmazOdKurzoraPoKoniecRiadku()
         {
             return string.Format("\u001b[0K");
         }
 
-        public static string StavovyRiadok(string s)
+        public static string ZmazOdZaciatkuRiadkuPoKurzor()
         {
-            return string.Format("\u001b[44;1m{0}\u001b[0m", s);
+
+            return string.Format("\u001b[1K");
         }
+
         public static string Chyba()
         {
             return string.Format("\u001b[41;1m{0}\u001b[0m", "???");
