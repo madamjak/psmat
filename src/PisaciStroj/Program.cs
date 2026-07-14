@@ -30,6 +30,8 @@ namespace PisaciStroj
         bool VyhladajANahradVsetky(string vyhladavanyText, string novyText, ParametreVypisu parametreVypisu);
         Dictionary<int, VyhladaneSlovo> VyhladajVsetky(GapBuffer riadok, string vyhladavanyText);
         void NastavVyhladavanie(string vyhladavanyText);
+        
+        bool MaZmenu();
     }
 
     public class Program : IPisaciStroj
@@ -508,6 +510,11 @@ namespace PisaciStroj
         public void NastavVyhladavanie(string vyhladavanyText)
         {
             _vyhladavac.NastavVyhladavaciAutomat(vyhladavanyText);
+        }
+
+        public bool MaZmenu()
+        {
+            return _pamatOperacii.PocetOperaciiNaVratenie > 0;
         }
     }
 }

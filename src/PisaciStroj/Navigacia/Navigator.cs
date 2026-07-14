@@ -184,6 +184,7 @@ namespace PisaciStroj.Navigacia
                 posPo.Stlpec = parametreVypisu.IndexStlpec;
 
                 Zvyraznovac.UpravVyber(posPred, posPo, parametreVyberu);
+                Zvyraznovac.SpocitajVyber(parametreVyberu, riadky);
             }
         }
 

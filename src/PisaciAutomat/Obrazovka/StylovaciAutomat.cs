@@ -333,6 +333,40 @@ namespace PisaciAutomat.Obrazovka
         {
             return "\u001b[0m";
         }
+                
+        public enum FarbaPozadia
+        {
+            Zlta,
+            Cyan,
+            Siva,
+            Modra,
+            Cervena,
+            Zelena,
+            Biela
+        }
+        
+        public static string AnsiStyl(FarbaPozadia p)
+        {
+            switch (p)
+            {
+                case FarbaPozadia.Zlta:
+                    return "\u001b[1;90;103m";
+                case FarbaPozadia.Cyan:
+                    return "\u001b[1;90;106m";
+                case FarbaPozadia.Siva:
+                    return "\u001b[100;97m";
+                case FarbaPozadia.Biela:
+                    return "\u001b[1;90;107m";
+                case FarbaPozadia.Modra:
+                    return "\u001b[1;100;104m";
+                case FarbaPozadia.Cervena:
+                    return "\u001b[41;1m";
+                case FarbaPozadia.Zelena:
+                    return "\u001b[42;1m";
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
 
         public static string AnsiStyl(StylTextu styl)
         {

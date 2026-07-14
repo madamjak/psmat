@@ -29,7 +29,7 @@ namespace PSMat.Testy.Obrazovka
 
             var sb = new StringBuilder();
 
-            VykreslovaciAutomat.Vykresli(result, sb, string.Empty, parametreVykreslovania);
+            VykreslovaciAutomat.Vykresli(result, sb, new StavovyRiadokInfo(), parametreVykreslovania);
 
             var ansiKod = sb.ToString();
 

@@ -40,6 +40,7 @@ namespace PisaciAutomat
             return instance;
         }
 
+        //editor
         private IVyhladavac _vyhladavac;
         private static IPisaciStroj _editor;
         private VykreslovaciAutomat _vykreslovaciAutomat;
@@ -52,18 +53,14 @@ namespace PisaciAutomat
         //kurzor
         private NavigovaciPrikaz _navigovaciPrikaz;
         private static ParametreVypisu _parametreVypisu;
-
-        private bool _maZmenuVSubore;
-        private bool _ukonci;
-
-        private string _cestaKSuboru;
-
         private ParametreVyberu _parametreVyberu;
         private string _skopirovanyText;
 
         //formatovanie
         private ParametreZapisu _parametreZapisu;
 
+        private string _cestaKSuboru = string.Empty;
+        private bool _ukonci;
         private string _hlaska;
         private string _chyba;
         private TypDialogu? _dialog;
@@ -88,31 +85,6 @@ namespace PisaciAutomat
             _parametreZapisu = new ParametreZapisu();
 
             _search = new ParametreVyhladavania();
-        }
-
-        private void Prekresli(ParametrePrekreslenia p)
-        {
-            var screen = _vykreslovaciAutomat.Precitaj(_parametreVypisu, _search, _parametreVyberu, _parametreZapisu, p);
-
-            var kurzor = string.Format("Riadok: {0} Stlpec: {1}",
-                _parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec);
-
-            var vyberTextu = string.Format("Vyber: {0}",
-                _parametreVyberu.PocetZnakov.HasValue ? _parametreVyberu.PocetZnakov.ToString() : "-");
-
-            var subor = string.Format("{0}{1}", _cestaKSuboru, _maZmenuVSubore ? "*" : "");
-
-            var stavovyRiadok = string.Format("{0} | {1} | {2}", kurzor, vyberTextu, subor);
-
-            _vykreslovaciAutomat.VykresliNaKonzolu(screen, stavovyRiadok, _parametreVypisu, _hlaska, _cmdMode, p);
-
-            if (_dialog.HasValue)
-            {
-                Console.Write(VykreslovaciAutomat.NastavKurzor(2, _parametreVypisu.OkrajVlavo + 1));
-            }
-
-            _hlaska = null;
-            _chyba = null;
         }
 
         public int SirkaKonzoly => _parametreVypisu.SirkaKonzoly;
@@ -191,7 +163,6 @@ namespace PisaciAutomat
                 else
                 {
                     _editor.ZmazText(_parametreVypisu);
-                    _maZmenuVSubore = true;
                 }
             }
             else if (vstup.Key == ConsoleKey.Delete)
@@ -207,7 +178,6 @@ namespace PisaciAutomat
                 {
                     Kurzor.PosunKurzorDoprava(_parametreVypisu, _editor.Riadky());
                     _editor.ZmazText(_parametreVypisu);
-                    _maZmenuVSubore = true;
                 }
             }
             else if (vstup.Key == ConsoleKey.Enter)
@@ -219,7 +189,6 @@ namespace PisaciAutomat
                 }
 
                 _editor.NapisText(newLine, _parametreVypisu, _parametreZapisu);
-                _maZmenuVSubore = true;
             }
             else if ((vstup.Modifiers & ConsoleModifiers.Control) == ConsoleModifiers.Control)
             {
@@ -251,8 +220,6 @@ namespace PisaciAutomat
                         _parametreVyberu.Koniec.Value.Stlpec, _parametreVyberu.Koniec.Value.Riadok, _parametreVypisu);
 
                     _parametreVyberu = new ParametreVyberu();
-
-                    _maZmenuVSubore = true;
                 }
                 else if (vstup.Key == ConsoleKey.V)
                 {
@@ -262,7 +229,6 @@ namespace PisaciAutomat
                     {
                         _editor.NapisText(_skopirovanyText, _parametreVypisu);
                         _parametreVyberu = new ParametreVyberu();
-                        _maZmenuVSubore = true;
                     }
                 }
                 else if (vstup.Key == ConsoleKey.F)
@@ -274,15 +240,14 @@ namespace PisaciAutomat
                     VyberVsetko();
 
                 }
-                else if (vstup.Key == ConsoleKey.S && _maZmenuVSubore)
+                else if (vstup.Key == ConsoleKey.S)
                 {
                     UlozSubor();
-                    _maZmenuVSubore = false;
                     necitaj = true;
                 }
                 else if (vstup.Key == ConsoleKey.Q)
                 {
-                    if (_maZmenuVSubore)
+                    if (_editor.MaZmenu())
                     {
                         Hlaska("Neulozene zmeny v subore. Naozaj ukoncit? (a/n)");
                         _dialog = TypDialogu.PotvrdUkoncenie;
@@ -301,7 +266,6 @@ namespace PisaciAutomat
             else if (IsPrintable(vstup.KeyChar))
             {
                 _editor.NapisZnak(vstup.KeyChar, _parametreVypisu);
-                _maZmenuVSubore = true;
             }
 
             var p = new ParametrePrekreslenia()
@@ -355,6 +319,30 @@ namespace PisaciAutomat
             {
                 _cmdLineEditor.Prekresli();
             }
+        }
+
+        private void Prekresli(ParametrePrekreslenia p)
+        {
+            var screen = _vykreslovaciAutomat.Precitaj(_parametreVypisu, _search, _parametreVyberu, _parametreZapisu, p);
+
+            var stavovyRiadok = new StavovyRiadokInfo()
+            {
+                CestaKSuboru = _cestaKSuboru,
+                Stav = string.Format("Ln: {0}  Col: {1}  | Sel: {2} / {3}", _parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec,
+                    _parametreVyberu.PocetZnakov > 0 ? _parametreVyberu.PocetZnakov.ToString() : "-",
+                    _parametreVyberu.PocetRiadkov > 1 ? _parametreVyberu.PocetRiadkov.ToString() : "-"),
+                MaZmenu = _editor.MaZmenu(),
+            };
+            
+            _vykreslovaciAutomat.VykresliNaKonzolu(screen, stavovyRiadok, _parametreVypisu, _hlaska, _cmdMode, p);
+
+            if (_dialog.HasValue)
+            {
+                Console.Write(VykreslovaciAutomat.NastavKurzor(2, _parametreVypisu.OkrajVlavo + 1));
+            }
+
+            _hlaska = null;
+            _chyba = null;
         }
 
         private void VyberVsetko()
@@ -433,7 +421,7 @@ namespace PisaciAutomat
 
         private void SpracujPrikaz(Prikaz prikaz)
         {
-            ProcessorPrikazov.SpracujPrikaz(prikaz, _search, _parametreVypisu, _editor, ref _cmdMode, ref _maZmenuVSubore);
+            ProcessorPrikazov.SpracujPrikaz(prikaz, _search, _parametreVypisu, _editor, ref _cmdMode);
 
             Prekresli(new ParametrePrekreslenia());
         }
@@ -515,18 +503,14 @@ namespace PisaciAutomat
             {
                 Console.Write(VykreslovaciAutomat.VykresliHlasku("Zadaj prosim nazov alebo cestu k suboru.", _parametreVypisu.OkrajVlavo));
                 Console.Write(VykreslovaciAutomat.NastavKurzor(2, _parametreVypisu.OkrajVlavo + 1));
-                _cestaKSuboru = Console.ReadLine();
-            }
-            else
-            {
-                _cestaKSuboru = cesta;
+                cesta = Console.ReadLine();
             }
 
             try
             {
-                if (File.Exists(_cestaKSuboru))
+                if (File.Exists(cesta))
                 {
-                    using (var streamReader = new StreamReader(_cestaKSuboru))
+                    using (var streamReader = new StreamReader(cesta))
                     {
                         var text = streamReader.ReadToEnd();
                         if (text != null && text.Length > 0)
@@ -534,14 +518,14 @@ namespace PisaciAutomat
                             _editor.NapisTextZoSuboru(text);
                         }
                     }
-
-                    return true;
                 }
                 else
                 {
-                    using (var f = File.Create(_cestaKSuboru)) { };
-                    return true;
+                    using (var f = File.Create(cesta)) { };
                 }
+
+                _cestaKSuboru = Path.GetFullPath(cesta);
+                return true;
             }
             catch (Exception ex)
             {
