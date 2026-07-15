@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using PisaciAutomat.Obrazovka;
+using PisaciStroj.Chyby;
 using PisaciStroj.Lexer;
 using PisaciStroj.Navigacia;
 using PisaciStroj.Pamat;
@@ -303,6 +304,11 @@ namespace PisaciAutomat.Prikazy
             }
             catch (Exception ex)
             {
+                ErrorLogger.GetInstance().Log(new Chyba()
+                {
+                    Ex = ex
+                });
+
                 return new LexGramatika();
             }
         }

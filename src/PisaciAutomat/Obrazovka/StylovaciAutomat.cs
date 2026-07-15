@@ -409,6 +409,10 @@ namespace PisaciAutomat.Obrazovka
                     return "\u001b[38;5;226m";
                 case StylTextu.RedBold:
                     return "\u001b[1;38;5;196m";
+                case StylTextu.Cyan:
+                    return "\u001b[96m";
+                case StylTextu.CyanBold:
+                    return "\u001b[1;96m";
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -429,7 +433,9 @@ namespace PisaciAutomat.Obrazovka
             OrangeClassic,
             YellowItalic,
             RedBold,
-            Yellow
+            Yellow,
+            Cyan,
+            CyanBold
         }
 
         public static StylTextu VyberStyl(TypTokenu typ)

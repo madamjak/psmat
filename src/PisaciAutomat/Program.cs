@@ -2,6 +2,7 @@
 using PisaciAutomat.Obrazovka;
 using PisaciAutomat.Prikazy;
 using PisaciStroj;
+using PisaciStroj.Chyby;
 using PisaciStroj.Formatovanie;
 using PisaciStroj.Lexer;
 using PisaciStroj.Lexer.Algoritmy;
@@ -516,6 +517,11 @@ namespace PisaciAutomat
             }
             catch(Exception ex)
             {
+                ErrorLogger.GetInstance().Log(new Chyba()
+                {
+                    Ex = ex
+                });
+
                 return new LexGramatika();
             }
             
