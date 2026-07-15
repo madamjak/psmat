@@ -1,4 +1,5 @@
 ﻿using PisaciAutomat.Obrazovka;
+using PisaciStroj.Chyby;
 using PSMat.Windows;
 using System;
 using System.Threading;
@@ -17,6 +18,8 @@ namespace PSMat
 
         private static bool _rawMode;
         private static readonly object _lockObject = new object();
+
+        private static bool _chyba;
 
         public static void Main(string[] args)
         {
@@ -40,6 +43,11 @@ namespace PSMat
                 var akciSeditorom = new AkciaSEditorom();
                 while (true)
                 {
+                    if (_chyba)
+                    {
+                        throw new ApplicationException("Neocakavana chyba.");
+                    }
+
                     akciSeditorom.vstup = Console.ReadKey(intercept: true);
 
                     if (!OperaciaSEditorom(akciSeditorom))
@@ -50,8 +58,22 @@ namespace PSMat
             }
             catch (Exception ex)
             {
+                _chyba = true;
+
                 Console.Write(VykreslovaciAutomat.EraseScree());
-                Console.Write(VykreslovaciAutomat.VykresliChybu(2));
+                
+                var logger = ErrorLogger.GetInstance();
+                logger.Log(new Chyba() { Ex = ex });
+                var cesta = logger.UlozDoSuboru();
+                var sprava =
+                    string.Format("Neocakavana chyba, mozne nahlasit na {0}{1}{2} a pridat zaznam ulozeny v subore {3}{4}{5}",
+                    StylovaciAutomat.AnsiStyl(StylovaciAutomat.StylTextu.Cyan), 
+                    "https://github.com/madamjak/psmat/issues/", 
+                    StylovaciAutomat.AnsiReset(),
+                    StylovaciAutomat.AnsiStyl(StylovaciAutomat.StylTextu.Yellow), 
+                    cesta,
+                    StylovaciAutomat.AnsiReset());
+                Console.Write(VykreslovaciAutomat.VykresliChybu2(sprava));
             }
             finally
             {
@@ -63,7 +85,7 @@ namespace PSMat
                     }
                 }
 
-                Environment.Exit(0);
+                Environment.Exit(_chyba ? 1 : 0);
             }
         }
 
@@ -140,7 +162,12 @@ namespace PSMat
                 }
             }catch(Exception ex)
             {
+                ErrorLogger.GetInstance().Log(new Chyba()
+                {
+                    Ex = ex
+                });
 
+                _chyba = true;
             }
         }
     }

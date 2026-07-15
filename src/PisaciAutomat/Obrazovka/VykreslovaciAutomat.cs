@@ -286,6 +286,11 @@ namespace PisaciAutomat.Obrazovka
             return string.Format("\u001b[41;1m{0}\u001b[0m", "???");
         }
 
+        public static string Chyba2()
+        {
+            return string.Format("\u001b[41;1m{0}\u001b[0m", " ! ");
+        }
+
         public static string Hlaska(string v)
         {
             return string.Format("\u001b[42;1m{0}\u001b[0m", v);
@@ -314,6 +319,17 @@ namespace PisaciAutomat.Obrazovka
             sb.Append(VykreslovaciAutomat.ZmazOdKurzoraPoKoniecRiadku());
             sb.Append(VykreslovaciAutomat.NastavKurzor(2, okraj + 1));
             sb.Append(VykreslovaciAutomat.Chyba());
+
+            return sb.ToString();
+        }
+
+        public static string VykresliChybu2(string sprava)
+        {
+            var sb = new StringBuilder();
+            sb.Append(VykreslovaciAutomat.NastavKurzor(1, 1));
+            sb.Append(VykreslovaciAutomat.Chyba2());
+            sb.Append(" ");
+            sb.Append(sprava);           
 
             return sb.ToString();
         }
