@@ -1,4 +1,5 @@
-﻿using PisaciStroj.Navigacia;
+﻿using PisaciStroj.Formatovanie;
+using PisaciStroj.Navigacia;
 using PisaciStroj.Pamat;
 using PisaciStroj.Parametre;
 using PisaciStroj.Vyhladavanie;
@@ -14,7 +15,7 @@ namespace PisaciStroj
         
         
         void NapisZnak(char znak, ParametreVypisu parametreVypisu);
-        void NapisText(string vstup, ParametreVypisu parametreVypisu, ParametreZapisu parametreZapisu = null);
+        void NapisText(string vstup, ParametreVypisu parametreVypisu);
         void NapisTextZoSuboru(string text);
         void ZmazText(ParametreVypisu parametreVypisu);
         void ZmazText(int zaciatocnyStlpecVyberu, int zaciatocnyRiadokVyberu, int konecnyStlpecVyberu, int konecnyRiadokVyberu, ParametreVypisu parametreVypisu);
@@ -32,13 +33,22 @@ namespace PisaciStroj
         void NastavVyhladavanie(string vyhladavanyText);
         
         bool MaZmenu();
+
+        void PridajOkraj(ParametreVypisu parametreVypisu);
+        void PridajMultiLineOkraj(ParametreVypisu parametreVypisu, ParametreVyberu parametreVyberu);
+        void ZmazOkraj(ParametreVypisu parametreVypisu, ParametreVyberu parametreVyberu);
+        void ZmazMultiLineOkraj(ParametreVypisu parametreVypisu, ParametreVyberu parametreVyberu);
     }
 
     public class Program : IPisaciStroj
     {
+        private const int DlzkaOkraja = 4;
+
         private PamatOperacii _pamatOperacii;
         private List<GapBuffer> _riadky;
         private IVyhladavac _vyhladavac;
+
+        private int _okraj;
 
         public Program(List<GapBuffer> riadky)
         {
@@ -72,11 +82,17 @@ namespace PisaciStroj
             }
         }
 
-        public void NapisText(string vstup, ParametreVypisu parametreVypisu, ParametreZapisu parametreZapisu = null)
+        public void NapisText(string vstup, ParametreVypisu parametreVypisu)
         {
             _pamatOperacii.VycistiOperacieNaZopakovanie();
 
-            var operacia = NapisTextInternal(vstup, parametreVypisu, parametreZapisu);
+            var t = vstup;
+            if(t == Environment.NewLine && _okraj > 0)
+            {
+                t = t + Indentation.NastavOkraj(_okraj);
+            }
+
+            var operacia = NapisTextInternal(t, parametreVypisu);
 
             _pamatOperacii.PridajOperaciuNaVratenie(operacia);
         }
@@ -88,7 +104,6 @@ namespace PisaciStroj
 
         public void ZmazText(ParametreVypisu parametreVypisu)
         {
-            //TODO mohlo by to byt zrozumitelnejsie...
             var konecnyRiadok = parametreVypisu.IndexRiadok;
             var konecnyStlpec = parametreVypisu.IndexStlpec;
             Kurzor.PosunKurzorDolava(parametreVypisu, _riadky);
@@ -123,7 +138,7 @@ namespace PisaciStroj
             _pamatOperacii.PridajOperaciuNaVratenie(operacia);
         }
 
-        private Operacia NapisTextInternal(string vstup, ParametreVypisu parametreVypisu, ParametreZapisu parametreZapisu = null)
+        private Operacia NapisTextInternal(string vstup, ParametreVypisu parametreVypisu)
         {
             var operacia = new Operacia()
             {
@@ -138,12 +153,12 @@ namespace PisaciStroj
                 {
                     foreach (var b in "    ")
                     {
-                        NapisZnakInternal(b, parametreVypisu, parametreZapisu);
+                        NapisZnakInternal(b, parametreVypisu);
                     }
                 }
                 else
                 {
-                    NapisZnakInternal(c, parametreVypisu, parametreZapisu);
+                    NapisZnakInternal(c, parametreVypisu);
                 }
             }
 
@@ -153,7 +168,7 @@ namespace PisaciStroj
             return operacia;
         }
 
-        private void NapisZnakInternal(char c, ParametreVypisu parametreVypisu, ParametreZapisu parametreZapisu = null)
+        private void NapisZnakInternal(char c, ParametreVypisu parametreVypisu)
         {
             var koniecRiadka = LineFeed(c);
             var zaciatokNovehoRiadka = CarriageReturn(c);
@@ -220,7 +235,9 @@ namespace PisaciStroj
 
                 _pamatOperacii.PridajOperaciuNaZopakovanie(operaciaNaZopakovanie);
             }
-            else if (operacia.Typ == TypOperacie.VyhladajNahrad || operacia.Typ == TypOperacie.VyhladajNahradVsetky)
+            else if (operacia.Typ == TypOperacie.VyhladajNahrad 
+                || operacia.Typ == TypOperacie.VyhladajNahradVsetky
+                || operacia.Typ == TypOperacie.OdsekZvyraznenehoTextu)
             {
                 var pocetOperacii = operacia.PocetOperacii;
                 while (true)
@@ -232,6 +249,11 @@ namespace PisaciStroj
 
                     VratPoslednuOperaciu(parametreVypisu);
                     pocetOperacii--;
+
+                    if(operacia.Typ == TypOperacie.OdsekZvyraznenehoTextu)
+                    {
+                        _okraj--; 
+                    }
                 }
 
                 _pamatOperacii.PridajOperaciuNaZopakovanie(operacia);
@@ -263,7 +285,9 @@ namespace PisaciStroj
 
                 _pamatOperacii.PridajOperaciuNaVratenie(operaciaNaVratenie);
             }
-            else if (operacia.Typ == TypOperacie.VyhladajNahrad || operacia.Typ == TypOperacie.VyhladajNahradVsetky)
+            else if (operacia.Typ == TypOperacie.VyhladajNahrad 
+                || operacia.Typ == TypOperacie.VyhladajNahradVsetky 
+                || operacia.Typ == TypOperacie.OdsekZvyraznenehoTextu)
             {
                 var pocetOperacii = operacia.PocetOperacii;
                 while (true)
@@ -275,6 +299,11 @@ namespace PisaciStroj
 
                     ZopakujPoslednuOperaciu(parametreVypisu);
                     pocetOperacii--;
+
+                    if (operacia.Typ == TypOperacie.OdsekZvyraznenehoTextu)
+                    {
+                        _okraj++;
+                    }
                 }
 
                 _pamatOperacii.PridajOperaciuNaVratenie(operacia);
@@ -515,6 +544,184 @@ namespace PisaciStroj
         public bool MaZmenu()
         {
             return _pamatOperacii.PocetOperaciiNaVratenie > 0;
+        }
+
+        public void PridajOkraj(ParametreVypisu parametreVypisu)
+        {
+            NapisText("    ", parametreVypisu);
+            _okraj += DlzkaOkraja;
+        }
+
+        public void PridajMultiLineOkraj(ParametreVypisu parametreVypisu, ParametreVyberu parametreVyberu)
+        {
+            var operacia = new Operacia()
+            {
+                Typ = TypOperacie.OdsekZvyraznenehoTextu
+            };
+
+            NapisText("    ", parametreVypisu);
+            operacia.PocetOperacii++;
+            var okraj = DlzkaOkraja;
+
+            var zaciatocnyRiadok = parametreVyberu.Zaciatok.Value.Riadok;
+            var konecnyRiadok = parametreVyberu.Koniec.Value.Riadok;
+            var vratSaNariadok = 0; var vratSaNaStlpec = 0;
+            if(parametreVypisu.IndexRiadok == zaciatocnyRiadok)
+            {
+                vratSaNariadok = zaciatocnyRiadok;
+                zaciatocnyRiadok++;
+            }
+            else
+            {
+                vratSaNariadok = konecnyRiadok;
+                konecnyRiadok--;
+            }
+
+            vratSaNaStlpec = parametreVypisu.IndexStlpec;
+
+            var pocetRiadkovNaPosun = zaciatocnyRiadok == konecnyRiadok ? 1 : konecnyRiadok - zaciatocnyRiadok + 1;
+            var i = 0;
+            var aktualnyRiadok = zaciatocnyRiadok;
+            while (true)
+            {
+                if(i == pocetRiadkovNaPosun)
+                {
+                    break;
+                }
+
+                Kurzor.GoTo(aktualnyRiadok, 0, parametreVypisu, _riadky);
+
+                if (_riadky[aktualnyRiadok].CharAt(parametreVypisu.IndexStlpec) == ' ')
+                {
+                    Navigator.Naviguj(new NavigovaciPrikaz() 
+                    {
+                        Typ = TypNavigacie.SlovoDoprava
+                    }, parametreVypisu, _riadky, parametreVyberu);
+                }
+
+                NapisText("    ", parametreVypisu);
+                operacia.PocetOperacii++;
+
+                aktualnyRiadok++;
+                i++;
+            }
+
+            _pamatOperacii.PridajOperaciuNaVratenie(operacia);
+
+            Zvyraznovac.PosunVyberDoprava(parametreVyberu, okraj);
+            Kurzor.GoTo(vratSaNariadok, vratSaNaStlpec, parametreVypisu, _riadky);
+
+            _okraj += okraj;
+        }
+
+        private int ZmazOkrajInternal(ParametreVypisu parametreVypisu, ParametreVyberu parametreVyberu)
+        {
+            //v pripade ze je kurzor uprostred slova nerob nic
+            var i = parametreVypisu.IndexStlpec;
+            var riadok = _riadky[parametreVypisu.IndexRiadok];
+            if (i == riadok.Length())
+            {
+                i--;
+            }
+
+            if (riadok.CharAt(i) != ' ')
+            {
+                i--;
+                if (i < 0)
+                {
+                    return 0;
+                }
+
+                if (riadok.CharAt(i) != ' ')
+                {
+                    return 0;
+                }
+            }
+
+            var zaciatocnyStlpec = Indentation.VypocitajZaciatokOkrajaNaZmazanie(riadok, i, DlzkaOkraja);
+            if (zaciatocnyStlpec > 0)
+            {
+                zaciatocnyStlpec++;
+            }
+            var konecnyStlpec = i == parametreVypisu.IndexStlpec ? i : i + 1;
+            var pocetZnakov = konecnyStlpec - zaciatocnyStlpec;
+
+            ZmazText(zaciatocnyStlpec, parametreVypisu.IndexRiadok, konecnyStlpec, parametreVypisu.IndexRiadok, parametreVypisu);
+
+            return pocetZnakov;
+        }
+
+        public void ZmazOkraj(ParametreVypisu parametreVypisu, ParametreVyberu parametreVyberu)
+        {
+            var pocetZnakov = ZmazOkrajInternal(parametreVypisu, parametreVyberu);
+
+            if (Zvyraznovac.MaVybranyText(parametreVyberu))
+            {
+                Zvyraznovac.PosunVyberDolava(parametreVyberu, pocetZnakov);
+            }
+
+            _okraj -= pocetZnakov;
+        }
+
+        public void ZmazMultiLineOkraj(ParametreVypisu parametreVypisu, ParametreVyberu parametreVyberu)
+        {
+            var operacia = new Operacia()
+            {
+                Typ = TypOperacie.ZmazOdsekZvyraznenehoTextu
+            };
+
+            var pocetZnakov = ZmazOkrajInternal(parametreVypisu, parametreVyberu);
+            operacia.PocetOperacii++;
+
+            var zaciatocnyRiadok = parametreVyberu.Zaciatok.Value.Riadok;
+            var konecnyRiadok = parametreVyberu.Koniec.Value.Riadok;
+            var vratSaNariadok = 0; var vratSaNaStlpec = 0;
+            if (parametreVypisu.IndexRiadok == zaciatocnyRiadok)
+            {
+                vratSaNariadok = zaciatocnyRiadok;
+                zaciatocnyRiadok++;
+            }
+            else
+            {
+                vratSaNariadok = konecnyRiadok;
+                konecnyRiadok--;
+            }
+
+            vratSaNaStlpec = parametreVypisu.IndexStlpec;
+
+            var pocetRiadkovNaPosun = zaciatocnyRiadok == konecnyRiadok ? 1 : konecnyRiadok - zaciatocnyRiadok + 1;
+            var i = 0;
+            var aktualnyRiadok = zaciatocnyRiadok;
+            while (true)
+            {
+                if (i == pocetRiadkovNaPosun)
+                {
+                    break;
+                }
+
+                Kurzor.GoTo(aktualnyRiadok, 0, parametreVypisu, _riadky);
+
+                if (_riadky[aktualnyRiadok].CharAt(parametreVypisu.IndexStlpec) == ' ')
+                {
+                    Navigator.Naviguj(new NavigovaciPrikaz()
+                    {
+                        Typ = TypNavigacie.SlovoDoprava
+                    }, parametreVypisu, _riadky, parametreVyberu);
+                }
+
+                ZmazOkrajInternal(parametreVypisu, parametreVyberu);
+                operacia.PocetOperacii++;
+
+                aktualnyRiadok++;
+                i++;
+            }
+
+            _pamatOperacii.PridajOperaciuNaVratenie(operacia);
+
+            Zvyraznovac.PosunVyberDolava(parametreVyberu, pocetZnakov);
+            Kurzor.GoTo(vratSaNariadok, vratSaNaStlpec, parametreVypisu, _riadky);
+
+            _okraj -= pocetZnakov;
         }
     }
 }

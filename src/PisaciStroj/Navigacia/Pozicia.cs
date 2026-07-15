@@ -1,4 +1,6 @@
-﻿namespace PisaciStroj.Navigacia
+﻿using System;
+
+namespace PisaciStroj.Navigacia
 {
     public struct Pozicia
     {
@@ -36,6 +38,20 @@
             {
                 return -1;
             }
+        }
+
+        public static Pozicia PosunDoprava(this Pozicia p, int pocetStlpcov)
+        {
+            p.Stlpec += pocetStlpcov;
+
+            return p;
+        }
+
+        public static Pozicia PosunDolava(this Pozicia p, int pocetStlpcov)
+        {
+            p.Stlpec -= pocetStlpcov;
+
+            return p;
         }
     }
 }

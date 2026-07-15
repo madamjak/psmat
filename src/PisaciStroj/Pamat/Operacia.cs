@@ -5,7 +5,9 @@
         Zapis,
         Mazanie,
         VyhladajNahrad,
-        VyhladajNahradVsetky
+        VyhladajNahradVsetky,
+        OdsekZvyraznenehoTextu,
+        ZmazOdsekZvyraznenehoTextu
     }
 
     internal class Operacia

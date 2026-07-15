@@ -1,41 +1,40 @@
-﻿using PisaciStroj.Navigacia;
-using PisaciStroj.Pamat;
-using System;
-using System.Collections.Generic;
+﻿using PisaciStroj.Pamat;
 using System.Text;
 
-namespace PisaciStroj.Parametre
+namespace PisaciStroj.Formatovanie
 {
-    public class ParametreZapisu
-    {
-        public int Okraj { get; set; }
-    }
-
     public static class Indentation
     {
-        public static void NastavOkraj(ParametreZapisu z, GapBuffer riadok)
+        public static int VypocitajZaciatokOkrajaNaZmazanie(GapBuffer riadok, int koniecOkraja, int dlzkaOkraja)
         {
-            var i = 0;
+            var i = koniecOkraja;
+            var pocetZnakov = 0;
             while (true)
             {
-                if(i == riadok.Length())
+                if (i == 0)
+                {
+                    break;
+                }
+
+                if(pocetZnakov == dlzkaOkraja)
                 {
                     break;
                 }
 
                 var ch = riadok.CharAt(i);
-                if(ch != ' ')
+                if (ch != ' ')
                 {
                     break;
                 }
 
-                i++;
+                i--;
+                pocetZnakov++;
             }
 
-            z.Okraj = i;
+            return i;
         }
 
-        public static string SimpleAutoIndent(int okraj)
+        public static string NastavOkraj(int okraj)
         {
             var sb = new StringBuilder();
             var i = 0;

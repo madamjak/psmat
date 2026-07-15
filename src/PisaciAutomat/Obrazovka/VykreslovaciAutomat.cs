@@ -33,7 +33,7 @@ namespace PisaciAutomat.Obrazovka
             _stavovyRiadok = new StavovyRiadok();
         }
 
-        public EditorScreen Precitaj(ParametreVypisu parametre, ParametreVyhladavania search, ParametreVyberu parametreVyberu, ParametreZapisu parametreZapisu, ParametrePrekreslenia parametrePrekreslenia)
+        public EditorScreen Precitaj(ParametreVypisu parametre, ParametreVyhladavania search, ParametreVyberu parametreVyberu, ParametrePrekreslenia parametrePrekreslenia)
         {
             if (_aktualnaObrazovka != null && parametrePrekreslenia.Necitaj)
             {
@@ -46,7 +46,7 @@ namespace PisaciAutomat.Obrazovka
 
             var lexResult = _lexer.ZatvorkyAKomentare(_editor.Riadky());
 
-            return Precitaj2(parametre, search, lexResult, _editor, parametreVyberu, parametreZapisu, _lexer);
+            return Precitaj2(parametre, search, lexResult, _editor, parametreVyberu, _lexer);
         }
 
         public static EditorScreen Precitaj2(ParametreVypisu parametre,
@@ -54,7 +54,6 @@ namespace PisaciAutomat.Obrazovka
             LexResult lexResult,
             IPisaciStroj editor,
             ParametreVyberu parametreVyberu,
-            ParametreZapisu parametreZapisu,
             ILexer lexer)
         {
             var result = new EditorScreen(parametre.Sirka, parametre.Vyska)
@@ -139,11 +138,6 @@ namespace PisaciAutomat.Obrazovka
                     parametre.OffsetStlpec, parametre.Sirka,
                     vyhladaneSlova, vSlovo, tokeny, zatvorky, poziciaKurzora,
                     zvyraznenyText));
-
-                if (parametre.IndexRiadok == i)
-                {
-                    Indentation.NastavOkraj(parametreZapisu, riadky[i]);
-                }
 
                 pocetRiadkov++;
                 riadokObrazovky++;

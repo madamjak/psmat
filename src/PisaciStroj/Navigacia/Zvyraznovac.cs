@@ -12,6 +12,11 @@ namespace PisaciStroj.Navigacia
             return parametre.Zaciatok.HasValue && parametre.Koniec.HasValue;
         }
 
+        public static bool MaVybranyTextPreMultiLineOkraj(ParametreVyberu parametreVyberu)
+        {
+            return MaVybranyText(parametreVyberu) && !(parametreVyberu.Zaciatok.Value.Riadok == parametreVyberu.Koniec.Value.Riadok);
+        }
+
         public static VyhladaneSlovo? ZvyraznenyText(ParametreVyberu parametere, int indexRiadku, int dlzkaRiadku)
         {
             if (!(indexRiadku >= parametere.Zaciatok.Value.Riadok
@@ -118,6 +123,18 @@ namespace PisaciStroj.Navigacia
 
                 parametreVyberu.PocetZnakov += riadky[i].Length();
             }
+        }
+
+        public static void PosunVyberDoprava(ParametreVyberu p, int pocetStlpcov)
+        {
+            p.Zaciatok = p.Zaciatok.Value.PosunDoprava(pocetStlpcov);
+            p.Koniec = p.Koniec.Value.PosunDoprava(pocetStlpcov);
+        }
+
+        internal static void PosunVyberDolava(ParametreVyberu p, int v)
+        {
+            p.Zaciatok = p.Zaciatok.Value.PosunDolava(v);
+            p.Koniec = p.Koniec.Value.PosunDolava(v);
         }
     }
 }

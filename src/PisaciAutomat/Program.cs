@@ -2,6 +2,7 @@
 using PisaciAutomat.Obrazovka;
 using PisaciAutomat.Prikazy;
 using PisaciStroj;
+using PisaciStroj.Formatovanie;
 using PisaciStroj.Lexer;
 using PisaciStroj.Lexer.Algoritmy;
 using PisaciStroj.Navigacia;
@@ -41,7 +42,6 @@ namespace PisaciAutomat
         }
 
         //editor
-        private IVyhladavac _vyhladavac;
         private static IPisaciStroj _editor;
         private VykreslovaciAutomat _vykreslovaciAutomat;
 
@@ -56,17 +56,16 @@ namespace PisaciAutomat
         private ParametreVyberu _parametreVyberu;
         private string _skopirovanyText;
 
-        //formatovanie
-        private ParametreZapisu _parametreZapisu;
+        //vyhladavanie
+        private IVyhladavac _vyhladavac;
+        private ParametreVyhladavania _search;
 
+        //...
         private string _cestaKSuboru = string.Empty;
         private bool _ukonci;
         private string _hlaska;
         private string _chyba;
         private TypDialogu? _dialog;
-
-        //vyhladavanie
-        private ParametreVyhladavania _search;
 
         private void Konstruktor()
         {
@@ -82,7 +81,6 @@ namespace PisaciAutomat
                 OkrajHore = 2,
                 OkrajDole = 2
             };
-            _parametreZapisu = new ParametreZapisu();
 
             _search = new ParametreVyhladavania();
         }
@@ -156,7 +154,7 @@ namespace PisaciAutomat
                 if (Zvyraznovac.MaVybranyText(_parametreVyberu))
                 {
                     _editor.ZmazText(_parametreVyberu.Zaciatok.Value.Stlpec, _parametreVyberu.Zaciatok.Value.Riadok,
-                    _parametreVyberu.Koniec.Value.Stlpec, _parametreVyberu.Koniec.Value.Riadok, _parametreVypisu);
+                        _parametreVyberu.Koniec.Value.Stlpec, _parametreVyberu.Koniec.Value.Riadok, _parametreVypisu);
 
                     _parametreVyberu = new ParametreVyberu();
                 }
@@ -170,7 +168,7 @@ namespace PisaciAutomat
                 if (Zvyraznovac.MaVybranyText(_parametreVyberu))
                 {
                     _editor.ZmazText(_parametreVyberu.Zaciatok.Value.Stlpec, _parametreVyberu.Zaciatok.Value.Riadok,
-                    _parametreVyberu.Koniec.Value.Stlpec, _parametreVyberu.Koniec.Value.Riadok, _parametreVypisu);
+                        _parametreVyberu.Koniec.Value.Stlpec, _parametreVyberu.Koniec.Value.Riadok, _parametreVypisu);
 
                     _parametreVyberu = new ParametreVyberu();
                 }
@@ -179,26 +177,64 @@ namespace PisaciAutomat
                     Kurzor.PosunKurzorDoprava(_parametreVypisu, _editor.Riadky());
                     _editor.ZmazText(_parametreVypisu);
                 }
+            } 
+            else if (vstup.Key == ConsoleKey.Tab)
+            {
+                if ((vstup.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift)
+                {
+                    var maVybrany = Zvyraznovac.MaVybranyText(_parametreVyberu);
+                    if (!maVybrany || !Zvyraznovac.MaVybranyTextPreMultiLineOkraj(_parametreVyberu))
+                    {
+                        _editor.ZmazOkraj(_parametreVypisu, _parametreVyberu);
+                    }
+                    else
+                    {
+                        _editor.ZmazMultiLineOkraj(_parametreVypisu, _parametreVyberu);
+                    }
+                }
+                else
+                {
+                    var maVybrany = Zvyraznovac.MaVybranyText(_parametreVyberu);
+                    if (!maVybrany || !Zvyraznovac.MaVybranyTextPreMultiLineOkraj(_parametreVyberu))
+                    {
+                        if (maVybrany)
+                        {
+                            _editor.ZmazText(_parametreVyberu.Zaciatok.Value.Stlpec, _parametreVyberu.Zaciatok.Value.Riadok,
+                                _parametreVyberu.Koniec.Value.Stlpec, _parametreVyberu.Koniec.Value.Riadok, _parametreVypisu);
+
+                            _parametreVyberu = new ParametreVyberu();
+                        }
+                        _editor.PridajOkraj(_parametreVypisu);
+                    }
+                    else
+                    {
+                        _editor.PridajMultiLineOkraj(_parametreVypisu, _parametreVyberu);
+                    }
+                }
             }
             else if (vstup.Key == ConsoleKey.Enter)
             {
-                var newLine = Environment.NewLine;
-                if (_parametreZapisu != null && _parametreZapisu.Okraj > 0)
+                if (Zvyraznovac.MaVybranyText(_parametreVyberu))
                 {
-                    newLine = Environment.NewLine + Indentation.SimpleAutoIndent(_parametreZapisu.Okraj);
+                    _editor.ZmazText(_parametreVyberu.Zaciatok.Value.Stlpec, _parametreVyberu.Zaciatok.Value.Riadok,
+                    _parametreVyberu.Koniec.Value.Stlpec, _parametreVyberu.Koniec.Value.Riadok, _parametreVypisu);
+
+                    _parametreVyberu = new ParametreVyberu();
                 }
 
-                _editor.NapisText(newLine, _parametreVypisu, _parametreZapisu);
+                _editor.NapisText(Environment.NewLine, _parametreVypisu);
             }
             else if ((vstup.Modifiers & ConsoleModifiers.Control) == ConsoleModifiers.Control)
             {
                 if (vstup.Key == ConsoleKey.Z)
                 {
                     _editor.VratPoslednuOperaciu(_parametreVypisu);
+                    _parametreVyberu = new ParametreVyberu();
                 }
                 else if (vstup.Key == ConsoleKey.Y)
                 {
                     _editor.ZopakujPoslednuOperaciu(_parametreVypisu);
+                    _parametreVyberu = new ParametreVyberu();
                 }
                 else if (vstup.Key == ConsoleKey.C && Zvyraznovac.MaVybranyText(_parametreVyberu))
                 {
@@ -265,6 +301,14 @@ namespace PisaciAutomat
             }
             else if (IsPrintable(vstup.KeyChar))
             {
+                if (Zvyraznovac.MaVybranyText(_parametreVyberu))
+                {
+                    _editor.ZmazText(_parametreVyberu.Zaciatok.Value.Stlpec, _parametreVyberu.Zaciatok.Value.Riadok,
+                    _parametreVyberu.Koniec.Value.Stlpec, _parametreVyberu.Koniec.Value.Riadok, _parametreVypisu);
+
+                    _parametreVyberu = new ParametreVyberu();
+                }
+
                 _editor.NapisZnak(vstup.KeyChar, _parametreVypisu);
             }
 
@@ -323,7 +367,7 @@ namespace PisaciAutomat
 
         private void Prekresli(ParametrePrekreslenia p)
         {
-            var screen = _vykreslovaciAutomat.Precitaj(_parametreVypisu, _search, _parametreVyberu, _parametreZapisu, p);
+            var screen = _vykreslovaciAutomat.Precitaj(_parametreVypisu, _search, _parametreVyberu, p);
 
             var stavovyRiadok = new StavovyRiadokInfo()
             {
