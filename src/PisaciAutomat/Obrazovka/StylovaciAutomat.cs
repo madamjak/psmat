@@ -183,7 +183,7 @@ namespace PisaciAutomat.Obrazovka
             VyhladaneSlovo? zvyraznenyText)
         {
             var sb = new StringBuilder();
-            var index = offset;
+            var index = 0;
             var dlzka = 0;
 
             var dlzkaSlova = 0;
@@ -200,7 +200,7 @@ namespace PisaciAutomat.Obrazovka
                 var precitalToken = false;
                 var precitalZatvorku = false;
 
-                if (index >= riadok.Length())
+                if (index == riadok.Length())
                 {
                     break;
                 }
@@ -239,13 +239,14 @@ namespace PisaciAutomat.Obrazovka
 
                 if (dlzkaSlova > 0)
                 {
-                    sb.Append(extraZvyrazni ? StylSearchResultExtra() : StylSearchResult());
-
-                    sb.Append(riadok.Read(index, 1));
-
-                    if (dlzkaTokenu == 0)
+                    if(index >= offset)
                     {
-                        sb.Append(AnsiReset());
+                        sb.Append(extraZvyrazni ? StylSearchResultExtra() : StylSearchResult());
+                        sb.Append(riadok.Read(index, 1));
+                        if (dlzkaTokenu == 0)
+                        {
+                            sb.Append(AnsiReset());
+                        }
                     }
 
                     dlzkaSlova--;
@@ -254,22 +255,22 @@ namespace PisaciAutomat.Obrazovka
 
                 if (dlzkaTokenu > 0)
                 {
-                    var styl = VyberStyl(lastToken.Value.Typ);
-                    if (styl != StylTextu.Standard)
+                    if(index >= offset)
                     {
-                        sb.Append(AnsiStyl(styl));
-                    }
-
-                    if (precitalSlovo)
-                    {
-                        sb.Append("\b");
-                    }
-
-                    sb.Append(riadok.Read(index, 1));
-
-                    if (styl != StylTextu.Standard || precitalSlovo)
-                    {
-                        sb.Append(AnsiReset());
+                        var styl = VyberStyl(lastToken.Value.Typ);
+                        if (styl != StylTextu.Standard)
+                        {
+                            sb.Append(AnsiStyl(styl));
+                        }
+                        if (precitalSlovo)
+                        {
+                            sb.Append("\b");
+                        }
+                        sb.Append(riadok.Read(index, 1));
+                        if (styl != StylTextu.Standard || precitalSlovo)
+                        {
+                            sb.Append(AnsiReset());
+                        }
                     }
 
                     dlzkaTokenu--;
@@ -278,31 +279,41 @@ namespace PisaciAutomat.Obrazovka
 
                 if(!precitalToken && !precitalSlovo && precitalZatvorku)
                 {
-                    sb.Append(AnsiStyl(StylTextu.RedBold));
-                    if (zvyrazniZatvorku)
+                    if(index >= offset)
                     {
-                        sb.Append(StylZatvorky());
+                        sb.Append(AnsiStyl(StylTextu.RedBold));
+                        if (zvyrazniZatvorku)
+                        {
+                            sb.Append(StylZatvorky());
+                        }
+                        sb.Append(riadok.Read(index, 1));
+                        sb.Append(AnsiReset());
                     }
-                    sb.Append(riadok.Read(index, 1));
-                    sb.Append(AnsiReset());
                 }
                 
-                if (!precitalSlovo && !precitalToken && !precitalZatvorku)
+                if (!precitalSlovo && !precitalToken && !precitalZatvorku && index >= offset)
                 {
                     sb.Append(riadok.Read(index, 1));
                 }
 
                 if (dlzkaZvyraznenehoTextu > 0)
                 {
-                    sb.Append(StylVyberuTextu());
-                    sb.Append("\b");
-                    sb.Append(riadok.Read(index, 1));
-                    sb.Append(AnsiReset());
+                    if(index >= offset)
+                    {
+                        sb.Append(StylVyberuTextu());
+                        sb.Append("\b");
+                        sb.Append(riadok.Read(index, 1));
+                        sb.Append(AnsiReset());
+                    }
+                    
                     dlzkaZvyraznenehoTextu--;
                 }
 
+                if(index >= offset)
+                {
+                    dlzka += 1;
+                }
                 index += 1;
-                dlzka += 1;
             }
 
             return sb.ToString();

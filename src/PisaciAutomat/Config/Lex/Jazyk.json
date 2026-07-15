@@ -1,6 +1,6 @@
 ﻿{
 	"Pripona": "cs",
-	"JednoriadkovyKomentar": "%%",
+	"JednoriadkovyKomentar": "//",
 	"ZaciatokKomentara": "/*",
 	"KoniecKomentara": "*/",
 	"Pravidla":[
