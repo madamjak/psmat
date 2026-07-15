@@ -48,7 +48,6 @@ namespace PSMat.Testy.Lexer
                 r,
                 new PisaciStroj.Program(text),
                 new PisaciStroj.Parametre.ParametreVyberu(),
-                new PisaciStroj.Parametre.ParametreZapisu(),
                 new LexAutomat(new LexGramatika()));
 
             var sb = new StringBuilder();

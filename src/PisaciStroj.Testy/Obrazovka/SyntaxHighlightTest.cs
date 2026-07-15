@@ -24,7 +24,6 @@ namespace PSMat.Testy.Obrazovka
                 SyntaxHighlightStubs.Tokeny(), 
                 new PisaciStroj.Program(SyntaxHighlightStubs.Riadky()),
                 new PisaciStroj.Parametre.ParametreVyberu(),
-                new PisaciStroj.Parametre.ParametreZapisu(),
                 new LexAutomat(new LexGramatika()));
 
             var sb = new StringBuilder();
