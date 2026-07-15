@@ -136,5 +136,20 @@ namespace PisaciStroj.Navigacia
             p.Zaciatok = p.Zaciatok.Value.PosunDolava(v);
             p.Koniec = p.Koniec.Value.PosunDolava(v);
         }
+
+        public static void VyberVsetko(ParametreVyberu parametreVyberu, ParametreVypisu parametreVypisu, List<GapBuffer> riadky)
+        {
+            var prikaz = new NavigovaciPrikaz()
+            {
+                Typ = TypNavigacie.ZaciatokTextu
+            };
+
+            Navigator.Naviguj(prikaz, parametreVypisu, riadky, parametreVyberu);
+
+            prikaz.Vyber = true;
+            prikaz.Typ = TypNavigacie.KoniecTextu;
+
+            Navigator.Naviguj(prikaz, parametreVypisu, riadky, parametreVyberu);
+        }
     }
 }

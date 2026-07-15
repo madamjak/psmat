@@ -5,7 +5,7 @@ using PisaciStroj.Parametre;
 
 namespace PisaciAutomat.Prikazy
 {
-    public static class ProcessorPrikazov
+    public static class ProcesorPrikazov
     {
         public static Prikaz NacitajPrikaz(GapBuffer prikazovyRiadok)
         {
@@ -14,20 +14,27 @@ namespace PisaciAutomat.Prikazy
             {
                 var parts = prikazovyRiadok.Read().Split(' ');
 
-                if (parts.Length == 2 && (parts[0] == "find"))
+                if (parts.Length == 2 && (parts[0] == "fall"))
                 {
                     p.Typ = TypPrikazu.Vyhladaj;
                     p.VyhladavanyText = parts[1];
 
                     return p;
                 }
-                if (parts.Length == 2 && (parts[0] == "next"))
+                if (parts.Length == 2 && (parts[0] == "fnext"))
                 {
                     p.Typ = TypPrikazu.VyhladajDalsi;
                     p.VyhladavanyText = parts[1];
 
                     return p;
                 }
+                //if (parts.Length == 2 && (parts[0] == "fprev"))
+                //{
+                //    p.Typ = TypPrikazu.VyhladajPredosly;
+                //    p.VyhladavanyText = parts[1];
+
+                //    return p;
+                //}
                 if (parts.Length == 1 && parts[0] == "rest")
                 {
                     p.Typ = TypPrikazu.VyhladajReset;
@@ -85,6 +92,7 @@ namespace PisaciAutomat.Prikazy
             if (prikaz.Typ == TypPrikazu.Vyhladaj)
             {
                 search.VyhladaneSlovo = null;
+                search.ZaciatokVyhladavania = null;
                 cmdMode = false;
             }
 
@@ -108,12 +116,22 @@ namespace PisaciAutomat.Prikazy
                 }
             }
 
+            //if (prikaz.Typ == TypPrikazu.VyhladajPredosly)
+            //{
+            //    //vyhladavany text mozne pre vyhladavaci automat obratit (reverse)
+            //    //nova funkcia pisaceho stroja (alebo vyhladavaca?), prechadzat textom od pozicie kurzora 'dolava a hore'
+            //}
+
             if (prikaz.Typ == TypPrikazu.VyhladajNahrad)
             {
                 search.VyhladaneSlovo = null;
                 if (editor.VyhladajANahrad(prikaz.VyhladavanyText, prikaz.NovyText, parametreVypisu))
                 {
-                    
+                    search.ZaciatokVyhladavania = new Pozicia()
+                    {
+                        Riadok = parametreVypisu.IndexRiadok,
+                        Stlpec = parametreVypisu.IndexStlpec,
+                    };
                 };
             }
 
@@ -126,10 +144,9 @@ namespace PisaciAutomat.Prikazy
 
                 if (editor.VyhladajANahradVsetky(prikaz.VyhladavanyText, prikaz.NovyText, parametreVypisu))
                 {
-                    
+                    Kurzor.GoTo(aktualnyR, aktualnyS, parametreVypisu, editor.Riadky());
                 };
 
-                Kurzor.GoTo(aktualnyR, aktualnyS, parametreVypisu, editor.Riadky());
                 cmdMode = false;
             }
         }

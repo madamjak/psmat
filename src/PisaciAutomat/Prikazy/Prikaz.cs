@@ -16,6 +16,7 @@ namespace PisaciAutomat.Prikazy
         Vyhladaj,
         VyhladajReset,
         VyhladajDalsi,
+        VyhladajPredosly,
         VyhladajNahrad,
         VyhladajNahradVsetky
     }

@@ -30,6 +30,8 @@ namespace PisaciAutomat.Prikazy
 
         private string _chyba;
 
+        private Prikaz _poslednyPrikaz;
+
         public PrikazovyAutomat()
         {
             _lexer = new LexAutomat(NacitajLexGramatiku());
@@ -66,7 +68,7 @@ namespace PisaciAutomat.Prikazy
             _parametreVypisu.Stlpec = 0;
             _parametreVypisu.OffsetStlpec = 0;
 
-            var prikaz = "next " + prikazZEditora.Value.VyhladavanyText;
+            var prikaz = "fnext " + prikazZEditora.Value.VyhladavanyText;
             foreach(char ch in prikaz)
             {
                 NapisZnak(ch);
@@ -97,7 +99,12 @@ namespace PisaciAutomat.Prikazy
             }
             else if (vstup.Key == ConsoleKey.Enter)
             {
-                var prikaz = MapPrikaz();
+                if (Zvyraznovac.MaVybranyText(_vyber))
+                {
+                    ZmazVyber();
+                }
+
+                var prikaz = ProcesorPrikazov.NacitajPrikaz(_riadok);
 
                 if(prikaz == null)
                 {
@@ -106,10 +113,15 @@ namespace PisaciAutomat.Prikazy
                 else
                 {
                     r.Prikaz = prikaz;
+                    _poslednyPrikaz = prikaz;
                 }
             }
             else if (vstup.Key == ConsoleKey.Backspace)
             {
+                if (Zvyraznovac.MaVybranyText(_vyber))
+                {
+                    ZmazVyber();
+                }
                 if (_parametreVypisu.IndexStlpec > 0)
                 {
                     PosunDolava();
@@ -117,20 +129,61 @@ namespace PisaciAutomat.Prikazy
                     _riadok.Delete(_parametreVypisu.IndexStlpec);
                 }
             }
-            else if (PisaciAutomat.Program.IsPrintable(vstup.KeyChar))
+            else if(vstup.Key == ConsoleKey.Delete)
             {
-                NapisZnak(vstup.KeyChar);
+                if (Zvyraznovac.MaVybranyText(_vyber))
+                {
+                    ZmazVyber();
+                }
+                else
+                {
+                    _riadok.Delete(_parametreVypisu.IndexStlpec);
+                }
             }
             else if (vstup.Key == ConsoleKey.Escape)
             {
                 r.ZavriRiadok = true;
+                if(_poslednyPrikaz != null)
+                {
+                    if(_poslednyPrikaz.Typ != TypPrikazu.Vyhladaj)
+                    {
+                        //pri jednoduchom rychlom vyhladavani nezobrazuj vysledky po zavreti riadku
+                        r.Prikaz = _poslednyPrikaz; 
+                        r.Prikaz.VyhladavanyText = null;
+                    }
+                }
             }
-            else
+            else if((vstup.Modifiers & ConsoleModifiers.Control) == ConsoleModifiers.Control)
             {
-                Chyba();
+                if (vstup.Key == ConsoleKey.A)
+                {
+                    _vyber = new ParametreVyberu();
+                    Zvyraznovac.VyberVsetko(_vyber, _parametreVypisu, _riadky);
+                }
+            }
+            else if (Program.IsPrintable(vstup.KeyChar))
+            {
+                if (Zvyraznovac.MaVybranyText(_vyber))
+                {
+                    ZmazVyber();
+                }
+                NapisZnak(vstup.KeyChar);
             }
 
             return r;
+        }
+
+        private void ZmazVyber()
+        {
+            var s = _vyber.Zaciatok.Value.Stlpec;
+            _riadok.Delete(s, _vyber.PocetZnakov);
+            _parametreVypisu.Stlpec = 0;
+            _parametreVypisu.OffsetStlpec = 0;
+            while(_parametreVypisu.IndexStlpec != s)
+            {
+                PosunDoprava();
+            }
+            _vyber = new ParametreVyberu();
         }
 
         private void NapisZnak(char ch)
@@ -226,16 +279,6 @@ namespace PisaciAutomat.Prikazy
             sb.Append(VykreslovaciAutomat.Chyba());
 
             _chyba = sb.ToString();
-        }
-
-        private Prikaz MapPrikaz()
-        {
-            return ProcessorPrikazov.NacitajPrikaz(_riadok);
-        }
-
-        private bool JeVytlacitelnyAsciiZnak(char keyChar)
-        {
-            return keyChar >= 32 && keyChar <= 127;
         }
 
         private LexGramatika NacitajLexGramatiku()
