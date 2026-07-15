@@ -273,8 +273,8 @@ namespace PisaciAutomat
                 }
                 else if (vstup.Key == ConsoleKey.A)
                 {
-                    VyberVsetko();
-
+                    _parametreVyberu = new ParametreVyberu();
+                    Zvyraznovac.VyberVsetko(_parametreVyberu, _parametreVypisu, _editor.Riadky());
                 }
                 else if (vstup.Key == ConsoleKey.S)
                 {
@@ -318,11 +318,6 @@ namespace PisaciAutomat
             };
             Prekresli(p);
 
-            if (_cmdMode)
-            {
-                _cmdLineEditor.Prekresli();
-            }
-
             if (_ukonci)
             {
                 Console.Write(VykreslovaciAutomat.EraseScree() + VykreslovaciAutomat.NastavKurzor(1, 1));
@@ -351,18 +346,13 @@ namespace PisaciAutomat
 
             Kurzor.GoTo(riadok, stlpec, _parametreVypisu, _editor.Riadky());
 
+            _cmdLineEditor.Resize(novaSirka);
+
             var p = new ParametrePrekreslenia()
             {
                 Resize = true
             };
             Prekresli(p);
-
-            _cmdLineEditor.Resize(novaSirka);
-
-            if (_cmdMode)
-            {
-                _cmdLineEditor.Prekresli();
-            }
         }
 
         private void Prekresli(ParametrePrekreslenia p)
@@ -387,21 +377,11 @@ namespace PisaciAutomat
 
             _hlaska = null;
             _chyba = null;
-        }
 
-        private void VyberVsetko()
-        {
-            _parametreVyberu = new ParametreVyberu();
-
-            _navigovaciPrikaz.Vyber = false;
-            _navigovaciPrikaz.Typ = TypNavigacie.ZaciatokTextu;
-
-            Navigator.Naviguj(_navigovaciPrikaz, _parametreVypisu, _editor.Riadky(), _parametreVyberu);
-
-            _navigovaciPrikaz.Vyber = true;
-            _navigovaciPrikaz.Typ = TypNavigacie.KoniecTextu;
-
-            Navigator.Naviguj(_navigovaciPrikaz, _parametreVypisu, _editor.Riadky(), _parametreVyberu);
+            if (_cmdMode)
+            {
+                _cmdLineEditor.Prekresli();
+            }
         }
 
         private void VyhladajZvyraznenyText()
@@ -455,6 +435,7 @@ namespace PisaciAutomat
             {
                 _cmdMode = false;
                 _search.VyhladaneSlovo = null;
+                _search.VyhladavanyText = r.Prikaz.VyhladavanyText;
                 return;
             }
             else if(r.Prikaz != null)
@@ -465,7 +446,7 @@ namespace PisaciAutomat
 
         private void SpracujPrikaz(Prikaz prikaz)
         {
-            ProcessorPrikazov.SpracujPrikaz(prikaz, _search, _parametreVypisu, _editor, ref _cmdMode);
+            ProcesorPrikazov.SpracujPrikaz(prikaz, _search, _parametreVypisu, _editor, ref _cmdMode);
 
             Prekresli(new ParametrePrekreslenia());
         }

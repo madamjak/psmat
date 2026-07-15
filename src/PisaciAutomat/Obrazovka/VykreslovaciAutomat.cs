@@ -6,6 +6,7 @@ using PisaciStroj.Vyhladavanie;
 using PisaciStroj.Vypis;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace PisaciAutomat.Obrazovka
@@ -80,7 +81,30 @@ namespace PisaciAutomat.Obrazovka
 
                 if (search.VyhladavanyText != null)
                 {
-                    vyhladaneSlova = editor.VyhladajVsetky(riadky[i], search.VyhladavanyText);
+                    if (search.ZaciatokVyhladavania.HasValue)
+                    {
+                        //....toto by malo byt sucastou vyhladavaca
+                        if(i >= search.ZaciatokVyhladavania.Value.Riadok)
+                        {
+                            vyhladaneSlova = editor.VyhladajVsetky(riadky[i], search.VyhladavanyText);
+
+                            if(i == search.ZaciatokVyhladavania.Value.Riadok)
+                            {
+                                var poz = vyhladaneSlova.Keys.Where(x => x < search.ZaciatokVyhladavania.Value.Stlpec);
+                                if (poz.Any())
+                                {
+                                    foreach(var p in poz)
+                                    {
+                                        vyhladaneSlova.Remove(p);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        vyhladaneSlova = editor.VyhladajVsetky(riadky[i], search.VyhladavanyText);
+                    }
                 }
                 if (search.VyhladaneSlovo.HasValue && search.VyhladaneSlovo.Value.Riadok == i)
                 {
