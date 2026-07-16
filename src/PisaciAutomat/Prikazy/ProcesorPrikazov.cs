@@ -7,72 +7,10 @@ namespace PisaciAutomat.Prikazy
 {
     public static class ProcesorPrikazov
     {
-        public static Prikaz NacitajPrikaz(GapBuffer prikazovyRiadok)
-        {
-            var p = new Prikaz();
-            try
-            {
-                var parts = prikazovyRiadok.Read().Split(' ');
-
-                if (parts.Length == 2 && (parts[0] == "fall"))
-                {
-                    p.Typ = TypPrikazu.Vyhladaj;
-                    p.VyhladavanyText = parts[1];
-
-                    return p;
-                }
-                if (parts.Length == 2 && (parts[0] == "fnext"))
-                {
-                    p.Typ = TypPrikazu.VyhladajDalsi;
-                    p.VyhladavanyText = parts[1];
-
-                    return p;
-                }
-                //if (parts.Length == 2 && (parts[0] == "fprev"))
-                //{
-                //    p.Typ = TypPrikazu.VyhladajPredosly;
-                //    p.VyhladavanyText = parts[1];
-
-                //    return p;
-                //}
-                if (parts.Length == 1 && parts[0] == "rest")
-                {
-                    p.Typ = TypPrikazu.VyhladajReset;
-
-                    return p;
-                }
-                else if (parts.Length == 3 && (parts[0] == "rfirst"))
-                {
-                    p.Typ = TypPrikazu.VyhladajNahrad;
-                    p.VyhladavanyText = parts[1];
-                    p.NovyText = parts[2];
-
-                    return p;
-                }
-                else if (parts.Length == 3 && parts[0] == "rall")
-                {
-                    p.Typ = TypPrikazu.VyhladajNahradVsetky;
-                    p.VyhladavanyText = parts[1];
-                    p.NovyText = parts[2];
-
-                    return p;
-                }
-                else
-                {
-                    return null;
-                }
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
         public static void SpracujPrikaz(Prikaz prikaz, 
             ParametreVyhladavania search, 
             ParametreVypisu parametreVypisu,
-            IPisaciStroj editor,
-            ref bool cmdMode)
+            IPisaciStroj editor)
         {
             if(prikaz.VyhladavanyText != search.VyhladavanyText)
             {
@@ -86,33 +24,23 @@ namespace PisaciAutomat.Prikazy
             if (prikaz.Typ == TypPrikazu.VyhladajReset)
             {
                 search = new ParametreVyhladavania();
-                cmdMode = false;
+                prikaz.ZavriRiadok = true;
             }
 
             if (prikaz.Typ == TypPrikazu.Vyhladaj)
             {
                 search.VyhladaneSlovo = null;
                 search.ZaciatokVyhladavania = null;
-                cmdMode = false;
+                prikaz.ZavriRiadok = true;
             }
 
             if (prikaz.Typ == TypPrikazu.VyhladajDalsi)
             {
-                if (search.VyhladaneSlovo.HasValue)
-                {
-                    Kurzor.PosunKurzorDoprava(parametreVypisu, editor.Riadky());
-                }
-
                 var s = editor.Vyhladaj(prikaz.VyhladavanyText, parametreVypisu);
                 if (s.HasValue)
                 {
                     search.VyhladaneSlovo = s.Value;
-                    Kurzor.GoTo(s.Value.Riadok, s.Value.Pozicia, parametreVypisu, editor.Riadky());
-                }
-
-                if (search.VyhladaneSlovo.HasValue && !s.HasValue)
-                {
-                    Kurzor.PosunKurzorDolava(parametreVypisu, editor.Riadky());
+                    Kurzor.GoTo(s.Value.Riadok, s.Value.Pozicia + s.Value.Dlzka, parametreVypisu, editor.Riadky());
                 }
             }
 
@@ -147,7 +75,7 @@ namespace PisaciAutomat.Prikazy
                     Kurzor.GoTo(aktualnyR, aktualnyS, parametreVypisu, editor.Riadky());
                 };
 
-                cmdMode = false;
+                prikaz.ZavriRiadok = true;
             }
         }
     }

@@ -73,7 +73,7 @@ namespace PisaciAutomat.Obrazovka
                     var medzera = s - stavovyRiadok.CestaKSuboru.Length - parametre.OkrajVlavo;
                     if (medzera > 0)
                     {
-                        sb.Append(NastavPozadie(medzera));
+                        sb.Append(VykreslovaciAutomat.NastavPozadie(medzera));
                     }
                 }
                 else
@@ -89,7 +89,7 @@ namespace PisaciAutomat.Obrazovka
                     if (r > 0)
                     {
                         sb.Append(VykreslovaciAutomat.NastavKurzor(parametre.VyskaKonzoly, s - r));
-                        sb.Append(NastavPozadie(r));
+                        sb.Append(VykreslovaciAutomat.NastavPozadie(r));
                     }
                 }
 
@@ -97,7 +97,7 @@ namespace PisaciAutomat.Obrazovka
 
                 var farba = stavovyRiadok.MaZmenu ? StylovaciAutomat.FarbaPozadia.Cervena : StylovaciAutomat.FarbaPozadia.Zelena;
                 sb.Append(StylovaciAutomat.AnsiStyl(farba));
-                sb.Append(NastavPozadie(3));
+                sb.Append(VykreslovaciAutomat.NastavPozadie(3));
                 sb.Append(StylovaciAutomat.AnsiReset());
             }
 
@@ -113,7 +113,7 @@ namespace PisaciAutomat.Obrazovka
             sb.Append(VykreslovaciAutomat.NastavKurzor(parametre.VyskaKonzoly, 1));
             sb.Append(VykreslovaciAutomat.ZmazOdKurzoraPoKoniecRiadku());
             sb.Append(StylovaciAutomat.AnsiStyl(StylovaciAutomat.FarbaPozadia.Biela));
-            sb.Append(NastavPozadie(parametre.OkrajVlavo));
+            sb.Append(VykreslovaciAutomat.NastavPozadie(parametre.OkrajVlavo));
 
             var dlzkaNazvu = stavovyRiadok.CestaKSuboru.Length;
             var dostatocnaSirka = dlzkaNazvu <= maxDlzkaNazvu;
@@ -132,22 +132,6 @@ namespace PisaciAutomat.Obrazovka
             //stav    
             sb.Append(PrekresliStavovyRiadok(parametre, stavovyRiadok, true));
 
-            return sb.ToString();
-        }
-
-        private static string NastavPozadie(int sirka)
-        {
-            var i = 0;
-            var sb = new StringBuilder();
-            while (true)
-            {
-                if (i == sirka)
-                {
-                    break;
-                }
-                sb.Append(" ");
-                i++;
-            }
             return sb.ToString();
         }
     }

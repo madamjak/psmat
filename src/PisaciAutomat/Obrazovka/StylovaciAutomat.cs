@@ -10,7 +10,7 @@ namespace PisaciAutomat.Obrazovka
 {
     public static class StylovaciAutomat
     {
-        public static string SyntaxHighligt(Dictionary<int, Token> tokens, GapBuffer riadok, int offset, int maxDlzka, VyhladaneSlovo? zvyraznenyText)
+        public static string SyntaxHighligt(Dictionary<int, Token> tokens, GapBuffer riadok, int offset, int maxDlzka, VyhladaneSlovo? zvyraznenyText, FarbaPozadia pozadie)
         {
             var sb = new StringBuilder();
             var index = offset;
@@ -46,6 +46,7 @@ namespace PisaciAutomat.Obrazovka
                 }
                 else if (tokens.TryGetValue(index, out t))
                 {
+                    sb.Append(AnsiStyl(pozadie));
                     var styl = VyberStyl(t.Typ);
 
                     if (styl != StylTextu.Standard)
@@ -61,17 +62,19 @@ namespace PisaciAutomat.Obrazovka
 
                     sb.Append(riadok.Read(index, t.Dlzka));
 
-                    if (styl != StylTextu.Standard)
-                    {
+                    //if (styl != StylTextu.Standard)
+                    //{
                         sb.Append(AnsiReset());
-                    }
+                    //}
 
                     index += dlzkaT;
                     dlzka += dlzkaT;
                 }
                 else
                 {
+                    sb.Append(AnsiStyl(pozadie));
                     sb.Append(riadok.Read(index, 1));
+                    sb.Append(AnsiReset());
                     index++;
                     dlzka += 1;
                 }
@@ -353,7 +356,8 @@ namespace PisaciAutomat.Obrazovka
             Modra,
             Cervena,
             Zelena,
-            Biela
+            Biela,
+            CervenaLight
         }
         
         public static string AnsiStyl(FarbaPozadia p)
@@ -365,7 +369,7 @@ namespace PisaciAutomat.Obrazovka
                 case FarbaPozadia.Cyan:
                     return "\u001b[1;90;106m";
                 case FarbaPozadia.Siva:
-                    return "\u001b[100;97m";
+                    return "\u001b[48;5;236m";
                 case FarbaPozadia.Biela:
                     return "\u001b[1;90;107m";
                 case FarbaPozadia.Modra:
@@ -374,6 +378,8 @@ namespace PisaciAutomat.Obrazovka
                     return "\u001b[41;1m";
                 case FarbaPozadia.Zelena:
                     return "\u001b[42;1m";
+                case FarbaPozadia.CervenaLight:
+                    return "\u001b[48;5;124m";
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -417,6 +423,8 @@ namespace PisaciAutomat.Obrazovka
                     return "\u001b[1;38;5;87m";
                 case StylTextu.Blue:
                     return "\u001b[38;5;27m";
+                case StylTextu.BielaBold:
+                    return "\u001b[1;38;5;15m";
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -441,7 +449,8 @@ namespace PisaciAutomat.Obrazovka
             Yellow,
             Cyan,
             CyanBold,
-            Blue
+            Blue,
+            BielaBold
         }
 
         public static StylTextu VyberStyl(TypTokenu typ)

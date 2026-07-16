@@ -28,5 +28,6 @@ namespace PisaciAutomat.Prikazy
         public string VyhladavanyText { get; set; }
 
         public string NovyText { get; set; }
+        public bool ZavriRiadok { get; internal set; }
     }
 }

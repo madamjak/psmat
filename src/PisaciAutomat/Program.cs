@@ -12,6 +12,7 @@ using PisaciStroj.Vyhladavanie;
 using System;
 using System.Globalization;
 using System.IO;
+using System.Text;
 
 namespace PisaciAutomat
 {
@@ -78,7 +79,6 @@ namespace PisaciAutomat
             _parametreVyberu = new ParametreVyberu();
             _parametreVypisu = new ParametreVypisu() 
             {
-                OkrajVlavo = 5,
                 OkrajHore = 2,
                 OkrajDole = 2
             };
@@ -358,6 +358,14 @@ namespace PisaciAutomat
 
         private void Prekresli(ParametrePrekreslenia p)
         {
+            if(_parametreVypisu.OkrajVlavo == 0)
+            {
+                _parametreVypisu.OkrajVlavo = _editor.Riadky().Count.ToString().Length + 2;
+                if(_parametreVypisu.OkrajVlavo == 3)
+                {
+                    _parametreVypisu.OkrajVlavo = 5;
+                }
+            }
             var screen = _vykreslovaciAutomat.Precitaj(_parametreVypisu, _search, _parametreVyberu, p);
 
             var stavovyRiadok = new StavovyRiadokInfo()
@@ -368,12 +376,14 @@ namespace PisaciAutomat
                     _parametreVyberu.PocetRiadkov > 1 ? _parametreVyberu.PocetRiadkov.ToString() : "-"),
                 MaZmenu = _editor.MaZmenu(),
             };
-            
-            _vykreslovaciAutomat.VykresliNaKonzolu(screen, stavovyRiadok, _parametreVypisu, _hlaska, _cmdMode, p);
+
+            var sb = new StringBuilder();
+            sb.Append(VykreslovaciAutomat.NastavKurzorUnVisible());
+            _vykreslovaciAutomat.VykresliNaKonzolu(screen, stavovyRiadok, _parametreVypisu, _hlaska, _cmdMode, p, sb);
 
             if (_dialog.HasValue)
             {
-                Console.Write(VykreslovaciAutomat.NastavKurzor(2, _parametreVypisu.OkrajVlavo + 1));
+                sb.Append(VykreslovaciAutomat.NastavKurzor(2, _parametreVypisu.OkrajVlavo + 1));
             }
 
             _hlaska = null;
@@ -381,15 +391,20 @@ namespace PisaciAutomat
 
             if (_cmdMode)
             {
-                _cmdLineEditor.Prekresli();
+                p.OkrajVlavo = _parametreVypisu.OkrajVlavo;
+                _cmdLineEditor.Prekresli(p, sb);
             }
+
+            sb.Append(VykreslovaciAutomat.NastavKurzorVisible());
+
+            Console.Write(sb.ToString());
         }
 
         private void VyhladajZvyraznenyText()
         {
             if (!Zvyraznovac.MaVybranyText(_parametreVyberu))
             {
-                if (_parametreVypisu.IndexRiadok < _editor.Riadky()[_parametreVypisu.IndexRiadok].Length() - 1)
+                if (_parametreVypisu.IndexStlpec < _editor.Riadky()[_parametreVypisu.IndexRiadok].Length() - 1)
                 {
                     _navigovaciPrikaz.Vyber = false;
                     _navigovaciPrikaz.Typ = TypNavigacie.SlovoDoprava;
@@ -432,34 +447,24 @@ namespace PisaciAutomat
             var r = _cmdLineEditor.NacitajPrikaz(_commandForCmdLine, vstup);
             _commandForCmdLine = null;
 
-            if (r.ZavriRiadok)
+            if (r.Prikaz != null)
             {
+                ProcesorPrikazov.SpracujPrikaz(r.Prikaz, _search, _parametreVypisu, _editor);
+                if (r.Prikaz.ZavriRiadok)
+                {
+                    _cmdMode = false;
+                }
+            }
+            else if(r.ZavriRiadok)
+            {
+                _search = new ParametreVyhladavania();
                 _cmdMode = false;
-                _search.VyhladaneSlovo = null;
-                _search.VyhladavanyText = r.Prikaz.VyhladavanyText;
-                return;
             }
-            else if(r.Prikaz != null)
-            {
-                SpracujPrikaz(r.Prikaz);
-            }
-        }
-
-        private void SpracujPrikaz(Prikaz prikaz)
-        {
-            ProcesorPrikazov.SpracujPrikaz(prikaz, _search, _parametreVypisu, _editor, ref _cmdMode);
-
-            Prekresli(new ParametrePrekreslenia());
         }
 
         private void Hlaska(string hlaska)
         {
             _hlaska = VykreslovaciAutomat.Hlaska(hlaska);
-        }
-
-        private bool JeVytlacitelnyAsciiZnak(char keyChar)
-        {
-            return keyChar >= 32 && keyChar <= 127;
         }
 
         /// <summary>

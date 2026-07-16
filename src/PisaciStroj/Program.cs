@@ -521,12 +521,12 @@ namespace PisaciStroj
             return sb.ToString();
         }
 
-        private bool LineFeed(char c)
+        public static bool LineFeed(char c)
         {
             return c == '\n';
         }
 
-        private bool CarriageReturn(char c)
+        public static bool CarriageReturn(char c)
         {
             return c == '\r';
         }

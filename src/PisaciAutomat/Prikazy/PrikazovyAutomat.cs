@@ -31,19 +31,17 @@ namespace PisaciAutomat.Prikazy
 
         private string _chyba;
 
-        private Prikaz _poslednyPrikaz;
+        private HistoriaPrikazov _historiaPrikazov;
 
         public PrikazovyAutomat()
         {
             _lexer = new LexAutomat(NacitajLexGramatiku());
             _riadok = new GapBuffer();
             _riadky = new List<GapBuffer> { _riadok };
-            _parametreVypisu = new ParametreVypisu()
-            {
-                OkrajVlavo = 5
-            };
+            _parametreVypisu = new ParametreVypisu();
             _navigovaciPrikaz = new NavigovaciPrikaz();
             _vyber = new ParametreVyberu();
+            _historiaPrikazov = new HistoriaPrikazov();
         }
 
         public PrikazovyAutomatResult NacitajPrikaz(PrikazPrePrikazovyRiadok? prikazZEditora = null, ConsoleKeyInfo? vstup = null)
@@ -51,7 +49,7 @@ namespace PisaciAutomat.Prikazy
             if(prikazZEditora.HasValue && prikazZEditora.Value.VyhladavanyText != null)
             {
                 var p = VyhladavaciPrikaz(prikazZEditora);
-                
+
                 return p;
             } else if (vstup.HasValue)
             {
@@ -70,10 +68,13 @@ namespace PisaciAutomat.Prikazy
             _parametreVypisu.OffsetStlpec = 0;
 
             var prikaz = "fnext " + prikazZEditora.Value.VyhladavanyText;
-            foreach(char ch in prikaz)
+
+            foreach (char ch in prikaz)
             {
                 NapisZnak(ch);
             }
+
+            PridajPrikazDoHistorie();
 
             return new PrikazovyAutomatResult()
             {
@@ -98,23 +99,42 @@ namespace PisaciAutomat.Prikazy
                     _vyber = new ParametreVyberu();
                 }
             }
-            else if (vstup.Key == ConsoleKey.Enter)
+            else if (vstup.Key == ConsoleKey.DownArrow || vstup.Key == ConsoleKey.UpArrow)
             {
-                if (Zvyraznovac.MaVybranyText(_vyber))
+                if (vstup.Key == ConsoleKey.UpArrow)
                 {
-                    ZmazVyber();
-                }
+                    if (_historiaPrikazov.PocetOperaciiNaVratenie > 0)
+                    {
+                        _historiaPrikazov.PridajOperaciuNaZopakovanie(_riadok.Read());
 
-                var prikaz = ProcesorPrikazov.NacitajPrikaz(_riadok);
+                        var o = _historiaPrikazov.OperaciaNaVratenie();
 
-                if(prikaz == null)
-                {
-                    Chyba();
+                        ZmazVsetko();
+                        NapisText(o);
+                    }
+                    else
+                    {
+                        var operaciaZHistorie = _historiaPrikazov.PoslednaOperaciaHistorie();
+                        if(operaciaZHistorie != null)
+                        {
+                            _historiaPrikazov.PridajOperaciuNaZopakovanie(_riadok.Read());
+
+                            ZmazVsetko();
+                            NapisText(operaciaZHistorie);
+                        }
+                    }
                 }
                 else
                 {
-                    r.Prikaz = prikaz;
-                    _poslednyPrikaz = prikaz;
+                    if (_historiaPrikazov.PocetOperaciiNaZopakovanie > 0)
+                    {
+                        _historiaPrikazov.PridajOperaciuNaVratenie(_riadok.Read());
+
+                        var o = _historiaPrikazov.OperaciaNaZopakovanie();
+
+                        ZmazVsetko();
+                        NapisText(o);
+                    }
                 }
             }
             else if (vstup.Key == ConsoleKey.Backspace)
@@ -143,16 +163,9 @@ namespace PisaciAutomat.Prikazy
             }
             else if (vstup.Key == ConsoleKey.Escape)
             {
+                ZmazVsetko();
+                
                 r.ZavriRiadok = true;
-                if(_poslednyPrikaz != null)
-                {
-                    if(_poslednyPrikaz.Typ != TypPrikazu.Vyhladaj)
-                    {
-                        //pri jednoduchom rychlom vyhladavani nezobrazuj vysledky po zavreti riadku
-                        r.Prikaz = _poslednyPrikaz; 
-                        r.Prikaz.VyhladavanyText = null;
-                    }
-                }
             }
             else if((vstup.Modifiers & ConsoleModifiers.Control) == ConsoleModifiers.Control)
             {
@@ -160,6 +173,28 @@ namespace PisaciAutomat.Prikazy
                 {
                     _vyber = new ParametreVyberu();
                     Zvyraznovac.VyberVsetko(_vyber, _parametreVypisu, _riadky);
+                }
+
+                else if (vstup.Key == ConsoleKey.C && Zvyraznovac.MaVybranyText(_vyber))
+                {
+                    Clipboard.Clipboard.SkopirujDoClipboardu(PrecitajVyber());
+                }
+                else if (vstup.Key == ConsoleKey.X && Zvyraznovac.MaVybranyText(_vyber))
+                {
+                    Clipboard.Clipboard.SkopirujDoClipboardu(PrecitajVyber());
+
+                    ZmazVyber();
+                    _vyber = new ParametreVyberu();
+                }
+                else if (vstup.Key == ConsoleKey.V)
+                {
+                    var t = Clipboard.Clipboard.PreciajZClipboardu();
+
+                    if (!string.IsNullOrEmpty(t))
+                    {
+                        NapisText(t);
+                        _vyber = new ParametreVyberu();
+                    }
                 }
             }
             else if (Program.IsPrintable(vstup.KeyChar))
@@ -170,8 +205,48 @@ namespace PisaciAutomat.Prikazy
                 }
                 NapisZnak(vstup.KeyChar);
             }
+            else if (vstup.Key == ConsoleKey.Enter)
+            {
+                if (Zvyraznovac.MaVybranyText(_vyber))
+                {
+                    ZmazVyber();
+                }
+
+                var prikaz = CitacPrikazov.NacitajPrikaz(_riadok);
+                if (prikaz == null)
+                {
+                    Chyba();
+                }
+                else
+                {
+                    PridajPrikazDoHistorie();
+                    if (prikaz.ZavriRiadok)
+                    {
+                        ZmazVsetko();
+                    }
+
+                    r.Prikaz = prikaz;
+                }
+            }
 
             return r;
+        }
+
+        private void PridajPrikazDoHistorie()
+        {
+            _historiaPrikazov.PridajOperaciuDoHistorie(_riadok.Read());
+            _historiaPrikazov.VycistiOperacieNaZopakovanie();
+        }
+
+        private string PrecitajVyber()
+        {
+            return _riadok.Read(_vyber.Zaciatok.Value.Stlpec, _vyber.PocetZnakov);
+        }
+
+        private void ZmazVsetko()
+        {
+            Zvyraznovac.VyberVsetko(_vyber, _parametreVypisu, _riadky);
+            ZmazVyber();
         }
 
         private void ZmazVyber()
@@ -185,6 +260,19 @@ namespace PisaciAutomat.Prikazy
                 PosunDoprava();
             }
             _vyber = new ParametreVyberu();
+        }
+
+        private void NapisText(string t)
+        {
+            foreach(var c in t)
+            {
+                if(PisaciStroj.Program.CarriageReturn(c) || PisaciStroj.Program.LineFeed(c))
+                {
+                    continue;
+                }
+
+                NapisZnak(c);
+            }
         }
 
         private void NapisZnak(char ch)
@@ -239,21 +327,30 @@ namespace PisaciAutomat.Prikazy
             }
         }
 
-        public void Prekresli()
+        public void Prekresli(ParametrePrekreslenia p, StringBuilder sb)
         {
-            var sb = new StringBuilder();
+            _parametreVypisu.OkrajVlavo = p.OkrajVlavo;
 
+            var pozadie = StylovaciAutomat.FarbaPozadia.Siva;
             if (_chyba != null)
             {
-                sb.Append(_chyba);
+                pozadie = StylovaciAutomat.FarbaPozadia.CervenaLight;
+                //sb.Append(VykreslovaciAutomat.NastavKurzor(2, 1));
+                //sb.Append(VykreslovaciAutomat.ZmazOdKurzoraPoKoniecRiadku());
+                //sb.Append(VykreslovaciAutomat.NastavKurzor(1, _parametreVypisu.OkrajVlavo + 1));
+                //sb.Append(VykreslovaciAutomat.Info(_chyba));
                 _chyba = null;
             }
 
             sb.Append(VykreslovaciAutomat.NastavKurzor(1, 1));
             sb.Append(VykreslovaciAutomat.ZmazOdKurzoraPoKoniecRiadku());
-            sb.Append(VykreslovaciAutomat.CislaRiadkov("   > "));
+            sb.Append(VykreslovaciAutomat.NastavPozadie(p.OkrajVlavo - 2));
+            sb.Append(StylovaciAutomat.AnsiStyl(StylovaciAutomat.StylTextu.BielaBold));
+            sb.Append("> ");
+            sb.Append(StylovaciAutomat.AnsiReset());
+            
 
-            if(_riadok.Length() > 0)
+            if (_riadok.Length() > 0)
             {
                 var tokeny = _lexer.Lex(_riadok);
 
@@ -263,23 +360,22 @@ namespace PisaciAutomat.Prikazy
                     zvyraznenyText = Zvyraznovac.ZvyraznenyText(_vyber, 0, _riadok.Length());
                 }
 
-                sb.Append(StylovaciAutomat.SyntaxHighligt(tokeny, _riadok, _parametreVypisu.OffsetStlpec, _parametreVypisu.Sirka, zvyraznenyText));
+                sb.Append(StylovaciAutomat.SyntaxHighligt(tokeny, _riadok, _parametreVypisu.OffsetStlpec, _parametreVypisu.Sirka, zvyraznenyText, pozadie));
+            }
+
+            if (_riadok.Length() < _parametreVypisu.Sirka)
+            {
+                sb.Append(StylovaciAutomat.AnsiStyl(pozadie));
+                sb.Append(VykreslovaciAutomat.NastavPozadie(_parametreVypisu.Sirka - _riadok.Length()));
+                sb.Append(StylovaciAutomat.AnsiReset());
             }
 
             sb.Append(VykreslovaciAutomat.NastavKurzor(1, _parametreVypisu.StlpecKurzora + 1));
-
-            Console.Write(sb.ToString());
         }
 
         private void Chyba()
         {
-            var sb = new StringBuilder();
-            sb.Append(VykreslovaciAutomat.NastavKurzor(2, 1));
-            sb.Append(VykreslovaciAutomat.ZmazOdKurzoraPoKoniecRiadku());
-            sb.Append(VykreslovaciAutomat.NastavKurzor(2, _parametreVypisu.OkrajVlavo + 1));
-            sb.Append(VykreslovaciAutomat.Chyba());
-
-            _chyba = sb.ToString();
+            _chyba = "Neznamy prikaz";
         }
 
         private LexGramatika NacitajLexGramatiku()
