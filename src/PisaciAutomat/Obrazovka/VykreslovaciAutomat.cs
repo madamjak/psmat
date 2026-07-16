@@ -16,6 +16,9 @@ namespace PisaciAutomat.Obrazovka
         public bool Resize { get; set; }
 
         public bool Necitaj { get; set; }
+        
+        //pre prikazovy riadok nastavene podla poctu riadkov
+        public int OkrajVlavo { get; set; }
     }
 
     public class VykreslovaciAutomat
@@ -66,6 +69,7 @@ namespace PisaciAutomat.Obrazovka
             var pocetRiadkov = 0;
             var riadokObrazovky = 0;
             var riadky = editor.Riadky();
+            var formatCislaRiadkov = "D" + (parametre.OkrajVlavo - 2);
             for (int i = parametre.OffsetRiadok; i < riadky.Count; i++)
             {
                 if (pocetRiadkov == parametre.Vyska)
@@ -157,7 +161,7 @@ namespace PisaciAutomat.Obrazovka
                     zvyraznenyText = Zvyraznovac.ZvyraznenyText(parametreVyberu, i, riadky[i].Length());
                 }
 
-                result.Riadky[riadokObrazovky] = string.Format("{0}  {1}", CislaRiadkov((i).ToString("D3")),
+                result.Riadky[riadokObrazovky] = string.Format("{0}  {1}", CislaRiadkov((i).ToString(formatCislaRiadkov)),
                     StylovaciAutomat.SyntaxAndSearchHighligt2(riadky[i],
                     parametre.OffsetStlpec, parametre.Sirka - 1,
                     vyhladaneSlova, vSlovo, tokeny, zatvorky, poziciaKurzora,
@@ -170,11 +174,14 @@ namespace PisaciAutomat.Obrazovka
             return result;
         }
 
-        public void VykresliNaKonzolu(EditorScreen novaObrazovka, StavovyRiadokInfo stavovyRiadok, ParametreVypisu parametre, string hlaska, bool _cmdMode, ParametrePrekreslenia p)
+        public void VykresliNaKonzolu(EditorScreen novaObrazovka, 
+            StavovyRiadokInfo stavovyRiadok, 
+            ParametreVypisu parametre, 
+            string hlaska, 
+            bool _cmdMode, 
+            ParametrePrekreslenia p, 
+            StringBuilder sb)
         {
-            var sb = new StringBuilder();
-
-            sb.Append(NastavKurzorUnVisible());
             if (!_cmdMode)
             {
                 sb.Append(NastavKurzor(1, 1));
@@ -200,10 +207,6 @@ namespace PisaciAutomat.Obrazovka
                 Prekresli(novaObrazovka, sb, stavovyRiadok, parametre, p);
                 _aktualnaObrazovka = novaObrazovka;
             }
-
-            sb.Append(NastavKurzorVisible());
-
-            Console.Write(sb.ToString());
         }
 
         private static void VykresliHlasku(ParametreVypisu parametre, string hlaska, StringBuilder sb)
@@ -281,9 +284,9 @@ namespace PisaciAutomat.Obrazovka
             return string.Format("\u001b[1K");
         }
 
-        public static string Chyba()
+        public static string Info(string hlaska)
         {
-            return string.Format("\u001b[41;1m{0}\u001b[0m", "???");
+            return string.Format("\u001b[44;1m{0}{1}\u001b[0m", " ? ", hlaska);
         }
 
         public static string Chyba2()
@@ -318,7 +321,7 @@ namespace PisaciAutomat.Obrazovka
             sb.Append(VykreslovaciAutomat.NastavKurzor(2, 1));
             sb.Append(VykreslovaciAutomat.ZmazOdKurzoraPoKoniecRiadku());
             sb.Append(VykreslovaciAutomat.NastavKurzor(2, okraj + 1));
-            sb.Append(VykreslovaciAutomat.Chyba());
+            sb.Append(VykreslovaciAutomat.Chyba2());
 
             return sb.ToString();
         }
@@ -337,6 +340,22 @@ namespace PisaciAutomat.Obrazovka
         public static string EraseScree()
         {
             return "\u001b[2J";
+        }
+
+        public static string NastavPozadie(int sirka)
+        {
+            var i = 0;
+            var sb = new StringBuilder();
+            while (true)
+            {
+                if (i == sirka)
+                {
+                    break;
+                }
+                sb.Append(" ");
+                i++;
+            }
+            return sb.ToString();
         }
     }
 }
