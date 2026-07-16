@@ -159,7 +159,7 @@ namespace PisaciAutomat.Obrazovka
 
                 result.Riadky[riadokObrazovky] = string.Format("{0}  {1}", CislaRiadkov((i).ToString("D3")),
                     StylovaciAutomat.SyntaxAndSearchHighligt2(riadky[i],
-                    parametre.OffsetStlpec, parametre.Sirka,
+                    parametre.OffsetStlpec, parametre.Sirka - 1,
                     vyhladaneSlova, vSlovo, tokeny, zatvorky, poziciaKurzora,
                     zvyraznenyText));
 

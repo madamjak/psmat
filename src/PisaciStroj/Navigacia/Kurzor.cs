@@ -94,18 +94,24 @@ namespace PisaciStroj.Navigacia
                 parametreVypisu.Stlpec--;
                 if (parametreVypisu.Stlpec < 0)
                 {
-                    parametreVypisu.OffsetStlpec -= parametreVypisu.Sirka;
-                    if (parametreVypisu.OffsetStlpec < 0)
-                    {
-                        parametreVypisu.OffsetStlpec = 0;
-                    }
+                    parametreVypisu.OffsetStlpec += parametreVypisu.Stlpec;
+                    parametreVypisu.Stlpec = 0;
 
-                    parametreVypisu.Stlpec = parametreVypisu.Sirka - 1;
+                    //riesenie nizsie prekresli pri posune dolava celu obrazovku
+                    //parametreVypisu.OffsetStlpec -= parametreVypisu.Sirka;
 
-                    if(parametreVypisu.IndexStlpec > riadky[parametreVypisu.IndexRiadok].Length())
-                    {
-                        NastavIndexStlpca(parametreVypisu, riadky, riadky[parametreVypisu.IndexRiadok].Length());
-                    }
+                    //if (parametreVypisu.OffsetStlpec < 0)
+                    //{
+                    //    parametreVypisu.OffsetStlpec = 0;
+                    //}
+
+                    //parametreVypisu.Stlpec = parametreVypisu.Sirka - 1;
+
+
+                    //if (parametreVypisu.IndexStlpec > riadky[parametreVypisu.IndexRiadok].Length())
+                    //{
+                    //    NastavIndexStlpca(parametreVypisu, riadky, riadky[parametreVypisu.IndexRiadok].Length() - 1);
+                    //}
                 }
 
                 return true;

@@ -234,7 +234,7 @@ namespace PisaciAutomat.Obrazovka
 
                 if (zvyraznenyText.HasValue && zvyraznenyText.Value.Pozicia == index)
                 {
-                    dlzkaZvyraznenehoTextu = zvyraznenyText.Value.Dlzka;
+                    dlzkaZvyraznenehoTextu = Math.Min(zvyraznenyText.Value.Dlzka, maxDlzka);
                 }
 
                 if (dlzkaSlova > 0)
@@ -304,9 +304,9 @@ namespace PisaciAutomat.Obrazovka
                         sb.Append("\b");
                         sb.Append(riadok.Read(index, 1));
                         sb.Append(AnsiReset());
+
+                        dlzkaZvyraznenehoTextu--;
                     }
-                    
-                    dlzkaZvyraznenehoTextu--;
                 }
 
                 if(index >= offset)
@@ -409,10 +409,14 @@ namespace PisaciAutomat.Obrazovka
                     return "\u001b[38;5;226m";
                 case StylTextu.RedBold:
                     return "\u001b[1;38;5;196m";
+                case StylTextu.Red:
+                    return "\u001b[38;5;196m";
                 case StylTextu.Cyan:
-                    return "\u001b[96m";
+                    return "\u001b[38;5;87m";
                 case StylTextu.CyanBold:
-                    return "\u001b[1;96m";
+                    return "\u001b[1;38;5;87m";
+                case StylTextu.Blue:
+                    return "\u001b[38;5;27m";
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -433,9 +437,11 @@ namespace PisaciAutomat.Obrazovka
             OrangeClassic,
             YellowItalic,
             RedBold,
+            Red,
             Yellow,
             Cyan,
-            CyanBold
+            CyanBold,
+            Blue
         }
 
         public static StylTextu VyberStyl(TypTokenu typ)
@@ -443,14 +449,14 @@ namespace PisaciAutomat.Obrazovka
             switch (typ)
             {
                 case TypTokenu.KlucoveSlovo:
-                    return StylTextu.OrangeBold;
+                    return StylTextu.Cyan;
                 case TypTokenu.KlucovaFunkcia:
                     return StylTextu.OrangeClassic;
                 case TypTokenu.Operator:
                 case TypTokenu.Symbol:
                     return StylTextu.RedBold;
                 case TypTokenu.Retazec:
-                    return StylTextu.YellowItalic;
+                    return StylTextu.Blue;
                 case TypTokenu.Cislo:
                     return StylTextu.Yellow;
                 case TypTokenu.Komentar:
