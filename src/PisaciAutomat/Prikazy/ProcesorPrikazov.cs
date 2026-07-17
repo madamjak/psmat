@@ -15,8 +15,7 @@ namespace PisaciAutomat.Prikazy
 
     public static class ProcesorPrikazov
     {
-        private const string _ziadneVysledky = "Ziadne vysledky vyhladavania.";
-        private const string _koniecVysledkov = "Koniec vysledkov vyhladavania";
+        private const string _ziadneVysledky = "End of results or no search result.";
 
         public static ProcessorPrikazovResult SpracujPrikaz(Prikaz prikaz, 
             ParametreVyhladavania search, 
@@ -84,12 +83,10 @@ namespace PisaciAutomat.Prikazy
 
                 if (!search.VyhladaneSlovo.HasValue)
                 {
-                    r.Hlaska = _koniecVysledkov;
+                    r.Hlaska = _ziadneVysledky;
                     return r;
                 }
 
-                var go = search.VyhladaneSlovo.Value.Pozicia + search.VyhladaneSlovo.Value.Dlzka;
-                Kurzor.GoTo(search.VyhladaneSlovo.Value.Riadok, go, parametreVypisu, editor.Riadky());
                 return r;
             }
 
@@ -103,9 +100,9 @@ namespace PisaciAutomat.Prikazy
 
                 var obratene = prikaz.Typ == TypPrikazu.VyhladajPredosly;
                 var s = vyhladavac.Vyhladaj(prikaz.VyhladavanyText, parametreVypisu, editor.Riadky(), obratene);
-                if(!s.HasValue && search.VyhladaneSlovo.HasValue)
+                if(!s.HasValue)
                 {
-                    r.Hlaska = _koniecVysledkov;
+                    r.Hlaska = _ziadneVysledky;
                     return r;
                 }
 
@@ -135,14 +132,7 @@ namespace PisaciAutomat.Prikazy
                 }
                 else
                 {
-                    if (search.ZaciatokVyhladavania.HasValue)
-                    {
-                        r.Hlaska = _koniecVysledkov;
-                    }
-                    else
-                    {
-                        r.Hlaska = _ziadneVysledky;
-                    }
+                    r.Hlaska = _ziadneVysledky;
 
                     return r;
                 }
@@ -194,33 +184,38 @@ namespace PisaciAutomat.Prikazy
                 Navigator.Naviguj(navigovaciPrikaz, parametreVypisu, riadky, new ParametreVyberu());
             }
 
-            VyhladaneSlovo? result = null;
             while (true)
             {
+                var pocetRiadkov = 0;
                 for (int index = parametreVypisu.IndexRiadok; index < riadky.Count; index++)
                 {
                     Dictionary<int, VyhladaneSlovo> slovaNaRiadku = vyhladaneSlova[index];
                     if (slovaNaRiadku.Count > 0)
                     {
-                        result = slovaNaRiadku.Values.ToList().First();
+                        var result = slovaNaRiadku.Values.ToList().First();
                         return new VyhladaneSlovo()
                         {
-                            Dlzka = result.Value.Dlzka,
-                            Pozicia = result.Value.Pozicia,
+                            Dlzka = result.Dlzka,
+                            Pozicia = result.Pozicia,
                             Riadok = index
                         };
                     }
+
+                    if (pocetRiadkov == parametreVypisu.Vyska)
+                    {
+                        break;
+                    }
                 }
 
-                if(parametreVypisu.IndexRiadok == riadky.Count - 1)
+                Navigator.Naviguj(navigovaciPrikaz, parametreVypisu, riadky, new ParametreVyberu());
+
+                if (parametreVypisu.IndexRiadok + parametreVypisu.Vyska >= riadky.Count)
                 {
-                    result = null;
                     break;
                 }
-                
             }
 
-            return result;
+            return null;
         }
     }
 }

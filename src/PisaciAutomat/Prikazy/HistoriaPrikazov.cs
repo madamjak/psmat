@@ -26,7 +26,7 @@ namespace PisaciAutomat.Prikazy
             _operacieNaZopakovanie.Push(operacia);
         }
 
-        private int _operaciaHistorieTop;
+        private int _operaciaHistorieTop = -1;
         public void PridajOperaciuDoHistorie(string operacia)
         {
             if(_operaciaHistorieTop < 0 || _historia[_operaciaHistorieTop] != operacia)
@@ -34,7 +34,7 @@ namespace PisaciAutomat.Prikazy
                 _historia.Add(operacia);
             }
 
-            _operaciaHistorieTop++;
+            _operaciaHistorieTop = _historia.Count;
         }
 
         public string PoslednaOperaciaHistorie()

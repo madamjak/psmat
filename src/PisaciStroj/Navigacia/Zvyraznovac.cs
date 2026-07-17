@@ -99,6 +99,11 @@ namespace PisaciStroj.Navigacia
             parametreVyberu.PocetRiadkov = 0;
             parametreVyberu.PocetZnakov = 0;
 
+            if (!Zvyraznovac.MaVybranyText(parametreVyberu))
+            {
+                return;
+            }
+
             for (int i = parametreVyberu.Zaciatok.Value.Riadok; i <= parametreVyberu.Koniec.Value.Riadok; i++)
             {
                 parametreVyberu.PocetRiadkov++;
