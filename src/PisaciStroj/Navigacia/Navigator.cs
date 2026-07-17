@@ -165,16 +165,19 @@ namespace PisaciStroj.Navigacia
                     break;
                 case TypNavigacie.DalsiaStranka:
 
-                    var dalsiIndexRiadku = Math.Min(parametreVypisu.IndexRiadok + parametreVypisu.Vyska, riadky.Count - 1);
-                    var dalsiIndexStlpca = Math.Min(parametreVypisu.IndexStlpec, riadky[riadky.Count - 1].Length());
-                    Kurzor.GoTo(dalsiIndexRiadku, dalsiIndexStlpca, parametreVypisu, riadky);
+                    //teoreticky by to slo lepsie nejak cez offset
+                    var koniecDalsejStranky = Math.Min(parametreVypisu.IndexRiadok + (parametreVypisu.Vyska - 1) * 2, riadky.Count - 1);
+                    Kurzor.GoTo(koniecDalsejStranky, 0, parametreVypisu, riadky);
+
+                    var zaciatokDalsejStranky = Math.Max(parametreVypisu.IndexRiadok - parametreVypisu.Vyska + 1, 0);
+
+                    Kurzor.GoTo(zaciatokDalsejStranky, 0, parametreVypisu, riadky);
                     break;
 
                 case TypNavigacie.PredoslaStranka:
 
                     var predIndexRiadku = Math.Max(parametreVypisu.IndexRiadok - parametreVypisu.Vyska, 0);
-                    var predIndexStlpca = Math.Min(parametreVypisu.IndexStlpec, riadky[riadky.Count - 1].Length());
-                    Kurzor.GoTo(predIndexRiadku, predIndexStlpca, parametreVypisu, riadky);
+                    Kurzor.GoTo(predIndexRiadku, 0, parametreVypisu, riadky);
                     break;
             }
 

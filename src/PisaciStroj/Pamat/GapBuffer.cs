@@ -31,6 +31,11 @@ namespace PisaciStroj.Pamat
 
         public char CharAt(int index)
         {
+            if (index == _length)
+            {
+                return '\0';
+            }
+
             if (_length == 0)
             {
                 return '\0';
