@@ -2,6 +2,7 @@
 using PisaciAutomat.Obrazovka;
 using PisaciStroj.Lexer;
 using PisaciStroj.Testy;
+using PisaciStroj.Vyhladavanie;
 using PSMat.Testy.Obrazovka;
 using System;
 using System.Collections.Generic;
@@ -48,7 +49,8 @@ namespace PSMat.Testy.Lexer
                 r,
                 new PisaciStroj.Program(text),
                 new PisaciStroj.Parametre.ParametreVyberu(),
-                new LexAutomat(new LexGramatika()));
+                new LexAutomat(new LexGramatika()),
+                new VyhladavaciAutomat());
 
             var sb = new StringBuilder();
 

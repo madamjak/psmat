@@ -232,28 +232,34 @@ namespace PisaciStroj.Lexer
                     {
                         if (!jeRetazec)
                         {
-                            var jednoRiadkovyKomentar = r.Read(poziciaHlavy, _komentar.Length);
-                            if(jednoRiadkovyKomentar == _komentar)
+                            if(!string.IsNullOrEmpty(_komentar))
                             {
-                                rowResult.Add(poziciaHlavy, new Token()
+                                var jednoRiadkovyKomentar = r.Read(poziciaHlavy, _komentar.Length);
+                                if (jednoRiadkovyKomentar == _komentar)
                                 {
-                                    Typ = TypTokenu.Komentar,
-                                    Pozicia = poziciaHlavy,
-                                    Dlzka = r.Length() - poziciaHlavy
-                                });
+                                    rowResult.Add(poziciaHlavy, new Token()
+                                    {
+                                        Typ = TypTokenu.Komentar,
+                                        Pozicia = poziciaHlavy,
+                                        Dlzka = r.Length() - poziciaHlavy
+                                    });
 
-                                jeKomentar = false;
-                                break;
+                                    jeKomentar = false;
+                                    break;
+                                }
                             }
 
-                            var zaciatokKomentara = r.Read(poziciaHlavy, _zaciatokKomentara.Length);
-                            if(zaciatokKomentara == _zaciatokKomentara)
+                            if (!string.IsNullOrEmpty(_zaciatokKomentara))
                             {
-                                jeKomentar = true;
-                                komentar.Pozicia = poziciaHlavy;
-                                komentar.Dlzka = 1;
-                                poziciaHlavy++;
-                                continue;
+                                var zaciatokKomentara = r.Read(poziciaHlavy, _zaciatokKomentara.Length);
+                                if (zaciatokKomentara == _zaciatokKomentara)
+                                {
+                                    jeKomentar = true;
+                                    komentar.Pozicia = poziciaHlavy;
+                                    komentar.Dlzka = 1;
+                                    poziciaHlavy++;
+                                    continue;
+                                }
                             }
                         }
                     }

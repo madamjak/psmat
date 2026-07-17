@@ -1,5 +1,6 @@
 ﻿using PisaciAutomat.Obrazovka;
 using PisaciStroj.Lexer;
+using PisaciStroj.Vyhladavanie;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -24,7 +25,8 @@ namespace PSMat.Testy.Obrazovka
                 SyntaxHighlightStubs.Tokeny(), 
                 new PisaciStroj.Program(SyntaxHighlightStubs.Riadky()),
                 new PisaciStroj.Parametre.ParametreVyberu(),
-                new LexAutomat(new LexGramatika()));
+                new LexAutomat(new LexGramatika()),
+                new VyhladavaciAutomat());
 
             var sb = new StringBuilder();
 
