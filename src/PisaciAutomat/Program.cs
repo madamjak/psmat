@@ -16,13 +16,6 @@ using System.Text;
 
 namespace PisaciAutomat
 {
-    public enum TypDialogu
-    {
-        Ziadny,
-        PotvrdUkoncenie,
-        Subor
-    }
-
     public class Program
     {
         private static Program instance = null;
@@ -65,14 +58,17 @@ namespace PisaciAutomat
         //...
         private string _cestaKSuboru = string.Empty;
         private bool _ukonci;
+        
+        //info a dialog
         private string _hlaska;
-        private string _chyba;
-        private TypDialogu? _dialog;
+        private string _dialog;
+        private TypDialogu? _typDialogu;
 
         private void Konstruktor()
         {
-            _editor = new PisaciStroj.Program(new VyhladavaciAutomat());
-            _vykreslovaciAutomat = new VykreslovaciAutomat(NacitajLexGramatiku(), _editor);
+            _vyhladavac = new VyhladavaciAutomat();
+            _editor = new PisaciStroj.Program(_vyhladavac);
+            _vykreslovaciAutomat = new VykreslovaciAutomat(NacitajLexGramatiku(), _editor, _vyhladavac);
             _cmdLineEditor = new PrikazovyAutomat();
 
             _navigovaciPrikaz = new NavigovaciPrikaz();
@@ -98,9 +94,9 @@ namespace PisaciAutomat
             {
                 CommandLineMode(vstup);
             }
-            else if (_dialog.HasValue )
+            else if (_typDialogu.HasValue)
             {
-                if (_dialog.Value == TypDialogu.PotvrdUkoncenie)
+                if (_typDialogu == TypDialogu.PotvrdUkoncenie)
                 {
                     if (vstup.KeyChar == 'a')
                     {
@@ -108,6 +104,7 @@ namespace PisaciAutomat
                     }
                 }
 
+                _typDialogu = null;
                 _dialog = null;
             }
             else if (Navigator.NavigovaciPrikaz(vstup, _navigovaciPrikaz))
@@ -284,16 +281,7 @@ namespace PisaciAutomat
                 }
                 else if (vstup.Key == ConsoleKey.Q)
                 {
-                    if (_editor.MaZmenu())
-                    {
-                        Hlaska("Neulozene zmeny v subore. Naozaj ukoncit? (a/n)");
-                        _dialog = TypDialogu.PotvrdUkoncenie;
-                        necitaj = true;
-                    }
-                    else
-                    {
-                        _ukonci = true;
-                    }
+                    UkonciAplikaciu();
                 }
                 else if (vstup.Key == ConsoleKey.W)
                 {
@@ -313,26 +301,37 @@ namespace PisaciAutomat
                 _editor.NapisZnak(vstup.KeyChar, _parametreVypisu);
             }
 
+            if (_ukonci)
+            {
+                Console.Write(VykreslovaciAutomat.EraseScreen() + VykreslovaciAutomat.NastavKurzor(1, 1));
+                return false;
+            }
+
             var p = new ParametrePrekreslenia()
             {
                 Necitaj = necitaj
             };
             Prekresli(p);
 
-            if (_ukonci)
+            return true;
+        }
+
+        private void UkonciAplikaciu()
+        {
+            if (_editor.MaZmenu())
             {
-                Console.Write(VykreslovaciAutomat.EraseScree() + VykreslovaciAutomat.NastavKurzor(1, 1));
-                return false;
+                _typDialogu = TypDialogu.PotvrdUkoncenie;
+                _dialog = "Neulozene zmeny v subore. Naozaj ukoncit? (a/n)";
             }
             else
             {
-                return true;
+                _ukonci = true;
             }
         }
 
         public void Resize(int novaSirka, int novaVyska)
         {
-            Console.Write(VykreslovaciAutomat.EraseScree());
+            Console.Write(VykreslovaciAutomat.EraseScreen());
 
             var riadok = _parametreVypisu.IndexRiadok;
             var stlpec = _parametreVypisu.IndexStlpec;
@@ -379,15 +378,15 @@ namespace PisaciAutomat
 
             var sb = new StringBuilder();
             sb.Append(VykreslovaciAutomat.NastavKurzorUnVisible());
-            _vykreslovaciAutomat.VykresliNaKonzolu(screen, stavovyRiadok, _parametreVypisu, _hlaska, _cmdMode, p, sb);
+            _vykreslovaciAutomat.VykresliNaKonzolu(screen, stavovyRiadok, _parametreVypisu, _hlaska, _dialog, _cmdMode, p, sb);
 
-            if (_dialog.HasValue)
+            if (_typDialogu.HasValue)
             {
                 sb.Append(VykreslovaciAutomat.NastavKurzor(2, _parametreVypisu.OkrajVlavo + 1));
             }
 
             _hlaska = null;
-            _chyba = null;
+            _dialog = null;
 
             if (_cmdMode)
             {
@@ -449,22 +448,24 @@ namespace PisaciAutomat
 
             if (r.Prikaz != null)
             {
-                ProcesorPrikazov.SpracujPrikaz(r.Prikaz, _search, _parametreVypisu, _editor);
-                if (r.Prikaz.ZavriRiadok)
+                var pr = ProcesorPrikazov.SpracujPrikaz(r.Prikaz, _search, _parametreVypisu, _editor, _vyhladavac);
+                if (r.ZavriRiadok)
                 {
                     _cmdMode = false;
                 }
+
+                _hlaska = pr.Hlaska;
             }
             else if(r.ZavriRiadok)
             {
                 _search = new ParametreVyhladavania();
                 _cmdMode = false;
             }
-        }
 
-        private void Hlaska(string hlaska)
-        {
-            _hlaska = VykreslovaciAutomat.Hlaska(hlaska);
+            if (r.Ukonci)
+            {
+                UkonciAplikaciu();
+            }
         }
 
         /// <summary>
@@ -534,10 +535,10 @@ namespace PisaciAutomat
 
         public bool NacitajSubor(string cesta)
         {
-            Console.Write(VykreslovaciAutomat.EraseScree());
+            Console.Write(VykreslovaciAutomat.EraseScreen());
             if (string.IsNullOrEmpty(cesta))
             {
-                Console.Write(VykreslovaciAutomat.VykresliHlasku("Zadaj prosim nazov alebo cestu k suboru.", _parametreVypisu.OkrajVlavo));
+                Console.Write(VykreslovaciAutomat.VykresliDialog("Zadaj prosim nazov alebo cestu k suboru.", _parametreVypisu.OkrajVlavo));
                 Console.Write(VykreslovaciAutomat.NastavKurzor(2, _parametreVypisu.OkrajVlavo + 1));
                 cesta = Console.ReadLine();
             }
@@ -578,6 +579,13 @@ namespace PisaciAutomat
             {
                 writer.Write(text);
             }
+        }
+
+        private enum TypDialogu
+        {
+            Ziadny,
+            PotvrdUkoncenie,
+            Subor
         }
     }
 }

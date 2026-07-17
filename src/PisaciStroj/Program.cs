@@ -26,11 +26,8 @@ namespace PisaciStroj
         string PrecitajText(int zaciatocnyRiadok, int zaciatocnyStlpec, int konecnyRiadok, int konecnyStlpec);
         string PrecitajText();
 
-        VyhladaneSlovo? Vyhladaj(string vyhladavanyText, ParametreVypisu parametreVypisu);
         bool VyhladajANahrad(string vyhladavanyText, string novyText, ParametreVypisu parametreVypisu);
-        bool VyhladajANahradVsetky(string vyhladavanyText, string novyText, ParametreVypisu parametreVypisu);
-        Dictionary<int, VyhladaneSlovo> VyhladajVsetky(GapBuffer riadok, string vyhladavanyText);
-        void NastavVyhladavanie(string vyhladavanyText);
+        int VyhladajANahradVsetky(string vyhladavanyText, string novyText, ParametreVypisu parametreVypisu);
         
         bool MaZmenu();
 
@@ -394,30 +391,6 @@ namespace PisaciStroj
             return sb.ToString();
         }
 
-        public VyhladaneSlovo? Vyhladaj(string vyhladavanyText, ParametreVypisu parametreVypisu)
-        {
-            VyhladaneSlovo? vyhladaneSlovo = null;
-
-            var vyhladanyRiadok = 0;
-            for (int i = parametreVypisu.IndexRiadok; i < _riadky.Count; i++)
-            {
-                var index = i == parametreVypisu.IndexRiadok ? parametreVypisu.IndexStlpec : 0;
-                vyhladaneSlovo = _vyhladavac.VyhladajNasledujuci(_riadky[i], index, vyhladavanyText);
-
-                if (vyhladaneSlovo.HasValue)
-                {
-                    return new VyhladaneSlovo()
-                    {
-                        Riadok = i,
-                        Pozicia = vyhladaneSlovo.Value.Pozicia,
-                        Dlzka = vyhladaneSlovo.Value.Dlzka
-                    };
-                }
-            }
-
-            return vyhladaneSlovo;
-        }
-
         public bool VyhladajANahrad(string vyhladavanyText, string novyText, ParametreVypisu parametreVypisu)
         {
             return VyhladajANahrad(parametreVypisu.IndexRiadok, parametreVypisu.IndexStlpec, vyhladavanyText, novyText, parametreVypisu);
@@ -466,7 +439,7 @@ namespace PisaciStroj
             return false;
         }
 
-        public bool VyhladajANahradVsetky(string vyhladavanyText, string novyText, ParametreVypisu parametreVypisu)
+        public int VyhladajANahradVsetky(string vyhladavanyText, string novyText, ParametreVypisu parametreVypisu)
         {
             var operacia = new Operacia()
             {
@@ -498,10 +471,10 @@ namespace PisaciStroj
             if(operacia.PocetOperacii > 0)
             {
                 _pamatOperacii.PridajOperaciuNaVratenie(operacia);
-                return true;
+                return operacia.PocetOperacii;
             }
 
-            return false;
+            return 0;
         }
 
         public List<GapBuffer> Riadky()
@@ -529,16 +502,6 @@ namespace PisaciStroj
         public static bool CarriageReturn(char c)
         {
             return c == '\r';
-        }
-
-        public Dictionary<int, VyhladaneSlovo> VyhladajVsetky(GapBuffer riadok, string vyhladavanyText)
-        {
-            return _vyhladavac.VyhladajVsetky(riadok, vyhladavanyText);
-        }
-
-        public void NastavVyhladavanie(string vyhladavanyText)
-        {
-            _vyhladavac.NastavVyhladavaciAutomat(vyhladavanyText);
         }
 
         public bool MaZmenu()

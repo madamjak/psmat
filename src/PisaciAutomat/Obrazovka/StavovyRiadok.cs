@@ -63,7 +63,8 @@ namespace PisaciAutomat.Obrazovka
                     stavovyRiadok.Stav = string.Format("{0}{1}", stavovyRiadok.Stav, "  ");
                 }
 
-                sb.Append(StylovaciAutomat.AnsiStyl(StylovaciAutomat.FarbaPozadia.Biela));
+                sb.Append(StylovaciAutomat.AnsiStyl(StylovaciAutomat.StylTextu.Biela));
+                sb.Append(StylovaciAutomat.AnsiStyl(StylovaciAutomat.FarbaPozadia.Siva));
 
                 //zaciatok vypisu info
                 var s = parametre.SirkaKonzoly - stavovyRiadok.Stav.Length - 3;
@@ -112,7 +113,8 @@ namespace PisaciAutomat.Obrazovka
             var maxDlzkaNazvu = (int)(parametre.SirkaKonzoly * 0.7) - okrajVpravo;
             sb.Append(VykreslovaciAutomat.NastavKurzor(parametre.VyskaKonzoly, 1));
             sb.Append(VykreslovaciAutomat.ZmazOdKurzoraPoKoniecRiadku());
-            sb.Append(StylovaciAutomat.AnsiStyl(StylovaciAutomat.FarbaPozadia.Biela));
+            sb.Append(StylovaciAutomat.AnsiStyl(StylovaciAutomat.StylTextu.Biela));
+            sb.Append(StylovaciAutomat.AnsiStyl(StylovaciAutomat.FarbaPozadia.Siva));
             sb.Append(VykreslovaciAutomat.NastavPozadie(parametre.OkrajVlavo));
 
             var dlzkaNazvu = stavovyRiadok.CestaKSuboru.Length;

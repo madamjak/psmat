@@ -5,6 +5,26 @@
 			"Regex":"f.n.e.x.t.\u0000"
 		},
 		{
+			"TypTokenu":0,
+			"Regex":"f.p.r.e.v.\u0000"
+		},
+		{
+			"TypTokenu":0,
+			"Regex":"f.a.l.l.\u0000"
+		},
+		{
+			"TypTokenu":0,
+			"Regex":"r.f.r.s.t.\u0000"
+		},
+		{
+			"TypTokenu":0,
+			"Regex":"r.a.l.l.\u0000"
+		},
+		{
+			"TypTokenu":0,
+			"Regex":"r.s.t.\u0000"
+		},
+		{
 			"TypTokenu":10,
 			"Regex":"(\\(|\\)).\u0000"
 		},

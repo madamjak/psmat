@@ -1,9 +1,9 @@
 ﻿using Lexer.Algoritmy;
 using PisaciStroj.Pamat;
 using PisaciStroj.Parametre;
-using System;
 using System.Collections.Generic;
 using System.Text;
+using static PisaciStroj.Vyhladavanie.VyhladavaciAutomat;
 
 namespace PisaciStroj.Vyhladavanie
 {
@@ -18,17 +18,11 @@ namespace PisaciStroj.Vyhladavanie
 
     public interface IVyhladavac
     {
-        VyhladaneSlovo? VyhladajNasledujuci(GapBuffer text, int pozicia, string vyhladavanyText);
-
-        VyhladaneSlovo? VyhladajNasledujuciRegex(GapBuffer text, int pozicia, string regex);
-
-        Dictionary<int, VyhladaneSlovo> VyhladajVsetky(GapBuffer text, string vyhladavanyText);
-
-        Dictionary<int, Dictionary<int, VyhladaneSlovo>> VyhladajVsetky(ParametreVypisu parametre, List<GapBuffer> text, string vyhladavanyText);
-
-        Dictionary<int, VyhladaneSlovo> VyhladajVsetkyRegex(GapBuffer text, string regex);
-
-        void NastavVyhladavaciAutomat(string vyhladavanyText);
+        void NastavVyhladavanie(string vyhladavanyText);
+        VyhladaneSlovo? Vyhladaj(string vyhladavanyText, ParametreVypisu parametreVypisu, List<GapBuffer> riadky, bool obratene = false);
+        VyhladaneSlovo? VyhladajNasledujuci(GapBuffer text, int pozicia, string vyhladavanyText, bool obratene = false);
+        Dictionary<int, VyhladaneSlovo> VyhladajVsetky(GapBuffer riadok, string vyhladavanyText, bool obratene = false);
+        VyhladavacResult VyhladajVsetky(List<GapBuffer> text, string vyhladavanyText);
     }
 
     public class VyhladavaciAutomat : IVyhladavac
@@ -41,7 +35,7 @@ namespace PisaciStroj.Vyhladavanie
             _sethiUllman = new SethiUllman();
         }
 
-        public void NastavVyhladavaciAutomat(string vyhladavanyText)
+        private void NastavVyhladavaciAutomat(string vyhladavanyText)
         {
             var regex = SkonstruujRegex(vyhladavanyText);
 
@@ -50,17 +44,114 @@ namespace PisaciStroj.Vyhladavanie
             _automat = new DfaSimulator(a);
         }
 
-        public VyhladaneSlovo? VyhladajNasledujuci(GapBuffer text, int pozicia, string vyhladavanyText)
+        public static string ReverseString(string s)
+        {
+            var r = new char[s.Length];
+            var a = 0;
+            for (int i = s.Length - 1; i >= 0; i--)
+            {
+                r[a] = s[i];
+                a++;
+            }
+
+            return new string(r);
+        }
+
+        public Dictionary<int, VyhladaneSlovo> VyhladajVsetky(GapBuffer riadok, string vyhladavanyText, bool obratene = false)
+        {
+            return VyhladajVsetkyInternal(riadok, vyhladavanyText, obratene);
+        }
+
+        public void NastavVyhladavanie(string vyhladavanyText)
+        {
+            NastavVyhladavaciAutomat(vyhladavanyText);
+        }
+
+        public VyhladaneSlovo? Vyhladaj(string vyhladavanyText, ParametreVypisu parametreVypisu, List<GapBuffer> riadky)
+        {
+            VyhladaneSlovo? vyhladaneSlovo = null;
+            for (int i = parametreVypisu.IndexRiadok; i<riadky.Count; i++)
+            {
+                var index = i == parametreVypisu.IndexRiadok ? parametreVypisu.IndexStlpec : 0;
+                vyhladaneSlovo = VyhladajNasledujuci(riadky[i], index, vyhladavanyText);
+
+                if (vyhladaneSlovo.HasValue)
+                {
+                    return new VyhladaneSlovo()
+                    {
+                        Riadok = i,
+                        Pozicia = vyhladaneSlovo.Value.Pozicia,
+                        Dlzka = vyhladaneSlovo.Value.Dlzka
+                    };
+                }
+            }
+            return vyhladaneSlovo;
+        }
+
+        public VyhladaneSlovo? Vyhladaj(string vyhladavanyText, ParametreVypisu parametreVypisu, List<GapBuffer> riadky, bool obratene = false)
+        {
+            VyhladaneSlovo? vyhladaneSlovo = null;
+
+            if (obratene)
+            {
+                for (int i = parametreVypisu.IndexRiadok; i >= 0; i--)
+                {
+                    var index = i == parametreVypisu.IndexRiadok ? parametreVypisu.IndexStlpec : riadky[i].Length() - 1;
+                    if (index < 0)
+                    {
+                        continue;
+                    }
+                    vyhladaneSlovo = VyhladajNasledujuci(riadky[i], index, vyhladavanyText, obratene);
+
+                    if (vyhladaneSlovo.HasValue)
+                    {
+                        return new VyhladaneSlovo()
+                        {
+                            Riadok = i,
+                            Pozicia = vyhladaneSlovo.Value.Pozicia,
+                            Dlzka = vyhladaneSlovo.Value.Dlzka
+                        };
+                    }
+                }
+            }
+            else
+            {
+                for (int i = parametreVypisu.IndexRiadok; i < riadky.Count; i++)
+                {
+                    var index = i == parametreVypisu.IndexRiadok ? parametreVypisu.IndexStlpec : 0;
+                    vyhladaneSlovo = VyhladajNasledujuci(riadky[i], index, vyhladavanyText);
+
+                    if (vyhladaneSlovo.HasValue)
+                    {
+                        return new VyhladaneSlovo()
+                        {
+                            Riadok = i,
+                            Pozicia = vyhladaneSlovo.Value.Pozicia,
+                            Dlzka = vyhladaneSlovo.Value.Dlzka
+                        };
+                    }
+                }
+            }
+
+            return vyhladaneSlovo;
+        }
+
+        public VyhladaneSlovo? VyhladajNasledujuci(GapBuffer text, int pozicia, string vyhladavanyText, bool obratene = false)
         {
             var regex = SkonstruujRegex(vyhladavanyText);
 
             var automat = SkonstruujAutomat(regex);
 
-            return VyhladajNasledujuci(text, pozicia, automat);
+            return VyhladajNasledujuciInternal(text, pozicia, automat, obratene);
         }
 
-        private VyhladaneSlovo? VyhladajNasledujuci(GapBuffer text, int pozicia, IDfaSimulator automat)
+        private VyhladaneSlovo? VyhladajNasledujuciInternal(GapBuffer text, int pozicia, IDfaSimulator automat, bool obratene)
         {
+            if (obratene)
+            {
+                return VyhladajObratene(text, pozicia, automat);
+            }
+
             var result = default(VyhladaneSlovo?);
             var poziciaHlavy = pozicia;
             var najdenaPozicia = -1;
@@ -77,6 +168,7 @@ namespace PisaciStroj.Vyhladavanie
                 {
                     najdenaPozicia = poziciaHlavy;
                 }
+                
                 poziciaHlavy++;
 
                 if (automat.IsAccepting().HasValue)
@@ -86,6 +178,49 @@ namespace PisaciStroj.Vyhladavanie
                         Pozicia = najdenaPozicia,
                         Dlzka = poziciaHlavy - najdenaPozicia
                     };
+                    
+                    break;
+                }
+
+                if (!canRead)
+                {
+                    automat.Reset();
+                    najdenaPozicia = -1;
+                }
+            }
+
+            return result;
+        }
+
+        private VyhladaneSlovo? VyhladajObratene(GapBuffer text, int pozicia, IDfaSimulator automat)
+        {
+            var result = default(VyhladaneSlovo?);
+            var poziciaHlavy = pozicia;
+            var najdenaPozicia = -1;
+
+            while (true)
+            {
+                if (poziciaHlavy < 0)
+                {
+                    break;
+                }
+
+                var canRead = automat.ReadSymbol(text.CharAt(poziciaHlavy));
+                if (canRead && najdenaPozicia == -1)
+                {
+                    najdenaPozicia = poziciaHlavy;
+                }
+
+                poziciaHlavy--;
+                
+                if (automat.IsAccepting().HasValue)
+                {
+                    result = new VyhladaneSlovo
+                    {
+                        Pozicia = poziciaHlavy + 1,
+                        Dlzka = najdenaPozicia - poziciaHlavy
+                    };
+
                     break;
                 }
 
@@ -103,38 +238,59 @@ namespace PisaciStroj.Vyhladavanie
         {
             var automat = SkonstruujAutomat(regex);
 
-            return VyhladajNasledujuci(text, pozicia, automat);
+            return VyhladajNasledujuciInternal(text, pozicia, automat, false);
         }
 
-        public Dictionary<int, VyhladaneSlovo> VyhladajVsetky(GapBuffer text, string vyhladavanyText)
+        private Dictionary<int, VyhladaneSlovo> VyhladajVsetkyInternal(GapBuffer text, string vyhladavanyText, bool obratene = false)
         {
             var regex = SkonstruujRegex(vyhladavanyText);
 
             var automat = SkonstruujAutomat(regex);
 
-            return VyhladajVsetky(text, automat);
+            return VyhladajVsetkyInternal(text, automat, obratene);
         }
 
-        private Dictionary<int, VyhladaneSlovo> VyhladajVsetky(GapBuffer text, IDfaSimulator automat)
+        private Dictionary<int, VyhladaneSlovo> VyhladajVsetkyInternal(GapBuffer text, IDfaSimulator automat, bool obratene)
         {
+            if (obratene)
+            {
+                return VyhladajVsetkyObratene(text, automat);
+            }
+            
             var result = new Dictionary<int, VyhladaneSlovo>();
             var pozicia = 0;
             while (true)
             {
-                var nasledujuci = VyhladajNasledujuci(text, pozicia, automat);
+                var nasledujuci = VyhladajNasledujuciInternal(text, pozicia, automat, obratene);
 
                 if (nasledujuci.HasValue)
                 {
                     result.Add(nasledujuci.Value.Pozicia, nasledujuci.Value);
-
                     pozicia = nasledujuci.Value.Pozicia + nasledujuci.Value.Dlzka;
                 }
                 else
                 {
-                    pozicia = text.Length();
+                    break;
                 }
+            }
 
-                if (pozicia == text.Length())
+            return result;
+        }
+
+        private Dictionary<int, VyhladaneSlovo> VyhladajVsetkyObratene(GapBuffer text, IDfaSimulator automat)
+        {
+            var result = new Dictionary<int, VyhladaneSlovo>();
+            var pozicia = text.Length() - 1;
+            while (true)
+            {
+                var nasledujuci = VyhladajObratene(text, pozicia, automat);
+
+                if (nasledujuci.HasValue)
+                {
+                    result.Add(nasledujuci.Value.Pozicia, nasledujuci.Value);
+                    pozicia = nasledujuci.Value.Pozicia;
+                }
+                else
                 {
                     break;
                 }
@@ -147,7 +303,7 @@ namespace PisaciStroj.Vyhladavanie
         {
             var automat = SkonstruujAutomat(regex);
 
-            return VyhladajVsetky(text, automat);
+            return VyhladajVsetkyInternal(text, automat, false);
         }
 
         protected virtual IDfaSimulator SkonstruujAutomat(string regex)
@@ -185,25 +341,32 @@ namespace PisaciStroj.Vyhladavanie
             return sb.ToString();
         }
 
-        public Dictionary<int, Dictionary<int, VyhladaneSlovo>> VyhladajVsetky(ParametreVypisu parametre, List<GapBuffer> text, string vyhladavanyText)
+        public class VyhladavacResult
         {
-            var pocetRiadkov = 0;
+            public Dictionary<int, Dictionary<int, VyhladaneSlovo>> Slova { get; set; }
 
+            public int PocetNajdenychSlov { get; set; }
+        }
+
+        public VyhladavacResult VyhladajVsetky(List<GapBuffer> text, string vyhladavanyText)
+        {
+            var pocet = 0;
             var result = new Dictionary<int, Dictionary<int, VyhladaneSlovo>>();
-            for (int i = parametre.OffsetRiadok; i < text.Count; i++)
+            for (int i = 0; i < text.Count; i++)
             {
-                if (pocetRiadkov == parametre.Vyska)
-                {
-                    break;
-                }
-
                 var vyhladaneSlova = VyhladajVsetky(text[i], vyhladavanyText);
-
                 result.Add(i, vyhladaneSlova);
-                pocetRiadkov++;
+                if (vyhladaneSlova.Count > 0)
+                {
+                    pocet += vyhladaneSlova.Count;
+                }
             }
 
-            return result;
+            return new VyhladavacResult()
+            {
+                PocetNajdenychSlov = pocet,
+                Slova = result
+            };
         }
     }
 }

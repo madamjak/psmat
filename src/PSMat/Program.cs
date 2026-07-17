@@ -60,7 +60,7 @@ namespace PSMat
             {
                 _chyba = true;
 
-                Console.Write(VykreslovaciAutomat.EraseScree());
+                Console.Write(VykreslovaciAutomat.EraseScreen());
                 
                 var logger = ErrorLogger.GetInstance();
                 logger.Log(new Chyba() { Ex = ex });

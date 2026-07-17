@@ -9,6 +9,8 @@ namespace PisaciAutomat.Prikazy
         public Prikaz Prikaz { get; set; }
 
         public bool ZavriRiadok { get; set; }
+
+        public bool Ukonci { get; set; }
     }
 
     public enum TypPrikazu
@@ -28,6 +30,7 @@ namespace PisaciAutomat.Prikazy
         public string VyhladavanyText { get; set; }
 
         public string NovyText { get; set; }
+
         public bool ZavriRiadok { get; internal set; }
     }
 }
