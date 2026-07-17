@@ -5,6 +5,7 @@ PSMat is simple text editor built for educational purposes to supplement bachelo
 - [Introduction](#introduction)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Features](#features)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -42,15 +43,14 @@ It's possible to run the command without parameters too and input the file locat
 # Open any example file
 psmat C:\Tools\PSMat\ErrorLog\error-2026-07-17-17-19-37.txt
 ```
+Default config works somewhat nicely with the exceptions and so reading stack traces may be one accidental good use for the editor.
 
 ![Local Image](example_screen.png)
-
-Default config works somewhat nicely with the exceptions and so reading stack traces may be one accidental good use for the editor.
 
 ## Features
 The editor offers basic text editing features you would expect from a text editor, supplemented by configurable syntax highlighting and search feature.
 
-Syntax highlight is configurable via JSON files located in ```/Config``` folder in your installation location. Example config JSON shown bellow.
+Syntax highlight is configurable via JSON files located in ```/Config``` folder in your installation location. Example config JSON shown bellow. The file allows to configure symbols for the source code comments, and define list of regular expressions to match programming language keywords or other token types supported by editor. Editor is using own naive implementation of regex engine and only basic regex operations (concatenation/alternation/closure) are supported. The config that comes by default highlights few selected C# keywords, symbols, numbers and strings literals, and comments in given language.
 ``` JSON
 {
     "Pripona": "cs", 
@@ -74,25 +74,26 @@ Syntax highlight is configurable via JSON files located in ```/Config``` folder 
 }
 ```
 
-The file allows to configure symbols for the source code comments, and define list of regular expressions to match programming language keywords or other token types supported by editor. 
-Editor is using own naive implementation of regex engine and only basic regex operations (concatenation/alternation/closure) are supported. The config that comes by default highlights few selected C# keywords, symbols, liternal numbers, strings, and comments in given language.
-
-
 Text editing operations were designed in the attempt to be standard and usual for most users. Some of the keyboard shortcuts may be conflicting with Windows Terminal, and it may be needed to change Terminal settings to be able to use them with editor. 
 Namely needed to change for example [Ctrl] + [V] for paste or [Ctrl] + [Shift] + [Home] to select text from cursor to beginning.
 
 Searching is allowed via 'editor command line' which can be displayed using [Ctrl] + [W] and closed using [Esc], quick search (`fnext`) is also possible using [Ctrl] + [F]. 
 Strings being searched should be escaped in quotes. Full list of commands below.
-``` PowerShell/
-fall "string" # 'find all' occurences of string
+``` PowerShell
+# 'find all' occurences of string
+fall "string" 
 
-fnext "string" # 'find next' occurence of string
+# 'find next' occurence of string
+fnext "string" 
 
-fprev "string" # 'find previous' occurence of string
+# 'find previous' occurence of string
+fprev "string" 
 
-rfrst "string1" "string2" # 'replace first' occurence of string1 with string2
+# 'replace first' occurence of string1 with string2
+rfrst "string1" "string2" 
 
-rall "string1" "string2" # 'replace all' occurence of string1 with string2
+# 'replace all' occurence of string1 with string2
+rall "string1" "string2" 
 ```
 
 
