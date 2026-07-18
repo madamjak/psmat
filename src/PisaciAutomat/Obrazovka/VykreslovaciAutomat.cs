@@ -123,27 +123,26 @@ namespace PisaciAutomat.Obrazovka
                 }
                 else
                 {
-                    var r = new Dictionary<int, Token>();
                     var t = lexer.Lex(riadky[i]);
-                    foreach(var to in t)
+                    if (t.Count > 0)
                     {
-                        var zvyrazniToken = true;
-                        foreach(var koment in tokeny)
+                        foreach (var to in t)
                         {
-                            r.TryAdd(koment.Key, koment.Value);
-                            if(koment.Key <= to.Key && to.Key <= koment.Key + koment.Value.Dlzka)
+                            var zvyrazniToken = true;
+                            foreach (var koment in tokeny)
                             {
-                                zvyrazniToken = false;
+                                if (koment.Key <= to.Key && to.Key <= koment.Key + koment.Value.Dlzka)
+                                {
+                                    zvyrazniToken = false;
+                                }
+                            }
+
+                            if (zvyrazniToken)
+                            {
+                                tokeny.Add(to.Key, to.Value);
                             }
                         }
-
-                        if (zvyrazniToken)
-                        {
-                            r.Add(to.Key, to.Value);
-                        }
                     }
-
-                    tokeny = r;
                 }
 
                 if (lexResult.Zatvorky == null || !lexResult.Zatvorky.TryGetValue(i, out zatvorky))

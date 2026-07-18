@@ -24,30 +24,55 @@ namespace PisaciStroj.Testy
     {
         static int Main(string[] args)
         {
-            var results = new List<TestResult>();
+            return SpustTesty();
+
+            //return DebuggujTesty();
+        }
+
+        private static int DebuggujTesty()
+        {
             //var testy = new PrikazovyRiadokTesty();
             //testy.Spust();
 
             //var testy = new GapBufferTest();
             //testy.Spust();
 
-            //var t = new SyntaxHighlightTest();
-            //t.Spust();
+            var t = new SyntaxHighlightTest();
+            t.CmdLineHighligting();
 
             //var t = new BracketMatchingTest();
             //t.Spust();
 
-            var testy = new List<ITest>() 
+            //var t = new AhoSethiUllmanTest();
+            //t.KonstrukciaAutomatu2();
+
+            //var t = new RegexAstTreeTest();
+            //t.OtestujFollowPos2();
+
+            //var t = new LexerTest();
+            //t.BasicTest();
+            return 0;
+        }
+
+        static int SpustTesty()
+        {
+            var results = new List<TestResult>();
+
+            var testy = new List<ITest>()
             {
+                new GapBufferTest(),
+                new RegexAstTreeTest(),
+                new AhoSethiUllmanTest(),
                 new LexerTest(),
-                new BracketMatchingTest()
+                new BracketMatchingTest(),
+                new SyntaxHighlightTest()
             };
 
-            foreach(var t in testy)
+            foreach (var t in testy)
             {
                 results.AddRange(t.Spust());
             }
-            
+
             var failed = results.Where(x => !x.Pass).ToList();
             var passed = results.Count - failed.Count;
 
@@ -55,12 +80,12 @@ namespace PisaciStroj.Testy
             Console.WriteLine(string.Format("Total tests: {0}", results.Count));
             Console.WriteLine(string.Format("Passed tests: {0}", passed));
             Console.WriteLine(string.Format("Failed tests: {0}", failed.Count));
-            
-            if(failed.Count > 0)
+
+            if (failed.Count > 0)
             {
                 Console.WriteLine("                    ");
                 Console.WriteLine("*** FAILED TESTS ***");
-                foreach(var f in failed)
+                foreach (var f in failed)
                 {
                     Console.WriteLine(f.TestName);
                 }
@@ -72,7 +97,6 @@ namespace PisaciStroj.Testy
             {
                 return 0;
             }
-            
         }
     }
 }
