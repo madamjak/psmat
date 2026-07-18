@@ -99,7 +99,7 @@ namespace PisaciStroj.Navigacia
             parametreVyberu.PocetRiadkov = 0;
             parametreVyberu.PocetZnakov = 0;
 
-            if (!Zvyraznovac.MaVybranyText(parametreVyberu))
+            if (!MaVybranyText(parametreVyberu))
             {
                 return;
             }

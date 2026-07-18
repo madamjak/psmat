@@ -6,8 +6,8 @@
         Mazanie,
         VyhladajNahrad,
         VyhladajNahradVsetky,
-        OdsekZvyraznenehoTextu,
-        ZmazOdsekZvyraznenehoTextu
+        PridajOdsek,
+        ZmazOdsek
     }
 
     internal class Operacia
@@ -29,5 +29,7 @@
         public string VyhladavanyText { get; set; }
 
         public string NovyText { get; set; }
+
+        public int DlzkaOkraju { get; set; }
     }
 }

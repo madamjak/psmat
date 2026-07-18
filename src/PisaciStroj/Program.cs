@@ -234,7 +234,8 @@ namespace PisaciStroj
             }
             else if (operacia.Typ == TypOperacie.VyhladajNahrad 
                 || operacia.Typ == TypOperacie.VyhladajNahradVsetky
-                || operacia.Typ == TypOperacie.OdsekZvyraznenehoTextu)
+                || operacia.Typ == TypOperacie.PridajOdsek
+                || operacia.Typ == TypOperacie.ZmazOdsek)
             {
                 var pocetOperacii = operacia.PocetOperacii;
                 while (true)
@@ -245,12 +246,17 @@ namespace PisaciStroj
                     }
 
                     VratPoslednuOperaciu(parametreVypisu);
-                    pocetOperacii--;
+                    pocetOperacii--;                    
+                }
 
-                    if(operacia.Typ == TypOperacie.OdsekZvyraznenehoTextu)
-                    {
-                        _okraj--; 
-                    }
+                if (operacia.Typ == TypOperacie.PridajOdsek)
+                {
+                    _okraj -= operacia.DlzkaOkraju;
+                }
+
+                if (operacia.Typ == TypOperacie.ZmazOdsek)
+                {
+                    _okraj += operacia.DlzkaOkraju;
                 }
 
                 _pamatOperacii.PridajOperaciuNaZopakovanie(operacia);
@@ -284,7 +290,8 @@ namespace PisaciStroj
             }
             else if (operacia.Typ == TypOperacie.VyhladajNahrad 
                 || operacia.Typ == TypOperacie.VyhladajNahradVsetky 
-                || operacia.Typ == TypOperacie.OdsekZvyraznenehoTextu)
+                || operacia.Typ == TypOperacie.PridajOdsek
+                || operacia.Typ == TypOperacie.ZmazOdsek)
             {
                 var pocetOperacii = operacia.PocetOperacii;
                 while (true)
@@ -296,11 +303,16 @@ namespace PisaciStroj
 
                     ZopakujPoslednuOperaciu(parametreVypisu);
                     pocetOperacii--;
+                }
 
-                    if (operacia.Typ == TypOperacie.OdsekZvyraznenehoTextu)
-                    {
-                        _okraj++;
-                    }
+                if (operacia.Typ == TypOperacie.PridajOdsek)
+                {
+                    _okraj += operacia.DlzkaOkraju;
+                }
+
+                if (operacia.Typ == TypOperacie.ZmazOdsek)
+                {
+                    _okraj -= operacia.DlzkaOkraju;
                 }
 
                 _pamatOperacii.PridajOperaciuNaVratenie(operacia);
@@ -511,20 +523,31 @@ namespace PisaciStroj
 
         public void PridajOkraj(ParametreVypisu parametreVypisu)
         {
+            var operacia = new Operacia()
+            {
+                Typ = TypOperacie.PridajOdsek
+            };
+
             NapisText("    ", parametreVypisu);
             _okraj += DlzkaOkraja;
+
+            operacia.PocetOperacii++;
+            operacia.DlzkaOkraju = DlzkaOkraja;
+
+            _pamatOperacii.PridajOperaciuNaVratenie(operacia);
         }
 
         public void PridajMultiLineOkraj(ParametreVypisu parametreVypisu, ParametreVyberu parametreVyberu)
         {
             var operacia = new Operacia()
             {
-                Typ = TypOperacie.OdsekZvyraznenehoTextu
+                Typ = TypOperacie.PridajOdsek
             };
 
             NapisText("    ", parametreVypisu);
             operacia.PocetOperacii++;
             var okraj = DlzkaOkraja;
+            operacia.DlzkaOkraju = okraj;
 
             var zaciatocnyRiadok = parametreVyberu.Zaciatok.Value.Riadok;
             var konecnyRiadok = parametreVyberu.Koniec.Value.Riadok;
@@ -616,7 +639,17 @@ namespace PisaciStroj
 
         public void ZmazOkraj(ParametreVypisu parametreVypisu, ParametreVyberu parametreVyberu)
         {
+
+            var operacia = new Operacia()
+            {
+                Typ = TypOperacie.ZmazOdsek
+            };
+
             var pocetZnakov = ZmazOkrajInternal(parametreVypisu, parametreVyberu);
+
+            operacia.PocetOperacii++;
+            operacia.DlzkaOkraju = pocetZnakov;
+            _pamatOperacii.PridajOperaciuNaVratenie(operacia);
 
             if (Zvyraznovac.MaVybranyText(parametreVyberu))
             {
@@ -630,11 +663,12 @@ namespace PisaciStroj
         {
             var operacia = new Operacia()
             {
-                Typ = TypOperacie.ZmazOdsekZvyraznenehoTextu
+                Typ = TypOperacie.ZmazOdsek
             };
 
             var pocetZnakov = ZmazOkrajInternal(parametreVypisu, parametreVyberu);
             operacia.PocetOperacii++;
+            operacia.DlzkaOkraju = pocetZnakov;
 
             var zaciatocnyRiadok = parametreVyberu.Zaciatok.Value.Riadok;
             var konecnyRiadok = parametreVyberu.Koniec.Value.Riadok;

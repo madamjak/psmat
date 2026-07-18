@@ -30,9 +30,11 @@ namespace PisaciStroj.Navigacia
 
     public static class Navigator
     {
+        private static char _medzera = ' ';
+
         private static HashSet<char> _wordSeparators = new HashSet<char>
         {
-            ' ', '.', ',', ';', '-', '_', ')', '(', '[', ']', '{', '}', '+'
+            '.', ',', ';', '-', '_', ')', '(', '[', ']', '{', '}', '+', '/', '\\', '\'', '*', '"', '<', '>', '=', '&', '|'
         };
 
         public static void Naviguj(NavigovaciPrikaz prikaz, ParametreVypisu parametreVypisu, List<GapBuffer> riadky, ParametreVyberu parametreVyberu)
@@ -76,8 +78,11 @@ namespace PisaciStroj.Navigacia
                     }
 
                     var indexStlpca = Math.Min(parametreVypisu.IndexStlpec - 1, riadky[parametreVypisu.IndexRiadok].Length() - 1);
+
                     var navigujNaSeparator = !_wordSeparators.Contains(riadky[parametreVypisu.IndexRiadok].CharAt(indexStlpca));
-                    while(true)
+                    var jeBieleMiesto = riadky[parametreVypisu.IndexRiadok].CharAt(indexStlpca) == _medzera;
+
+                    while (true)
                     {
                         if(!Kurzor.PosunKurzorDolava(parametreVypisu, riadky))
                         {
@@ -90,16 +95,25 @@ namespace PisaciStroj.Navigacia
                         }
 
                         indexStlpca = Math.Min(parametreVypisu.IndexStlpec - 1, riadky[parametreVypisu.IndexRiadok].Length() - 1);
-                        if (navigujNaSeparator)
+                        if (jeBieleMiesto)
                         {
-                            if (_wordSeparators.Contains(riadky[parametreVypisu.IndexRiadok].CharAt(indexStlpca)))
+                            if(_medzera != riadky[parametreVypisu.IndexRiadok].CharAt(indexStlpca))
                             {
                                 break;
                             }
+                        } else if (navigujNaSeparator)
+                        {
+                            if (_wordSeparators.Contains(riadky[parametreVypisu.IndexRiadok].CharAt(indexStlpca))
+                                || (_medzera == riadky[parametreVypisu.IndexRiadok].CharAt(indexStlpca)))
+                            {
+                                break;
+                            }
+
                         }
                         else
                         {
-                            if (!_wordSeparators.Contains(riadky[parametreVypisu.IndexRiadok].CharAt(indexStlpca)))
+                            if (!_wordSeparators.Contains(riadky[parametreVypisu.IndexRiadok].CharAt(indexStlpca))
+                            || (_medzera == riadky[parametreVypisu.IndexRiadok].CharAt(indexStlpca)))
                             {
                                 break;
                             }
@@ -117,6 +131,7 @@ namespace PisaciStroj.Navigacia
                     }
 
                     var nsp = !_wordSeparators.Contains(riadky[parametreVypisu.IndexRiadok].CharAt(parametreVypisu.IndexStlpec));
+                    var jbm = riadky[parametreVypisu.IndexRiadok].CharAt(parametreVypisu.IndexStlpec) == _medzera;
                     while (true)
                     {
                         if (!Kurzor.PosunKurzorDoprava(parametreVypisu, riadky))
@@ -124,10 +139,18 @@ namespace PisaciStroj.Navigacia
                             break;
                         }
 
-                        if (nsp)
+                        if (jbm)
+                        {
+                            if (_medzera != riadky[parametreVypisu.IndexRiadok].CharAt(parametreVypisu.IndexStlpec))
+                            {
+                                break;
+                            }
+                        }
+                        else if (nsp)
                         {
                             if (parametreVypisu.IndexStlpec == riadky[parametreVypisu.IndexRiadok].Length()
-                                || _wordSeparators.Contains(riadky[parametreVypisu.IndexRiadok].CharAt(parametreVypisu.IndexStlpec)))
+                                || _wordSeparators.Contains(riadky[parametreVypisu.IndexRiadok].CharAt(parametreVypisu.IndexStlpec))
+                                || (_medzera == riadky[parametreVypisu.IndexRiadok].CharAt(parametreVypisu.IndexStlpec)))
                             {
                                 break;
                             }
@@ -135,7 +158,8 @@ namespace PisaciStroj.Navigacia
                         else
                         {
                             if (parametreVypisu.IndexStlpec == riadky[parametreVypisu.IndexRiadok].Length()
-                                || !_wordSeparators.Contains(riadky[parametreVypisu.IndexRiadok].CharAt(parametreVypisu.IndexStlpec)))
+                                || !_wordSeparators.Contains(riadky[parametreVypisu.IndexRiadok].CharAt(parametreVypisu.IndexStlpec))
+                                || (_medzera == riadky[parametreVypisu.IndexRiadok].CharAt(parametreVypisu.IndexStlpec)))
                             {
                                 break;
                             }
