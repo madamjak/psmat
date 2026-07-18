@@ -24,7 +24,7 @@ namespace PisaciStroj
         void ZopakujPoslednuOperaciu(ParametreVypisu parametreVypisu);
         
         string PrecitajText(int zaciatocnyRiadok, int zaciatocnyStlpec, int konecnyRiadok, int konecnyStlpec);
-        string PrecitajText();
+        string PrecitajTextNaUlozenie();
 
         bool VyhladajANahrad(string vyhladavanyText, string novyText, ParametreVypisu parametreVypisu);
         int VyhladajANahradVsetky(string vyhladavanyText, string novyText, ParametreVypisu parametreVypisu);
@@ -494,7 +494,7 @@ namespace PisaciStroj
             return _riadky;
         }
 
-        public string PrecitajText()
+        public string PrecitajTextNaUlozenie()
         {
             var sb = new StringBuilder();
 
@@ -502,6 +502,8 @@ namespace PisaciStroj
             {
                 sb.AppendLine(riadok.Read());
             }
+
+            _pamatOperacii.SuborUlozeny();
 
             return sb.ToString();
         }
@@ -518,7 +520,7 @@ namespace PisaciStroj
 
         public bool MaZmenu()
         {
-            return _pamatOperacii.PocetOperaciiNaVratenie > 0;
+            return _pamatOperacii.MaZmenu();
         }
 
         public void PridajOkraj(ParametreVypisu parametreVypisu)

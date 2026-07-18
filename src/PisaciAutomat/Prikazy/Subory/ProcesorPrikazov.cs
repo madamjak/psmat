@@ -20,7 +20,7 @@ namespace PisaciAutomat.Prikazy.Subory
 
             try
             {
-                var text = editor.PrecitajText();
+                var text = editor.PrecitajTextNaUlozenie();
 
                 using (var writer = new StreamWriter(prikaz.NovyText))
                 {
