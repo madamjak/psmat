@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using PisaciAutomat.Obrazovka;
 using PisaciAutomat.Prikazy;
+using PisaciAutomat.Subory;
 using PisaciStroj;
 using PisaciStroj.Chyby;
 using PisaciStroj.Formatovanie;
@@ -60,7 +61,7 @@ namespace PisaciAutomat
         private bool _ukonci;
         
         //info a dialog
-        private string _hlaska;
+        private Hlaska? _hlaska;
         private string _dialog;
         private TypDialogu? _typDialogu;
 
@@ -279,6 +280,11 @@ namespace PisaciAutomat
                     UlozSubor();
                     necitaj = true;
                 }
+                else if (vstup.Key == ConsoleKey.N)
+                {
+                    UlozSuborAko();
+                    necitaj = true;
+                }
                 else if (vstup.Key == ConsoleKey.Q)
                 {
                     UkonciAplikaciu();
@@ -314,19 +320,6 @@ namespace PisaciAutomat
             Prekresli(p);
 
             return true;
-        }
-
-        private void UkonciAplikaciu()
-        {
-            if (_editor.MaZmenu())
-            {
-                _typDialogu = TypDialogu.PotvrdUkoncenie;
-                _dialog = "Neulozene zmeny v subore. Naozaj ukoncit? (a/n)";
-            }
-            else
-            {
-                _ukonci = true;
-            }
         }
 
         public void Resize(int novaSirka, int novaVyska)
@@ -399,6 +392,17 @@ namespace PisaciAutomat
             Console.Write(sb.ToString());
         }
 
+        private void UlozSuborAko()
+        {
+            _commandForCmdLine = new PrikazPrePrikazovyRiadok()
+            {
+                UlozSuborAko = true,
+                ExistujucaCesta = _cestaKSuboru
+            };
+
+            CommandLineMode();
+        }
+
         private void VyhladajZvyraznenyText()
         {
             if (!Zvyraznovac.MaVybranyText(_parametreVyberu))
@@ -448,13 +452,23 @@ namespace PisaciAutomat
 
             if (r.Prikaz != null)
             {
-                var pr = ProcesorPrikazov.SpracujPrikaz(r.Prikaz, _search, _parametreVypisu, _editor, _vyhladavac);
-                if (r.ZavriRiadok)
+                SpracujPrikaz(r);
+            }
+            else if (r.Hlaska != null)
+            {
+                _hlaska = new Hlaska() 
                 {
-                    _cmdMode = false;
-                }
-
-                _hlaska = pr.Hlaska;
+                    Typ = TypHlasky.Info,
+                    Sprava = r.Hlaska
+                };
+            }
+            else if (r.Dialog != null)
+            {
+                _hlaska = new Hlaska()
+                {
+                    Typ = TypHlasky.Dialog,
+                    Sprava = r.Dialog
+                };
             }
             else if(r.ZavriRiadok)
             {
@@ -464,7 +478,41 @@ namespace PisaciAutomat
 
             if (r.Ukonci)
             {
+                _cmdMode = false;
                 UkonciAplikaciu();
+            }
+        }
+
+        private void SpracujPrikaz(PrikazovyAutomatResult r)
+        {
+            var pr = ProcesorPrikazov.SpracujPrikaz(r.Prikaz, _search, _parametreVypisu, _editor, _vyhladavac);
+            if (r.ZavriRiadok)
+            {
+                _cmdMode = false;
+            }
+
+            if (!pr.Success)
+            {
+                _hlaska = new Hlaska()
+                {
+                    Typ = TypHlasky.Chyba,
+                    Sprava = pr.Hlaska
+                };
+
+                return;
+            }
+            else if (!string.IsNullOrWhiteSpace(pr.Hlaska))
+            {
+                _hlaska = new Hlaska()
+                {
+                    Typ = TypHlasky.Info,
+                    Sprava = pr.Hlaska
+                };
+            }
+
+            if (r.Prikaz.Typ == TypPrikazu.UlozAko && pr.Success)
+            {
+                _cestaKSuboru = r.Prikaz.NovyText;
             }
         }
 
@@ -533,59 +581,79 @@ namespace PisaciAutomat
             
         }
 
-        public bool NacitajSubor(string cesta)
+        public void NacitajSubor(string cesta)
         {
-            Console.Write(VykreslovaciAutomat.EraseScreen());
-            if (string.IsNullOrEmpty(cesta))
+            if (string.IsNullOrWhiteSpace(cesta))
             {
-                Console.Write(VykreslovaciAutomat.VykresliDialog("Zadaj prosim nazov alebo cestu k suboru.", _parametreVypisu.OkrajVlavo));
-                Console.Write(VykreslovaciAutomat.NastavKurzor(2, _parametreVypisu.OkrajVlavo + 1));
-                cesta = Console.ReadLine();
+                _cestaKSuboru = ".";
+                return;
             }
 
-            try
+            if (!File.Exists(cesta) && !Directory.Exists(cesta))
             {
-                if (File.Exists(cesta))
+                using (var f = File.Create(cesta)) { };
+                _cestaKSuboru = Path.GetFullPath(cesta);
+                return;
+            }
+
+            if (Validacia.IsTextFile(cesta))
+            {
+                using (var streamReader = new StreamReader(cesta))
                 {
-                    using (var streamReader = new StreamReader(cesta))
+                    var text = streamReader.ReadToEnd();
+                    if (text != null && text.Length > 0)
                     {
-                        var text = streamReader.ReadToEnd();
-                        if (text != null && text.Length > 0)
-                        {
-                            _editor.NapisTextZoSuboru(text);
-                        }
+                        _editor.NapisTextZoSuboru(text);
                     }
-                }
-                else
-                {
-                    using (var f = File.Create(cesta)) { };
                 }
 
                 _cestaKSuboru = Path.GetFullPath(cesta);
-                return true;
+                return;
             }
-            catch (Exception ex)
+            else
             {
-                Console.Write(VykreslovaciAutomat.VykresliChybu(_parametreVypisu.OkrajVlavo));
-                return false;
+                throw new ApplicationException(string.Format("{0} is not a text file", cesta));
             }
         }
 
         private void UlozSubor()
         {
-            var text = _editor.PrecitajText();
-
-            using (var writer = new StreamWriter(_cestaKSuboru))
+            if(string.IsNullOrEmpty(_cestaKSuboru) || _cestaKSuboru == ".")
             {
-                writer.Write(text);
+                UlozSuborAko();
+            }
+            else
+            {
+                SpracujPrikaz(new PrikazovyAutomatResult()
+                {
+                    Prikaz = new Prikaz()
+                    {
+                        Typ = TypPrikazu.UlozAko,
+                        NovyText = _cestaKSuboru
+                    }
+                });
+            }
+        }
+
+
+        private void UkonciAplikaciu()
+        {
+            if (_editor.MaZmenu())
+            {
+                _typDialogu = TypDialogu.PotvrdUkoncenie;
+                _dialog = "Neulozene zmeny v subore. Naozaj ukoncit? (a/n)";
+            }
+            else
+            {
+                _ukonci = true;
             }
         }
 
         private enum TypDialogu
         {
-            Ziadny,
-            PotvrdUkoncenie,
-            Subor
+            PotvrdUkoncenie
         }
     }
+
+    
 }

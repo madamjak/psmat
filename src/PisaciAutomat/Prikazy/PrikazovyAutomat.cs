@@ -16,10 +16,15 @@ namespace PisaciAutomat.Prikazy
     public struct PrikazPrePrikazovyRiadok
     {
         public string VyhladavanyText { get; set; }
+
+        public bool UlozSuborAko { get; set; }
+        public string ExistujucaCesta { get; set; }
     }
 
     public class PrikazovyAutomat
     {
+        private PrikazovyAutomatResult _prikazNaPotvrdenie;
+
         private GapBuffer _riadok;
         private List<GapBuffer> _riadky;
         
@@ -30,7 +35,7 @@ namespace PisaciAutomat.Prikazy
         private NavigovaciPrikaz _navigovaciPrikaz;
         private ParametreVyberu _vyber;
 
-        private string _chyba;
+        private bool _chyba;
 
         private HistoriaPrikazov _historiaPrikazov;
 
@@ -47,11 +52,31 @@ namespace PisaciAutomat.Prikazy
 
         public PrikazovyAutomatResult NacitajPrikaz(PrikazPrePrikazovyRiadok? prikazZEditora = null, ConsoleKeyInfo? vstup = null)
         {
-            if(prikazZEditora.HasValue && prikazZEditora.Value.VyhladavanyText != null)
+            if (prikazZEditora.HasValue)
             {
-                var p = VyhladavaciPrikaz(prikazZEditora);
+                if (prikazZEditora.Value.VyhladavanyText != null)
+                {
+                    var p = VyhladavaciPrikaz(prikazZEditora);
 
-                return p;
+                    return p;
+                }
+
+                if (prikazZEditora.Value.UlozSuborAko)
+                {
+                    _riadok.Delete(0, _riadok.Length());
+                    _parametreVypisu.Stlpec = 0;
+                    _parametreVypisu.OffsetStlpec = 0;
+
+                    var prikaz = string.Format("saas \"{0}\"", prikazZEditora.Value.ExistujucaCesta);
+
+                    foreach (char ch in prikaz)
+                    {
+                        NapisZnak(ch);
+                    }
+
+                    return new PrikazovyAutomatResult();
+                }
+                
             } else if (vstup.HasValue)
             {
                 var r = SpracujVstup(vstup.Value);
@@ -91,7 +116,20 @@ namespace PisaciAutomat.Prikazy
         {
             var r = new PrikazovyAutomatResult();
 
-            if (Navigator.NavigujVPrikazovomRiadku(vstup, _navigovaciPrikaz))
+            if (_prikazNaPotvrdenie != null)
+            {
+                if (vstup.KeyChar == 'a')
+                {
+                    return PotvrdPrikaz(_prikazNaPotvrdenie);
+                }
+                else
+                {
+                    PridajPrikazDoHistorie();
+                }
+
+                _prikazNaPotvrdenie = null;
+            }
+            else if (Navigator.NavigujVPrikazovomRiadku(vstup, _navigovaciPrikaz))
             {
                 Navigator.Naviguj(_navigovaciPrikaz, _parametreVypisu, _riadky, _vyber);
 
@@ -223,25 +261,52 @@ namespace PisaciAutomat.Prikazy
                     ZmazVyber();
                 }
 
-                var prikaz = CitacPrikazov.NacitajPrikaz(_riadok, _tokeny);
-                if (prikaz == null || prikaz.Prikaz == null)
-                {
-                    Chyba();
-                }
-                else
-                {
-                    PridajPrikazDoHistorie();
-                    if (prikaz.ZavriRiadok)
-                    {
-                        r.ZavriRiadok = true;
-                        ZmazVsetko();
-                    }
-
-                    return prikaz;
-                }
+                return SpracujPrikaz();
             }
 
             return r;
+        }
+
+        private PrikazovyAutomatResult SpracujPrikaz()
+        {
+            var r = new PrikazovyAutomatResult();
+
+            var prikaz = CitacPrikazov.NacitajPrikaz(_riadok, _tokeny);
+
+            
+            if (prikaz != null && prikaz.Potvrd)
+            {
+                r.Dialog = prikaz.Dialog;
+                _prikazNaPotvrdenie = prikaz;
+                return r;
+            }
+
+            if (prikaz == null || prikaz.Prikaz == null)
+            {
+                _chyba = true;
+                if(prikaz != null)
+                {
+                    r.Hlaska = prikaz.Hlaska;
+                }
+            }
+            else
+            {
+                return PotvrdPrikaz(prikaz);
+            }
+
+            return r;
+        }
+        private PrikazovyAutomatResult PotvrdPrikaz(PrikazovyAutomatResult prikaz)
+        {
+            PridajPrikazDoHistorie();
+            if (prikaz.Prikaz.ZavriRiadok)
+            {
+                ZmazVsetko();
+            }
+
+            prikaz.ZavriRiadok = prikaz.Prikaz.ZavriRiadok;
+
+            return prikaz;
         }
 
         private void PridajPrikazDoHistorie()
@@ -344,14 +409,10 @@ namespace PisaciAutomat.Prikazy
             _parametreVypisu.OkrajVlavo = p.OkrajVlavo;
 
             var pozadie = StylovaciAutomat.FarbaPozadia.Siva;
-            if (_chyba != null)
+            if (_chyba)
             {
                 pozadie = StylovaciAutomat.FarbaPozadia.CervenaLight;
-                //sb.Append(VykreslovaciAutomat.NastavKurzor(2, 1));
-                //sb.Append(VykreslovaciAutomat.ZmazOdKurzoraPoKoniecRiadku());
-                //sb.Append(VykreslovaciAutomat.NastavKurzor(1, _parametreVypisu.OkrajVlavo + 1));
-                //sb.Append(VykreslovaciAutomat.Info(_chyba));
-                _chyba = null;
+                _chyba = false;
             }
 
             sb.Append(VykreslovaciAutomat.NastavKurzor(1, 1));
@@ -383,11 +444,6 @@ namespace PisaciAutomat.Prikazy
             }
 
             sb.Append(VykreslovaciAutomat.NastavKurzor(1, _parametreVypisu.StlpecKurzora + 1));
-        }
-
-        private void Chyba()
-        {
-            _chyba = "Neznamy prikaz";
         }
 
         private LexGramatika NacitajLexGramatiku()
