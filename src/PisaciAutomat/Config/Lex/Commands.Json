@@ -2,38 +2,10 @@
 	"Pravidla":[
 		{
 			"TypTokenu":0,
-			"Regex":"f.n.e.x.t.\u0000"
-		},
-		{
-			"TypTokenu":0,
-			"Regex":"f.p.r.e.v.\u0000"
-		},
-		{
-			"TypTokenu":0,
-			"Regex":"f.a.l.l.\u0000"
-		},
-		{
-			"TypTokenu":0,
-			"Regex":"r.f.r.s.t.\u0000"
-		},
-		{
-			"TypTokenu":0,
-			"Regex":"r.a.l.l.\u0000"
-		},
-		{
-			"TypTokenu":0,
-			"Regex":"r.s.t.\u0000"
-		},
-		{
-			"TypTokenu":0,
-			"Regex":"s.a.a.s.\u0000"
+			"Regex":"((f.n.e.x.t)|(f.p.r.e.v)|(f.a.l.l)|(r.a.l.l)|(r.f.r.s.t)|(r.s.t)|(s.a.a.s)).\u0000"
 		},
 		{
 			"TypTokenu":10,
-			"Regex":"(\\(|\\)).\u0000"
-		},
-		{
-			"TypTokenu":8,
 			"Regex":"(\\*|\\.|\\|).\u0000"
 		}
 	]

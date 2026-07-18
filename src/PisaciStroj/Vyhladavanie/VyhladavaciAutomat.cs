@@ -27,12 +27,12 @@ namespace PisaciStroj.Vyhladavanie
 
     public class VyhladavaciAutomat : IVyhladavac
     {
-        private SethiUllman _sethiUllman;
+        private AhoSethiUllman _sethiUllman;
         private IDfaSimulator _automat;
 
         public VyhladavaciAutomat()
         {
-            _sethiUllman = new SethiUllman();
+            _sethiUllman = new AhoSethiUllman();
         }
 
         private void NastavVyhladavaciAutomat(string vyhladavanyText)

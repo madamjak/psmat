@@ -3,11 +3,14 @@ using System.Collections.Generic;
 
 namespace Lexer.Algoritmy
 {
-    public class SethiUllman
+    /// <summary>
+    /// http://cgosorio.es/Seshat/ahoSethiUllman
+    /// </summary>
+    public class AhoSethiUllman
     {
         private ShuntingYard _shuntingYard;
 
-        public SethiUllman()
+        public AhoSethiUllman()
         {
             _shuntingYard = new ShuntingYard();
         }
@@ -110,8 +113,7 @@ namespace Lexer.Algoritmy
                     {
                         if (symbolOnPosition == symbol)
                         {
-                            followPo = followPos[position];
-                            break;
+                            followPo.UnionWith(followPos[position]);
                         }
                     }
                 }

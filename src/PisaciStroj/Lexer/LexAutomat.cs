@@ -7,7 +7,7 @@ namespace PisaciStroj.Lexer
 {
     public class LexAutomat : ILexer
     {
-        private SethiUllman _sethiUllman;
+        private AhoSethiUllman _sethiUllman;
         private MultipleDfaSimulator _dfa;
 
         private string _komentar;
@@ -16,7 +16,7 @@ namespace PisaciStroj.Lexer
 
         public LexAutomat(LexGramatika gramatika)
         {
-            _sethiUllman = new SethiUllman();
+            _sethiUllman = new AhoSethiUllman();
             _dfa = BuildDfaAutomaton(gramatika);
 
             _komentar = gramatika.JednoriadkovyKomentar;
@@ -164,6 +164,7 @@ namespace PisaciStroj.Lexer
             Token komentar = new Token();
 
             var jeRetazec = false;
+            var jeKoniecRetazca = false;
             Token retazec = new Token();
             
             foreach(var r in text)
@@ -185,20 +186,6 @@ namespace PisaciStroj.Lexer
 
                             komentar.Pozicia = 0;
                             komentar.Dlzka = 0;
-                        }
-
-                        if (jeRetazec)
-                        {
-                            rowResult.Add(retazec.Pozicia, new Token()
-                            {
-                                Typ = TypTokenu.Retazec,
-                                Pozicia = retazec.Pozicia,
-                                Dlzka = retazec.Dlzka
-                            });
-
-                            retazec.Pozicia = 0;
-                            retazec.Dlzka = 0;
-                            jeRetazec = false;
                         }
 
                         break;
@@ -289,9 +276,10 @@ namespace PisaciStroj.Lexer
                                 Pozicia = retazec.Pozicia,
                                 Dlzka = retazec.Dlzka + 2
                             });
+                            
                             jeRetazec = false;
 
-                            poziciaHlavy += 2;
+                            poziciaHlavy ++;
                             continue;
                         }
                         else
