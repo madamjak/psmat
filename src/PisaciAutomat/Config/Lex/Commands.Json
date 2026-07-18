@@ -25,6 +25,10 @@
 			"Regex":"r.s.t.\u0000"
 		},
 		{
+			"TypTokenu":0,
+			"Regex":"s.a.a.s.\u0000"
+		},
+		{
 			"TypTokenu":10,
 			"Regex":"(\\(|\\)).\u0000"
 		},

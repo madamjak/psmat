@@ -25,14 +25,15 @@ namespace PSMat
         {
             try
             {
-                NacitajAleboVytvorSubor(args);
-
                 if (PisaciAutomat.OperatingSystem.IsWindows())
                 {
                     WindowsConsole.NastavRawMode();
                     _rawMode = true;
                     Console.TreatControlCAsInput = true;
                 }
+
+                var cestaKSuboru = args != null && args.Length == 1 ? args[0] : null;
+                NacitajSubor(cestaKSuboru);
 
                 Thread resizeThread = new Thread(ResizeListener)
                 {
@@ -105,24 +106,11 @@ namespace PSMat
             }
         }
 
-        private static void NacitajAleboVytvorSubor(string[] args)
+        private static void NacitajSubor(string cesta)
         {
-            var cestaKSuboru = args != null && args.Length == 1 ? args[0] : null;
-
             var editor = PisaciAutomat.Program.GetInstance();
 
-            var success = editor.NacitajSubor(cestaKSuboru);
-            if (!success)
-            {
-                while (true)
-                {
-                    success = editor.NacitajSubor(null);
-                    if (success)
-                    {
-                        break;
-                    }
-                }
-            }
+            editor.NacitajSubor(cesta);
         }
 
         private static void ResizeListener()

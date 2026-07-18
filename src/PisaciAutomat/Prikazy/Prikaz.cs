@@ -11,6 +11,11 @@ namespace PisaciAutomat.Prikazy
         public bool ZavriRiadok { get; set; }
 
         public bool Ukonci { get; set; }
+
+        public string Hlaska { get; set; }
+
+        public string Dialog { get; set; }
+        public bool Potvrd { get; internal set; }
     }
 
     public enum TypPrikazu
@@ -20,7 +25,8 @@ namespace PisaciAutomat.Prikazy
         VyhladajDalsi,
         VyhladajPredosly,
         VyhladajNahrad,
-        VyhladajNahradVsetky
+        VyhladajNahradVsetky,
+        UlozAko
     }
 
     public class Prikaz

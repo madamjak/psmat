@@ -21,6 +21,20 @@ namespace PisaciAutomat.Obrazovka
         public int OkrajVlavo { get; set; }
     }
 
+    public enum TypHlasky
+    {
+        Info,
+        Chyba,
+        Dialog
+    }
+
+    public struct Hlaska
+    {
+        public string Sprava { get; set; }
+
+        public TypHlasky Typ { get; set; }
+    }
+
     public class VykreslovaciAutomat
     {
         private EditorScreen _aktualnaObrazovka;
@@ -165,7 +179,7 @@ namespace PisaciAutomat.Obrazovka
         public void VykresliNaKonzolu(EditorScreen novaObrazovka,
             StavovyRiadokInfo stavovyRiadok,
             ParametreVypisu parametre,
-            string infoHlaska,
+            Hlaska? hlaska,
             string dialog,
             bool _cmdMode, 
             ParametrePrekreslenia p, 
@@ -180,9 +194,9 @@ namespace PisaciAutomat.Obrazovka
             sb.Append(NastavKurzor(2, 1));
             sb.Append(ZmazOdKurzoraPoKoniecRiadku());
 
-            if (infoHlaska != null)
+            if (hlaska.HasValue)
             {
-                VykresliInfoHlasku(parametre, infoHlaska, sb);
+                VykresliInfoHlasku(parametre, hlaska.Value, sb);
             }else if (dialog != null)
             {
                 VykresliDialog(parametre, dialog, sb);
@@ -209,11 +223,27 @@ namespace PisaciAutomat.Obrazovka
             sb.Append(ZmazOdKurzoraPoKoniecRiadku());
         }
 
-        private static void VykresliInfoHlasku(ParametreVypisu parametre, string hlaska, StringBuilder sb)
+        private static void VykresliInfoHlasku(ParametreVypisu parametre, Hlaska hlaska, StringBuilder sb)
         {
             sb.Append(NastavKurzor(2, parametre.OkrajVlavo));
             sb.Append(ZmazOdKurzoraPoKoniecRiadku());
-            sb.Append(HlaskaDialogu(hlaska));
+
+            if(hlaska.Typ == TypHlasky.Info)
+            {
+                sb.Append(Info(hlaska.Sprava));
+            }
+
+            if(hlaska.Typ == TypHlasky.Chyba)
+            {
+                sb.Append(Chyba(hlaska.Sprava));
+            }
+
+            if (hlaska.Typ == TypHlasky.Dialog)
+            {
+                sb.Append(Dialog(hlaska.Sprava));
+            }
+
+            //sb.Append(HlaskaDialogu(hlaska));
             //sb.Append(Info(hlaska));
         }
 
@@ -293,6 +323,22 @@ namespace PisaciAutomat.Obrazovka
                 hlaska);
         }
 
+        public static string Dialog(string hlaska)
+        {
+            return string.Format("\u001b[42;1m{0}\u001b[0m{1}{2} {3} \u001b[0m", " ? ",
+                StylovaciAutomat.AnsiStyl(StylovaciAutomat.FarbaPozadia.Siva),
+                StylovaciAutomat.AnsiStyl(StylovaciAutomat.StylTextu.Biela),
+                hlaska);
+        }
+
+        public static string Chyba(string hlaska)
+        {
+            return string.Format("\u001b[41;1m{0}\u001b[0m{1}{2} {3} \u001b[0m", " ! ",
+                StylovaciAutomat.AnsiStyl(StylovaciAutomat.FarbaPozadia.Siva),
+                StylovaciAutomat.AnsiStyl(StylovaciAutomat.StylTextu.Biela),
+                hlaska);
+        }
+
         public static string Chyba2()
         {
             return string.Format("\u001b[41;1m{0}\u001b[0m", " ! ");
@@ -301,7 +347,7 @@ namespace PisaciAutomat.Obrazovka
         public static string HlaskaDialogu(string v)
         {
             //return string.Format("\u001b[42;1m {0} \u001b[0m", v);
-            return Info(v);
+            return Dialog(v);
         }
 
         public static string CislaRiadkov(string v)
