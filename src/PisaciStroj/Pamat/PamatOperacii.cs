@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace PisaciStroj.Pamat
 {
@@ -10,6 +11,9 @@ namespace PisaciStroj.Pamat
         public int PocetOperaciiNaVratenie { get; private set; }
         public int PocetOperaciiNaZopakovanie { get; private set; }
 
+        private DateTime? _posledneUlozenie;
+        private int _pocetOperaciiOdPoslUlozenia;
+
         public PamatOperacii()
         {
             _operacieNaVratenie = new Stack<Operacia>();
@@ -17,13 +21,25 @@ namespace PisaciStroj.Pamat
         }
         public void PridajOperaciuNaVratenie(Operacia operacia)
         {
+            if (_posledneUlozenie.HasValue)
+            {
+                _pocetOperaciiOdPoslUlozenia++;
+            }
+
             _operacieNaVratenie.Push(operacia);
 
             PocetOperaciiNaVratenie++;
         }
 
+        
+
         public void PridajOperaciuNaZopakovanie(Operacia operacia)
         {
+            if (_posledneUlozenie.HasValue)
+            {
+                _pocetOperaciiOdPoslUlozenia--;
+            }
+
             _operacieNaZopakovanie.Push(operacia);
 
             PocetOperaciiNaZopakovanie++;
@@ -52,6 +68,20 @@ namespace PisaciStroj.Pamat
                 _operacieNaZopakovanie.Clear();
                 PocetOperaciiNaZopakovanie = 0;
             }
+        }
+
+        internal void SuborUlozeny()
+        {
+            _posledneUlozenie = DateTime.Now;
+            _pocetOperaciiOdPoslUlozenia = 0;
+        }
+
+        internal bool MaZmenu()
+        {
+            var upravenyNeulozeny = PocetOperaciiNaVratenie > 0 && !_posledneUlozenie.HasValue;
+            var zmeneny = _posledneUlozenie.HasValue && _pocetOperaciiOdPoslUlozenia != 0;
+
+            return upravenyNeulozeny || zmeneny;
         }
     }
 }
