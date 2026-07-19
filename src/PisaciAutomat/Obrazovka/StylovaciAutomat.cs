@@ -10,7 +10,7 @@ namespace PisaciAutomat.Obrazovka
 {
     public static class StylovaciAutomat
     {
-        public static string SyntaxHighligt(Dictionary<int, Token> tokens, GapBuffer riadok, int offset, int maxDlzka, VyhladaneSlovo? zvyraznenyText, FarbaPozadia pozadie)
+        public static string SyntaxHighligt(Dictionary<int, Token> tokens, GapBuffer riadok, int offset, int maxDlzka, VyhladaneSlovo? zvyraznenyText, FarbaPozadia pozadie, FarbaPozadia farbaZvyraznenia)
         {
             var sb = new StringBuilder();
             var index = offset;
@@ -37,7 +37,7 @@ namespace PisaciAutomat.Obrazovka
                 Token t;
                 if (dlzkaZvyraznenehoTextu > 0)
                 {
-                    sb.Append(StylVyberuTextu());
+                    sb.Append(StylVyberuTextu(farbaZvyraznenia));
                     sb.Append(riadok.Read(index, 1));
                     sb.Append(AnsiReset());
                     dlzkaZvyraznenehoTextu--;
@@ -303,7 +303,7 @@ namespace PisaciAutomat.Obrazovka
                 {
                     if(index >= offset)
                     {
-                        sb.Append(StylVyberuTextu());
+                        sb.Append(StylVyberuTextu(FarbaPozadia.Modra));
                         sb.Append("\b");
                         sb.Append(riadok.Read(index, 1));
                         sb.Append(AnsiReset());
@@ -337,10 +337,10 @@ namespace PisaciAutomat.Obrazovka
             return string.Format("\u001b[48;5;250m");
         }
 
-        private static string StylVyberuTextu()
+        private static string StylVyberuTextu(FarbaPozadia p)
         {
             //return string.Format("\u001b[1;37;44m");
-            return string.Format("\u001b[44m");
+            return AnsiStyl(p);
         }
 
         public static string AnsiReset()
@@ -374,7 +374,7 @@ namespace PisaciAutomat.Obrazovka
                 case FarbaPozadia.Biela:
                     return "\u001b[1;90;107m";
                 case FarbaPozadia.Modra:
-                    return "\u001b[1;100;104m";
+                    return "\u001b[44m";
                 case FarbaPozadia.Cervena:
                     return "\u001b[41;1m";
                 case FarbaPozadia.Zelena:

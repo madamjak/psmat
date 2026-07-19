@@ -45,8 +45,9 @@ namespace PSMat.Testy.Obrazovka
             VyhladaneSlovo? zvyrazneneSlovo = null;
 
             var p = FarbaPozadia.Siva;
+            var zvyraznenie = FarbaPozadia.Modra;
             var sb = new StringBuilder();
-            sb.Append(StylovaciAutomat.SyntaxHighligt(tokeny.Tokeny[0], text[0], parametreVykreslovania.OffsetStlpec, parametreVykreslovania.Sirka, zvyrazneneSlovo, p));
+            sb.Append(StylovaciAutomat.SyntaxHighligt(tokeny.Tokeny[0], text[0], parametreVykreslovania.OffsetStlpec, parametreVykreslovania.Sirka, zvyrazneneSlovo, p, zvyraznenie));
             
             var ansi = sb.ToString();
 

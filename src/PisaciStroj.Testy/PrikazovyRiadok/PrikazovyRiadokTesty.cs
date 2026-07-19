@@ -1,5 +1,6 @@
 ﻿using PisaciAutomat.Obrazovka;
 using PisaciAutomat.Prikazy;
+using PisaciStroj.Pamat;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -12,7 +13,7 @@ namespace PSMat.Testy.PrikazovyRiadok
         {
             var p = new PrikazovyAutomat();
 
-            p.Prekresli(new ParametrePrekreslenia(), new StringBuilder());
+            p.Prekresli(new ParametrePrekreslenia(), new StringBuilder(), new List<GapBuffer>());
 
             PrikazovyAutomatResult r = null;
 
@@ -22,7 +23,7 @@ namespace PSMat.Testy.PrikazovyRiadok
 
                 r = p.SpracujVstup(vstup);
 
-                p.Prekresli(new ParametrePrekreslenia(), new StringBuilder());
+                p.Prekresli(new ParametrePrekreslenia(), new StringBuilder(), new List<GapBuffer>());
             }
         }
     }
