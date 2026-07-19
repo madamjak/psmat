@@ -46,9 +46,9 @@ namespace PisaciAutomat.Obrazovka
 
         private StavovyRiadok _stavovyRiadok;
 
-        public VykreslovaciAutomat(LexGramatika gramatika, IPisaciStroj editor, IVyhladavac vyhladavac)
+        public VykreslovaciAutomat(ILexer lexer, IPisaciStroj editor, IVyhladavac vyhladavac)
         {
-            _lexer = new LexAutomat(gramatika);
+            _lexer = lexer;
             _editor = editor;
             _vyhladavac = vyhladavac;
             _stavovyRiadok = new StavovyRiadok();
