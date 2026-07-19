@@ -557,16 +557,6 @@ namespace PisaciAutomat
                 };
                 CommandLineMode();
             }
-
-            if(r.Prikaz.Typ == TypPrikazu.Vyhladaj && pr.Success)
-            {
-                _commandForCmdLine = new PrikazPrePrikazovyRiadok()
-                {
-                    ZobrazVysledky = true,
-                    Vysledky = _search.VyhladaneSlova
-                };
-                CommandLineMode();
-            }
         }
 
         /// <summary>
