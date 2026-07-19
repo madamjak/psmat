@@ -11,7 +11,7 @@ using System.Text;
 
 namespace PisaciAutomat.Obrazovka
 {
-    public struct ParametrePrekreslenia
+    public class ParametrePrekreslenia
     {
         public bool Resize { get; set; }
 
@@ -19,6 +19,7 @@ namespace PisaciAutomat.Obrazovka
         
         //pre prikazovy riadok nastavene podla poctu riadkov
         public int OkrajVlavo { get; set; }
+        public int OkrajHore { get; internal set; }
     }
 
     public enum TypHlasky
@@ -188,10 +189,9 @@ namespace PisaciAutomat.Obrazovka
             {
                 sb.Append(NastavKurzor(1, 1));
                 sb.Append(ZmazOdKurzoraPoKoniecRiadku());
+                sb.Append(NastavKurzor(2, 1));
+                sb.Append(ZmazOdKurzoraPoKoniecRiadku());
             }
-
-            sb.Append(NastavKurzor(2, 1));
-            sb.Append(ZmazOdKurzoraPoKoniecRiadku());
 
             if (hlaska.HasValue)
             {
@@ -222,7 +222,7 @@ namespace PisaciAutomat.Obrazovka
             sb.Append(ZmazOdKurzoraPoKoniecRiadku());
         }
 
-        private static void VykresliInfoHlasku(ParametreVypisu parametre, Hlaska hlaska, StringBuilder sb)
+        public static void VykresliInfoHlasku(ParametreVypisu parametre, Hlaska hlaska, StringBuilder sb)
         {
             sb.Append(NastavKurzor(2, parametre.OkrajVlavo));
             sb.Append(ZmazOdKurzoraPoKoniecRiadku());
@@ -266,8 +266,6 @@ namespace PisaciAutomat.Obrazovka
                     }
                 }
             }
-            
-            sb.Append(NastavKurzor(novaObrazovka.Riadok, novaObrazovka.Stlpec));
         }
 
         private static void PrekresliRiadok(EditorScreen novaObrazovka, StringBuilder sb, ParametreVypisu parametre, int i)
@@ -284,8 +282,6 @@ namespace PisaciAutomat.Obrazovka
             {
                 sb.AppendLine(riadok);
             }
-
-            sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, parametre.StlpecKurzora + 1));
         }
 
         public static string NastavKurzor(int riadok, int stlpec)

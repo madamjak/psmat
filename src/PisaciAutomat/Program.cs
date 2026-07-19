@@ -65,6 +65,7 @@ namespace PisaciAutomat
         private string _dialog;
         private TypDialogu? _typDialogu;
 
+        private const int _okrajHore = 2;
         private void Konstruktor()
         {
             _vyhladavac = new VyhladavaciAutomat();
@@ -76,7 +77,7 @@ namespace PisaciAutomat
             _parametreVyberu = new ParametreVyberu();
             _parametreVypisu = new ParametreVypisu() 
             {
-                OkrajHore = 2,
+                OkrajHore = _okrajHore,
                 OkrajDole = 2
             };
 
@@ -315,7 +316,7 @@ namespace PisaciAutomat
 
             var p = new ParametrePrekreslenia()
             {
-                Necitaj = necitaj
+                Necitaj = necitaj,
             };
             Prekresli(p);
 
@@ -358,6 +359,20 @@ namespace PisaciAutomat
                     _parametreVypisu.OkrajVlavo = 5;
                 }
             }
+
+            var sb = new StringBuilder();
+
+            sb.Append(VykreslovaciAutomat.NastavKurzorUnVisible());
+
+            p.OkrajHore = _okrajHore;
+            if (_cmdMode)
+            {
+                p.OkrajVlavo = _parametreVypisu.OkrajVlavo;
+                _cmdLineEditor.Prekresli(p, sb, _editor.Riadky());
+            }
+
+            _parametreVypisu.OkrajHore = p.OkrajHore;
+
             var screen = _vykreslovaciAutomat.Precitaj(_parametreVypisu, _search, _parametreVyberu, p);
 
             var stavovyRiadok = new StavovyRiadokInfo()
@@ -369,8 +384,6 @@ namespace PisaciAutomat
                 MaZmenu = _editor.MaZmenu(),
             };
 
-            var sb = new StringBuilder();
-            sb.Append(VykreslovaciAutomat.NastavKurzorUnVisible());
             _vykreslovaciAutomat.VykresliNaKonzolu(screen, stavovyRiadok, _parametreVypisu, _hlaska, _dialog, _cmdMode, p, sb);
 
             if (_typDialogu.HasValue)
@@ -381,13 +394,15 @@ namespace PisaciAutomat
             _hlaska = null;
             _dialog = null;
 
-            if (_cmdMode)
+            if (!_cmdMode)
             {
-                p.OkrajVlavo = _parametreVypisu.OkrajVlavo;
-                _cmdLineEditor.Prekresli(p, sb);
+                sb.Append(VykreslovaciAutomat.NastavKurzor(screen.Riadok, screen.Stlpec));
+                sb.Append(VykreslovaciAutomat.NastavKurzorVisible());
             }
-
-            sb.Append(VykreslovaciAutomat.NastavKurzorVisible());
+            else
+            {
+                _cmdLineEditor.NastavKurzor(sb);
+            }
 
             Console.Write(sb.ToString());
         }
@@ -513,6 +528,16 @@ namespace PisaciAutomat
             if (r.Prikaz.Typ == TypPrikazu.UlozAko && pr.Success)
             {
                 _cestaKSuboru = r.Prikaz.NovyText;
+            }
+
+            if(r.Prikaz.Typ == TypPrikazu.Vyhladaj && pr.Success)
+            {
+                _commandForCmdLine = new PrikazPrePrikazovyRiadok()
+                {
+                    ZobrazVysledky = true,
+                    Vysledky = _search.VyhladaneSlova
+                };
+                CommandLineMode();
             }
         }
 

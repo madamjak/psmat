@@ -3,6 +3,7 @@ using PisaciStroj.Navigacia;
 using PisaciStroj.Pamat;
 using PisaciStroj.Parametre;
 using PisaciStroj.Vyhladavanie;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -13,7 +14,8 @@ namespace PisaciAutomat.Prikazy.Vyhladavanie
         private const string _ziadneVysledky = "End of results or no search result.";
 
         public static HashSet<TypPrikazu> TypyVyhladavacihPrikazov = new HashSet<TypPrikazu>()
-        { TypPrikazu.Vyhladaj, TypPrikazu.VyhladajReset, TypPrikazu.VyhladajDalsi, TypPrikazu.VyhladajPredosly, TypPrikazu.VyhladajNahrad, TypPrikazu.VyhladajNahradVsetky };
+        { TypPrikazu.Vyhladaj, TypPrikazu.VyhladajReset, TypPrikazu.VyhladajDalsi, TypPrikazu.VyhladajPredosly, TypPrikazu.VyhladajNahrad, TypPrikazu.VyhladajNahradVsetky,
+         TypPrikazu.GoTo };
 
         public static ProcessorPrikazovResult SpracujPrikaz(Prikaz prikaz,
             ParametreVyhladavania search,
@@ -25,6 +27,16 @@ namespace PisaciAutomat.Prikazy.Vyhladavanie
             {
                 Success = true
             };
+
+            if(prikaz.Typ == TypPrikazu.GoTo)
+            {
+                search.VyhladaneSlovo = prikaz.GoTo;
+                var radok = Math.Max(0, prikaz.GoTo.Value.Riadok - 10);
+                var stlpec = prikaz.GoTo.Value.Pozicia + prikaz.GoTo.Value.Dlzka;
+                Kurzor.GoTo(radok, 0, parametreVypisu, editor.Riadky());
+                Kurzor.GoTo(prikaz.GoTo.Value.Riadok, stlpec, parametreVypisu, editor.Riadky());
+                return r;
+            }
 
             if (prikaz.VyhladavanyText != search.VyhladavanyText)
             {
@@ -71,21 +83,7 @@ namespace PisaciAutomat.Prikazy.Vyhladavanie
                     }
 
                     search.VyhladaneSlova = vysl.Slova;
-                }
-
-                if (!search.VyhladaneSlovo.HasValue)
-                {
-                    search.VyhladaneSlovo = VyhladajDalsie(search.VyhladaneSlova, parametreVypisu, editor.Riadky(), 0, true);
-                }
-                else
-                {
-                    search.VyhladaneSlovo = VyhladajDalsie(search.VyhladaneSlova, parametreVypisu, editor.Riadky(), search.VyhladaneSlovo.Value.Riadok, false);
-                }
-
-                if (!search.VyhladaneSlovo.HasValue)
-                {
-                    r.Hlaska = _ziadneVysledky;
-                    return r;
+                    r.Success = true;
                 }
 
                 return r;
@@ -125,6 +123,7 @@ namespace PisaciAutomat.Prikazy.Vyhladavanie
                 }
                 if (editor.VyhladajANahrad(prikaz.VyhladavanyText, prikaz.NovyText, parametreVypisu))
                 {
+                    r.Success = true;
                     search.ZaciatokVyhladavania = new Pozicia()
                     {
                         Riadok = parametreVypisu.IndexRiadok,
@@ -149,6 +148,7 @@ namespace PisaciAutomat.Prikazy.Vyhladavanie
                 {
                     Kurzor.GoTo(aktualnyR, aktualnyS, parametreVypisu, editor.Riadky());
                     r.Hlaska = string.Format("{0} uprav", pocetNahradenych);
+                    r.Success = true;
                 }
                 else
                 {
@@ -168,55 +168,6 @@ namespace PisaciAutomat.Prikazy.Vyhladavanie
             search.ZaciatokVyhladavania = null;
             search.Typ = null;
             search.VyhladavanyText = null;
-        }
-
-        private static VyhladaneSlovo? VyhladajDalsie(Dictionary<int, Dictionary<int, VyhladaneSlovo>> vyhladaneSlova,
-            ParametreVypisu parametreVypisu, List<GapBuffer> riadky, int indexRiadku, bool prveVyhladavanie)
-        {
-            var navigovaciPrikaz = new NavigovaciPrikaz()
-            {
-                Typ = TypNavigacie.DalsiaStranka
-            };
-
-            Kurzor.GoTo(indexRiadku, 0, parametreVypisu, riadky);
-            if (!prveVyhladavanie)
-            {
-                //navigacia vo vysledkoch, hladaj na dalsej stranke
-                Navigator.Naviguj(navigovaciPrikaz, parametreVypisu, riadky, new ParametreVyberu());
-            }
-
-            while (true)
-            {
-                var pocetRiadkov = 0;
-                for (int index = parametreVypisu.IndexRiadok; index < riadky.Count; index++)
-                {
-                    Dictionary<int, VyhladaneSlovo> slovaNaRiadku = vyhladaneSlova[index];
-                    if (slovaNaRiadku.Count > 0)
-                    {
-                        var result = slovaNaRiadku.Values.ToList().First();
-                        return new VyhladaneSlovo()
-                        {
-                            Dlzka = result.Dlzka,
-                            Pozicia = result.Pozicia,
-                            Riadok = index
-                        };
-                    }
-
-                    if (pocetRiadkov == parametreVypisu.Vyska)
-                    {
-                        break;
-                    }
-                }
-
-                Navigator.Naviguj(navigovaciPrikaz, parametreVypisu, riadky, new ParametreVyberu());
-
-                if (parametreVypisu.IndexRiadok + parametreVypisu.Vyska >= riadky.Count)
-                {
-                    break;
-                }
-            }
-
-            return null;
         }
     }
 }

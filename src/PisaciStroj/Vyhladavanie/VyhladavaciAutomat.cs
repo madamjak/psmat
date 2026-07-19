@@ -59,7 +59,7 @@ namespace PisaciStroj.Vyhladavanie
 
         public Dictionary<int, VyhladaneSlovo> VyhladajVsetky(GapBuffer riadok, string vyhladavanyText, bool obratene = false)
         {
-            return VyhladajVsetkyInternal(riadok, vyhladavanyText, obratene);
+            return VyhladajVsetkyInternal(riadok, vyhladavanyText, obratene, 0);
         }
 
         public void NastavVyhladavanie(string vyhladavanyText)
@@ -142,10 +142,10 @@ namespace PisaciStroj.Vyhladavanie
 
             var automat = SkonstruujAutomat(regex);
 
-            return VyhladajNasledujuciInternal(text, pozicia, automat, obratene);
+            return VyhladajNasledujuciInternal(text, pozicia, automat, obratene, 0);
         }
 
-        private VyhladaneSlovo? VyhladajNasledujuciInternal(GapBuffer text, int pozicia, IDfaSimulator automat, bool obratene)
+        private VyhladaneSlovo? VyhladajNasledujuciInternal(GapBuffer text, int pozicia, IDfaSimulator automat, bool obratene, int indexRiadku)
         {
             if (obratene)
             {
@@ -175,6 +175,7 @@ namespace PisaciStroj.Vyhladavanie
                 {
                     result = new VyhladaneSlovo
                     {
+                        Riadok = indexRiadku,
                         Pozicia = najdenaPozicia,
                         Dlzka = poziciaHlavy - najdenaPozicia
                     };
@@ -238,19 +239,24 @@ namespace PisaciStroj.Vyhladavanie
         {
             var automat = SkonstruujAutomat(regex);
 
-            return VyhladajNasledujuciInternal(text, pozicia, automat, false);
+            return VyhladajNasledujuciInternal(text, pozicia, automat, false, 0);
         }
 
-        private Dictionary<int, VyhladaneSlovo> VyhladajVsetkyInternal(GapBuffer text, string vyhladavanyText, bool obratene = false)
+        private Dictionary<int, VyhladaneSlovo> VyhladajVsetkyInternal(GapBuffer text, string vyhladavanyText, bool obratene = false, int? indexRiadku = null)
         {
             var regex = SkonstruujRegex(vyhladavanyText);
 
             var automat = SkonstruujAutomat(regex);
 
-            return VyhladajVsetkyInternal(text, automat, obratene);
+            var i = 0;
+            if (indexRiadku.HasValue)
+            {
+                i = indexRiadku.Value;
+            }
+            return VyhladajVsetkyInternal(text, automat, obratene, i);
         }
 
-        private Dictionary<int, VyhladaneSlovo> VyhladajVsetkyInternal(GapBuffer text, IDfaSimulator automat, bool obratene)
+        private Dictionary<int, VyhladaneSlovo> VyhladajVsetkyInternal(GapBuffer text, IDfaSimulator automat, bool obratene, int indexRiadku)
         {
             if (obratene)
             {
@@ -261,7 +267,7 @@ namespace PisaciStroj.Vyhladavanie
             var pozicia = 0;
             while (true)
             {
-                var nasledujuci = VyhladajNasledujuciInternal(text, pozicia, automat, obratene);
+                var nasledujuci = VyhladajNasledujuciInternal(text, pozicia, automat, obratene, indexRiadku);
 
                 if (nasledujuci.HasValue)
                 {
@@ -303,7 +309,7 @@ namespace PisaciStroj.Vyhladavanie
         {
             var automat = SkonstruujAutomat(regex);
 
-            return VyhladajVsetkyInternal(text, automat, false);
+            return VyhladajVsetkyInternal(text, automat, false, 0);
         }
 
         protected virtual IDfaSimulator SkonstruujAutomat(string regex)
@@ -354,10 +360,11 @@ namespace PisaciStroj.Vyhladavanie
             var result = new Dictionary<int, Dictionary<int, VyhladaneSlovo>>();
             for (int i = 0; i < text.Count; i++)
             {
-                var vyhladaneSlova = VyhladajVsetky(text[i], vyhladavanyText);
-                result.Add(i, vyhladaneSlova);
+                var vyhladaneSlova = VyhladajVsetkyInternal(text[i], vyhladavanyText, false, i);
+                
                 if (vyhladaneSlova.Count > 0)
                 {
+                    result.Add(i, vyhladaneSlova);
                     pocet += vyhladaneSlova.Count;
                 }
             }

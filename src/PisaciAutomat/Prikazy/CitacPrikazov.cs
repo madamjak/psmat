@@ -1,10 +1,51 @@
 ﻿using PisaciStroj.Lexer;
+using PisaciStroj.Navigacia;
 using PisaciStroj.Pamat;
+using PisaciStroj.Vyhladavanie;
 using System;
 using System.Linq;
 
 namespace PisaciAutomat.Prikazy
 {
+    public class PrikazovyAutomatResult
+    {
+        public Prikaz Prikaz { get; set; }
+
+        public bool ZavriRiadok { get; set; }
+
+        public bool Ukonci { get; set; }
+
+        public string Hlaska { get; set; }
+
+        public string Dialog { get; set; }
+        public bool Potvrd { get; internal set; }
+    }
+
+    public enum TypPrikazu
+    {
+        Vyhladaj,
+        VyhladajReset,
+        VyhladajDalsi,
+        VyhladajPredosly,
+        VyhladajNahrad,
+        VyhladajNahradVsetky,
+        UlozAko,
+        GoTo
+    }
+
+    public class Prikaz
+    {
+        public TypPrikazu Typ { get; set; }
+
+        public string VyhladavanyText { get; set; }
+
+        public string NovyText { get; set; }
+
+        public bool ZavriRiadok { get; internal set; }
+
+        public VyhladaneSlovo? GoTo { get; set; }
+    }
+
     public static class CitacPrikazov
     {
         public static PrikazovyAutomatResult NacitajPrikaz(GapBuffer prikazovyRiadok, LexResult tokeny)

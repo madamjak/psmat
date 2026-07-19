@@ -297,5 +297,17 @@ namespace PisaciStroj.Navigacia
 
             return NavigovaciPrikaz(vstup, prikaz);
         }
+
+        public static bool NavigujVoVysledkoch(ConsoleKeyInfo vstup, NavigovaciPrikaz navigovaciPrikaz)
+        {
+            if (!(vstup.Key == ConsoleKey.UpArrow || vstup.Key == ConsoleKey.DownArrow 
+                || vstup.Key == ConsoleKey.Home || vstup.Key == ConsoleKey.End)
+                || vstup.Key == ConsoleKey.PageUp || vstup.Key == ConsoleKey.PageDown)
+            {
+                return false;
+            }
+
+            return NavigovaciPrikaz(vstup, navigovaciPrikaz);
+        }
     }
 }
