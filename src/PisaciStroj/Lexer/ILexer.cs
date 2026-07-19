@@ -24,6 +24,11 @@ namespace PisaciStroj.Lexer
         public LexPravidlo[] Pravidla { get; set; }
     }
 
+    public struct KonfiguraciaJazyka
+    {
+        public LexGramatika[] Jazyky;
+    }
+
     public enum TypTokenu
     {
         KlucoveSlovo,
@@ -64,6 +69,8 @@ namespace PisaciStroj.Lexer
 
     public interface ILexer
     {
+        public void NastavLexer(LexGramatika gramatika);
+
         Dictionary<int, Token> Lex(GapBuffer text);
 
         LexResult Lex(List<GapBuffer> text);

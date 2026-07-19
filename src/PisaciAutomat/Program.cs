@@ -11,6 +11,7 @@ using PisaciStroj.Navigacia;
 using PisaciStroj.Parametre;
 using PisaciStroj.Vyhladavanie;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -37,6 +38,8 @@ namespace PisaciAutomat
             return instance;
         }
 
+        private static Dictionary<string, LexGramatika> _jazyky;
+
         //editor
         private static IPisaciStroj _editor;
         private VykreslovaciAutomat _vykreslovaciAutomat;
@@ -45,6 +48,9 @@ namespace PisaciAutomat
         private PrikazPrePrikazovyRiadok? _commandForCmdLine;
         private PrikazovyAutomat _cmdLineEditor;
         private bool _cmdMode;
+
+        //syntax highlight
+        private ILexer _lexer;
 
         //kurzor
         private NavigovaciPrikaz _navigovaciPrikaz;
@@ -68,9 +74,12 @@ namespace PisaciAutomat
         private const int _okrajHore = 2;
         private void Konstruktor()
         {
+            NacitajLexGramatiku();
+
             _vyhladavac = new VyhladavaciAutomat();
             _editor = new PisaciStroj.Program(_vyhladavac);
-            _vykreslovaciAutomat = new VykreslovaciAutomat(NacitajLexGramatiku(), _editor, _vyhladavac);
+            _lexer = new LexAutomat();
+            _vykreslovaciAutomat = new VykreslovaciAutomat(_lexer, _editor, _vyhladavac);
             _cmdLineEditor = new PrikazovyAutomat();
 
             _navigovaciPrikaz = new NavigovaciPrikaz();
@@ -310,6 +319,7 @@ namespace PisaciAutomat
 
             if (_ukonci)
             {
+                ErrorLogger.GetInstance().UlozDoSuboru();
                 Console.Write(VykreslovaciAutomat.EraseScreen() + VykreslovaciAutomat.NastavKurzor(1, 1));
                 return false;
             }
@@ -527,7 +537,15 @@ namespace PisaciAutomat
 
             if (r.Prikaz.Typ == TypPrikazu.UlozAko && pr.Success)
             {
+                var staraPripona = Path.GetExtension(_cestaKSuboru);
                 _cestaKSuboru = r.Prikaz.NovyText;
+
+                var novaPripona = Path.GetExtension(_cestaKSuboru);
+
+                if(staraPripona != novaPripona)
+                {
+                    NastavLex();
+                }
             }
 
             if(r.Prikaz.Typ == TypPrikazu.Vyhladaj && pr.Success)
@@ -574,13 +592,13 @@ namespace PisaciAutomat
             }
         }
 
-        private LexGramatika NacitajLexGramatiku()
+        private void NacitajLexGramatiku()
         {
             try
             {
                 var cesta = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Config/Lex/Jazyk.json");
 
-                LexGramatika gramatika;
+                KonfiguraciaJazyka konfig;
 
                 using (var file = File.Open(cesta, FileMode.Open))
                 {
@@ -588,11 +606,20 @@ namespace PisaciAutomat
                     {
                         var s = reader.ReadToEnd();
 
-                        gramatika = (LexGramatika)JsonConvert.DeserializeObject(s, typeof(LexGramatika));
+                        konfig = (KonfiguraciaJazyka)JsonConvert.DeserializeObject(s, typeof(KonfiguraciaJazyka));
                     }
                 }
 
-                return gramatika;
+                if(konfig.Jazyky == null || konfig.Jazyky.Length == 0)
+                {
+                    return;
+                }
+
+                _jazyky = new Dictionary<string, LexGramatika>(StringComparer.OrdinalIgnoreCase);
+                foreach(var jazyk in konfig.Jazyky)
+                {
+                    _jazyky.Add(jazyk.Pripona, jazyk);
+                }
             }
             catch(Exception ex)
             {
@@ -600,10 +627,28 @@ namespace PisaciAutomat
                 {
                     Ex = ex
                 });
-
-                return new LexGramatika();
             }
-            
+        }
+
+        private void NastavLex()
+        {
+            var pripona = Path.GetExtension(_cestaKSuboru);
+
+            LexGramatika g;
+            if (_jazyky.TryGetValue(pripona, out g))
+            {
+                try
+                {
+                    _lexer.NastavLexer(g);
+                }
+                catch (Exception ex)
+                {
+                    ErrorLogger.GetInstance().Log(new Chyba()
+                    {
+                        Ex = ex
+                    });
+                }
+            }
         }
 
         public void NacitajSubor(string cesta)
@@ -633,6 +678,8 @@ namespace PisaciAutomat
                 }
 
                 _cestaKSuboru = Path.GetFullPath(cesta);
+
+                NastavLex();
                 return;
             }
             else

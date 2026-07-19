@@ -17,6 +17,16 @@ namespace PisaciStroj.Lexer
         public LexAutomat(LexGramatika gramatika)
         {
             _sethiUllman = new AhoSethiUllman();
+            NastavLexer(gramatika);
+        }
+
+        public LexAutomat()
+        {
+            _sethiUllman = new AhoSethiUllman();
+        }
+
+        public void NastavLexer(LexGramatika gramatika)
+        {
             _dfa = BuildDfaAutomaton(gramatika);
 
             _komentar = gramatika.JednoriadkovyKomentar;
@@ -164,7 +174,6 @@ namespace PisaciStroj.Lexer
             Token komentar = new Token();
 
             var jeRetazec = false;
-            var jeKoniecRetazca = false;
             Token retazec = new Token();
             
             foreach(var r in text)
@@ -424,28 +433,34 @@ namespace PisaciStroj.Lexer
                     {
                         if (!jeRetazec)
                         {
-                            var jednoRiadkovyKomentar = r.Read(poziciaHlavy, _komentar.Length);
-                            if (jednoRiadkovyKomentar == _komentar)
+                            if (!string.IsNullOrEmpty(_komentar)) 
                             {
-                                rowResult.Add(poziciaHlavy, new Token()
+                                var jednoRiadkovyKomentar = r.Read(poziciaHlavy, _komentar.Length);
+                                if (jednoRiadkovyKomentar == _komentar)
                                 {
-                                    Typ = TypTokenu.Komentar,
-                                    Pozicia = poziciaHlavy,
-                                    Dlzka = r.Length() - poziciaHlavy
-                                });
+                                    rowResult.Add(poziciaHlavy, new Token()
+                                    {
+                                        Typ = TypTokenu.Komentar,
+                                        Pozicia = poziciaHlavy,
+                                        Dlzka = r.Length() - poziciaHlavy
+                                    });
 
-                                jeKomentar = false;
-                                break;
+                                    jeKomentar = false;
+                                    break;
+                                }
                             }
 
-                            var zaciatokKomentara = r.Read(poziciaHlavy, _zaciatokKomentara.Length);
-                            if (zaciatokKomentara == _zaciatokKomentara)
+                            if (!string.IsNullOrEmpty(_zaciatokKomentara))
                             {
-                                jeKomentar = true;
-                                komentar.Pozicia = poziciaHlavy;
-                                komentar.Dlzka = 1;
-                                poziciaHlavy++;
-                                continue;
+                                var zaciatokKomentara = r.Read(poziciaHlavy, _zaciatokKomentara.Length);
+                                if (zaciatokKomentara == _zaciatokKomentara)
+                                {
+                                    jeKomentar = true;
+                                    komentar.Pozicia = poziciaHlavy;
+                                    komentar.Dlzka = 1;
+                                    poziciaHlavy++;
+                                    continue;
+                                }
                             }
                         }
                     }
