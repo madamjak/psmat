@@ -548,7 +548,8 @@ namespace PisaciAutomat
                 }
             }
 
-            if(r.Prikaz.Typ == TypPrikazu.Vyhladaj && pr.Success)
+            if(r.Prikaz.Typ == TypPrikazu.Vyhladaj && pr.Success && _search.VyhladaneSlova != null
+                && _search.VyhladaneSlova.Count > 0)
             {
                 _commandForCmdLine = new PrikazPrePrikazovyRiadok()
                 {

@@ -301,8 +301,8 @@ namespace PisaciStroj.Navigacia
         public static bool NavigujVoVysledkoch(ConsoleKeyInfo vstup, NavigovaciPrikaz navigovaciPrikaz)
         {
             if (!(vstup.Key == ConsoleKey.UpArrow || vstup.Key == ConsoleKey.DownArrow 
-                || vstup.Key == ConsoleKey.Home || vstup.Key == ConsoleKey.End)
-                || vstup.Key == ConsoleKey.PageUp || vstup.Key == ConsoleKey.PageDown)
+                || vstup.Key == ConsoleKey.Home || vstup.Key == ConsoleKey.End
+                || vstup.Key == ConsoleKey.PageUp || vstup.Key == ConsoleKey.PageDown))
             {
                 return false;
             }

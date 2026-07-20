@@ -205,6 +205,12 @@ namespace PisaciAutomat.Obrazovka
 
                 if (index == riadok.Length())
                 {
+                    if(index == 0 && zvyraznenyText.HasValue)
+                    {
+                        sb.Append(StylVyberuTextu(FarbaPozadia.Modra));
+                        sb.Append(" ");
+                        sb.Append(AnsiReset());
+                    }
                     break;
                 }
 
