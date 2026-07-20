@@ -11,7 +11,7 @@ namespace PisaciAutomat.Prikazy.Vyhladavanie
 {
     public static class ProcessorPrikazov
     {
-        private const string _ziadneVysledky = "End of results or no search result.";
+        private const string _ziadneVysledky = "Koniec vysledkov alebo ziadne vysledky.";
 
         public static HashSet<TypPrikazu> TypyVyhladavacihPrikazov = new HashSet<TypPrikazu>()
         { TypPrikazu.Vyhladaj, TypPrikazu.VyhladajReset, TypPrikazu.VyhladajDalsi, TypPrikazu.VyhladajPredosly, TypPrikazu.VyhladajNahrad, TypPrikazu.VyhladajNahradVsetky,

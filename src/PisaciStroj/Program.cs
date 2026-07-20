@@ -458,19 +458,19 @@ namespace PisaciStroj
                 Typ = TypOperacie.VyhladajNahradVsetky
             };
 
-            var vyhladavanieZlyhalo = false;
-            vyhladavanieZlyhalo = VyhladajANahrad(0, 0, vyhladavanyText, novyText, parametreVypisu);
+            var vyhladavanieUspesne = false;
+            vyhladavanieUspesne = VyhladajANahrad(0, 0, vyhladavanyText, novyText, parametreVypisu);
 
-            if (!vyhladavanieZlyhalo)
+            if (vyhladavanieUspesne)
             {
                 operacia.PocetOperacii++;
             }
 
             while (true)
             {
-                vyhladavanieZlyhalo = VyhladajANahrad(parametreVypisu.IndexRiadok, parametreVypisu.IndexStlpec, vyhladavanyText, novyText, parametreVypisu);
+                vyhladavanieUspesne = VyhladajANahrad(parametreVypisu.IndexRiadok, parametreVypisu.IndexStlpec, vyhladavanyText, novyText, parametreVypisu);
 
-                if (!vyhladavanieZlyhalo)
+                if (!vyhladavanieUspesne)
                 {
                     break;
                 }

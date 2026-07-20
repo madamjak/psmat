@@ -158,7 +158,8 @@ namespace PisaciAutomat.Prikazy.Vysledky
             }
 
             //2 riadky pre cmd riadok a info hlasku 
-            _parametreVypisu.VyskaKonzoly = pocetRiadkov - 2;
+            _parametreVypisu.OkrajHore = 2;
+            _parametreVypisu.VyskaKonzoly = pocetRiadkov + 2;
 
             sb.Append(VykreslovaciAutomat.NastavKurzor(p.OkrajHore + 1 + pocetRiadkov, 1));
             sb.Append(VykreslovaciAutomat.ZmazOdKurzoraPoKoniecRiadku());

@@ -288,7 +288,7 @@ namespace PisaciStroj.Lexer
                             
                             jeRetazec = false;
 
-                            poziciaHlavy ++;
+                            poziciaHlavy += 2;
                             continue;
                         }
                         else
@@ -388,19 +388,19 @@ namespace PisaciStroj.Lexer
                             komentar.Dlzka = 0;
                         }
 
-                        if (jeRetazec)
-                        {
-                            rowResult.Add(retazec.Pozicia, new Token()
-                            {
-                                Typ = TypTokenu.Retazec,
-                                Pozicia = retazec.Pozicia,
-                                Dlzka = retazec.Dlzka
-                            });
+                        //if (jeRetazec)
+                        //{
+                        //    rowResult.Add(retazec.Pozicia, new Token()
+                        //    {
+                        //        Typ = TypTokenu.Retazec,
+                        //        Pozicia = retazec.Pozicia,
+                        //        Dlzka = retazec.Dlzka
+                        //    });
 
-                            retazec.Pozicia = 0;
-                            retazec.Dlzka = 0;
-                            jeRetazec = false;
-                        }
+                        //    retazec.Pozicia = 0;
+                        //    retazec.Dlzka = 0;
+                        //    jeRetazec = false;
+                        //}
 
                         break;
                     }

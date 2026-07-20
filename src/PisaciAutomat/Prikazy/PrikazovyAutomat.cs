@@ -376,6 +376,10 @@ namespace PisaciAutomat.Prikazy
             {
                 ZmazVsetko();
             }
+            else
+            {
+                _historiaPrikazov.VycistiOperacieNaZopakovanie();
+            }
 
             prikaz.ZavriRiadok = prikaz.Prikaz.ZavriRiadok;
 
