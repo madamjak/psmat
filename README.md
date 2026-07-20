@@ -1,5 +1,10 @@
 # PSMat
-PSMat is simple text editor built for educational purposes to supplement bachelor thesis about data structures and algorithms used in text editors.
+
+<p align="center">
+<img src="./docs/images/royal_typewriter.png" alt="Typewriter image sourced from vecteezy.com">
+</p>
+
+PSMat is simple text editor built for educational purposes to supplement bachelor thesis about data structures and algorithms used in text editors. The name is shortcut from "Pisaci Stroj autoMat" which you can loosely translate to english as "type writer automata".
 
 ## Table of Contents
 - [Introduction](#introduction)
@@ -41,9 +46,6 @@ It's possible to run the command without parameters too and input the file locat
 # Open any example file
 psmat C:\Tools\PSMat\ErrorLog\error-2026-07-17-17-19-37.txt
 ```
-Default config works somewhat nicely with the exceptions and so reading stack traces may be one accidental good use for the editor.
-
-![Local Image](example_screen.png)
 
 ## Features
 The editor offers basic text editing features you would expect from a text editor, supplemented by configurable syntax highlighting and search feature. Text editing operations were designed in the attempt to be standard and usual for most users. Some of the keyboard shortcuts may be conflicting with Windows Terminal, and it may be needed to change Terminal settings to be able to use them with editor. 
@@ -70,6 +72,9 @@ Syntax highlight is configurable via Jazyk.json file located in ```/Config``` fo
 ```
 The file allows to configure multiple languages. Editor identifies language based on file extension. Config allows to configure symbols for the source code comments, and define list of regular expressions to match programming language keywords or other token types supported by editor. Editor is using own naive implementation of regex engine and only basic regex operations (concatenation/alternation/closure) are supported.
 
+<p align="center">
+<img src="./docs/images/example_screen.png" alt="Example editor screen" width="70%">
+</p>
 
 Searching is allowed via 'editor command line' which can be displayed using [Ctrl] + [W] and closed using [Esc], quick search (`fnext`) is also possible using [Ctrl] + [F]. 
 Strings being searched should be escaped in quotes. Full list of search commands below.
