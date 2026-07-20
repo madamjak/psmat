@@ -23,7 +23,6 @@ namespace PisaciStroj.Lexer.Algoritmy
             for (int i = 0; i < text.Count; i++)
             {
                 var rowResult = new Dictionary<int, Zatvorka>();
-                result.Add(i, rowResult);
 
                 var index = 0;
                 var riadok = text[i];
@@ -71,8 +70,7 @@ namespace PisaciStroj.Lexer.Algoritmy
                             }
                         };
 
-                        rowResult.Add(index, z);
-                        result[z.Start.Riadok].Add(z.Start.Stlpec, z);
+                        PridajZDoVysl(result, z);
                     }
 
                     if (riadok.CharAt(index) == '}' && _stack2.Count > 0)
@@ -87,8 +85,7 @@ namespace PisaciStroj.Lexer.Algoritmy
                             }
                         };
 
-                        rowResult.Add(index, z);
-                        result[z.Start.Riadok].Add(z.Start.Stlpec, z);
+                        PridajZDoVysl(result, z);
                     }
 
                     if (riadok.CharAt(index) == ']' && _stack3.Count > 0)
@@ -103,8 +100,7 @@ namespace PisaciStroj.Lexer.Algoritmy
                             }
                         };
 
-                        rowResult.Add(index, z);
-                        result[z.Start.Riadok].Add(z.Start.Stlpec, z);
+                        PridajZDoVysl(result, z);
                     }
 
                     index++;
@@ -112,6 +108,34 @@ namespace PisaciStroj.Lexer.Algoritmy
             }
 
             return result;
+        }
+
+        private static void PridajZDoVysl(Dictionary<int, Dictionary<int, Zatvorka>> vysl, Zatvorka z)
+        {
+            Dictionary<int, Zatvorka> r = null;
+            if(vysl.TryGetValue(z.Start.Riadok, out r))
+            {
+                r.Add(z.Start.Stlpec, z);
+            }
+            else
+            {
+                vysl.Add(z.Start.Riadok, new Dictionary<int, Zatvorka>()
+                {
+                    { z.Start.Stlpec, z }
+                });
+            }
+
+            if (vysl.TryGetValue(z.End.Riadok, out r))
+            {
+                r.Add(z.End.Stlpec, z);
+            }
+            else
+            {
+                vysl.Add(z.End.Riadok, new Dictionary<int, Zatvorka>()
+                {
+                    { z.End.Stlpec, z }
+                });
+            }
         }
     }
 }

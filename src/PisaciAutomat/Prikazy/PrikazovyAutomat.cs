@@ -49,7 +49,6 @@ namespace PisaciAutomat.Prikazy
         //search results
         private VysledkovyAutomat _vysledky;
         private bool _resultsMode;
-        private PrikazPrePrikazovyRiadok? _prikazZVysledkov;
 
         public PrikazovyAutomat()
         {
@@ -524,7 +523,7 @@ namespace PisaciAutomat.Prikazy
 
             if (_riadok.Length() > 0)
             {
-                _tokeny = _lexer.Lex(_riadky);
+                _tokeny = _lexer.LexZoZatvorkami(_riadky);
 
                 VyhladaneSlovo? zvyraznenyText = null;
                 if (Zvyraznovac.MaVybranyText(_vyber))

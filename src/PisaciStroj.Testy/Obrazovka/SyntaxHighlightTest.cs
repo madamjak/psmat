@@ -39,7 +39,7 @@ namespace PSMat.Testy.Obrazovka
 
             var text = SyntaxHighlightStubs.CmdLinePrikaz();
 
-            var tokeny = l.Lex(text);
+            var tokeny = l.LexZoZatvorkami(text);
 
             var parametreVykreslovania = SyntaxHighlightStubs.ParametreVypisu();
 
