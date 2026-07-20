@@ -523,7 +523,7 @@ namespace PisaciAutomat.Prikazy
 
             if (_riadok.Length() > 0)
             {
-                _tokeny = _lexer.LexZoZatvorkami(_riadky);
+                _tokeny = _lexer.LexPrePrikazovyRiadok(_riadky);
 
                 VyhladaneSlovo? zvyraznenyText = null;
                 if (Zvyraznovac.MaVybranyText(_vyber))
@@ -531,7 +531,30 @@ namespace PisaciAutomat.Prikazy
                     zvyraznenyText = Zvyraznovac.ZvyraznenyText(_vyber, 0, _riadok.Length());
                 }
 
-                sb.Append(StylovaciAutomat.SyntaxHighligt(_tokeny.Tokeny[0], _riadok, _parametreVypisu.OffsetStlpec, _parametreVypisu.Sirka, zvyraznenyText, pozadie, StylovaciAutomat.FarbaPozadia.Modra));
+                var slova = new Dictionary<int, VyhladaneSlovo>();
+                VyhladaneSlovo? vyhladaneSlovo = null;
+
+                Dictionary<int, Zatvorka> zatvorky = null;
+                Dictionary<int, Token> regexTokens = new Dictionary<int, Token>();
+
+                var pozicia = new Pozicia()
+                {
+                    Stlpec = _parametreVypisu.IndexStlpec
+                };
+
+                _tokeny.RegexTokeny.TryGetValue(0, out regexTokens);
+                _tokeny.Zatvorky.TryGetValue(0, out zatvorky);
+
+                sb.Append(StylovaciAutomat.SyntaxAndSearchHighligt2(
+                        _riadok,
+                        _parametreVypisu.OffsetStlpec,
+                        _parametreVypisu.Sirka,
+                        slova, vyhladaneSlovo,
+                        _tokeny.Tokeny[0],
+                        zatvorky,
+                        pozicia,
+                        zvyraznenyText,
+                        regexTokens));
             }
 
             if (_riadok.Length() < _parametreVypisu.Sirka)

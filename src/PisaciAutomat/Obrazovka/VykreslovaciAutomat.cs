@@ -100,6 +100,7 @@ namespace PisaciAutomat.Obrazovka
                 Dictionary<int, Token> tokeny = null;
                 Dictionary<int, Zatvorka> zatvorky = null;
                 VyhladaneSlovo? zvyraznenyText = null;
+                Dictionary<int, Token> regexTokens = new Dictionary<int, Token>();
 
                 if(search.VyhladaneSlova != null)
                 {
@@ -120,11 +121,11 @@ namespace PisaciAutomat.Obrazovka
 
                 if (lexResult.Tokeny == null || !lexResult.Tokeny.TryGetValue(i, out tokeny))
                 {
-                    tokeny = lexer.Lex(riadky[i]);
+                    tokeny = lexer.LexPreEditor(riadky[i]);
                 }
                 else
                 {
-                    var t = lexer.Lex(riadky[i]);
+                    var t = lexer.LexPreEditor(riadky[i]);
                     if (t.Count > 0)
                     {
                         foreach (var to in t)
@@ -167,7 +168,7 @@ namespace PisaciAutomat.Obrazovka
                     StylovaciAutomat.SyntaxAndSearchHighligt2(riadky[i],
                     parametre.OffsetStlpec, parametre.Sirka - 1,
                     vyhladaneSlova, vSlovo, tokeny, zatvorky, poziciaKurzora,
-                    zvyraznenyText));
+                    zvyraznenyText, regexTokens));
 
                 pocetRiadkov++;
                 riadokObrazovky++;

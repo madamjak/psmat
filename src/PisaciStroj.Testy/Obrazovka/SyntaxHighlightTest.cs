@@ -39,20 +39,32 @@ namespace PSMat.Testy.Obrazovka
 
             var text = SyntaxHighlightStubs.CmdLinePrikaz();
 
-            var tokeny = l.LexZoZatvorkami(text);
+            var tokeny = l.LexPrePrikazovyRiadok(text);
 
             var parametreVykreslovania = SyntaxHighlightStubs.ParametreVypisu();
 
+            var slova = new Dictionary<int, VyhladaneSlovo>();
+            VyhladaneSlovo? vyhladaneSlovo = null;
+
             VyhladaneSlovo? zvyrazneneSlovo = null;
 
-            var p = FarbaPozadia.Siva;
-            var zvyraznenie = FarbaPozadia.Modra;
+            var pozicia = new Pozicia();
+
             var sb = new StringBuilder();
-            sb.Append(StylovaciAutomat.SyntaxHighligt(tokeny.Tokeny[0], text[0], parametreVykreslovania.OffsetStlpec, parametreVykreslovania.Sirka, zvyrazneneSlovo, p, zvyraznenie));
+            sb.Append(StylovaciAutomat.SyntaxAndSearchHighligt2(
+                text[0],
+                parametreVykreslovania.OffsetStlpec,
+                parametreVykreslovania.Sirka,
+                slova, vyhladaneSlovo,
+                tokeny.Tokeny[0],
+                tokeny.Zatvorky[0],
+                pozicia,
+                zvyrazneneSlovo,
+                tokeny.RegexTokeny[0]));
             
             var ansi = sb.ToString();
 
-            //Console.Write(ansi);
+            Console.Write(ansi);
 
             return ansi == "\u001b[48;5;236m\u001b[38;5;87msaas\u001b[0m\u001b[48;5;236m \u001b[0m\u001b[48;5;236m\u001b[38;5;27m\"C://temp/bla\"\u001b[0m";
         }
