@@ -61,51 +61,12 @@ namespace PisaciStroj.Lexer
                 return new Dictionary<int, Token>();
             }
 
-            var result = new Dictionary<int, Token>();
+            var t = new List<GapBuffer> { text };
+            var z = new Dictionary<int, Dictionary<int, Zatvorka>>();
 
-            var poziciaHlavy = 0;
+            var tokeny = LexInternal(t, z);
 
-            while (true)
-            {
-                if (poziciaHlavy == text.Length())
-                {
-                    break;
-                }
-
-                if (JeBielyZnak(text.CharAt(poziciaHlavy)))
-                {
-                    poziciaHlavy++;
-
-                    continue;
-                }
-
-                if (_dfa.ReadSymbol(text.CharAt(poziciaHlavy)))
-                {
-                    var token = VratNasledujuciToken(text, ref poziciaHlavy);
-
-                    if (token.HasValue)
-                    {
-                        result.Add(token.Value.Pozicia, token.Value);
-                    }
-                }
-                else
-                {
-                    //result.Add(poziciaHlavy, new Token()
-                    //{
-                    //    Typ = TypTokenu.Chyba,
-                    //    Pozicia = poziciaHlavy,
-                    //    Dlzka = 1
-                    //});
-
-                    _dfa.Reset();
-
-                    poziciaHlavy++;
-
-                    continue;
-                }
-            }
-
-            return result;
+            return tokeny[0];
         }
 
         private bool JeBielyZnak(char ch)
@@ -113,11 +74,19 @@ namespace PisaciStroj.Lexer
             return ch == ' ' || ch == '\t' || ch == '\r' || ch == '\t';
         }
 
+        /// <summary>
+        /// pravidla:
+        /// 1. retazce a komentare su spracovavane zvlast mimo tejto funkcie,
+        /// 2. najdlhsi akceptovany lexem ma prioritu, t.j. pokial automat dokaze citat tak cita aj v pripade ze nejaky automat akceptuje
+        /// 3. v pripade rovnako dlhych akceptovanych lexemov ma prioritu ten ktory je v gramatike specifikovany prvy
+        /// 
+        /// poznamka; konfiguracia gramatiky nespecifikuje abecedu, 
+        /// t.j. ak je sucastou retazca nieco co nie je nakonfigurovane ako sucast regexu, automat to neprecita...
+        /// ...co nasledne moze viest k nespravnemu akceptovaniu retazca ktory nakonfigurovany, napriek tomu ze dany retazec je sucastou niecoho ineho
+        /// </summary>
+        /// <returns></returns>
         private Token? VratNasledujuciToken(GapBuffer text, ref int poziciaHlavy)
         {
-            //2. najdlhsi akceptovany lexem ma prioritu
-            //3. v pripade rovnako dlhych akceptovanych lexemov ma prioritu ten ktory je v gramatike specifikovany prvy
-
             var zaciatokTokenu = poziciaHlavy;
             poziciaHlavy++;
 
@@ -136,9 +105,6 @@ namespace PisaciStroj.Lexer
                     poziciaHlavy--;
                     break;
                 }
-
-                //TODO lexgramatika nespecifikuje abecedu co moze viest k nespravnemu akceptovaniu klucovych slov
-                //tj syntax highlight bez abecedy v lex gramatike funguje ako regex vyhladavanie
             }
 
             var akceptovanyToken = poziciaHlavy == text.Length() ?
@@ -161,22 +127,19 @@ namespace PisaciStroj.Lexer
             return null;
         }
 
-        public LexResult Lex(List<GapBuffer> text)
+        private Dictionary<int, Dictionary<int, Token>> LexInternal(List<GapBuffer> text, Dictionary<int, Dictionary<int, Zatvorka>> zatvorky)
         {
-            var bmAlgo = new StackBracketMatching();
-            var zatvorky = bmAlgo.GetMatchingBrackets(text);
-
             var result = new Dictionary<int, Dictionary<int, Token>>();
-            
+
             var riadok = 0;
-            
+
             var jeKomentar = false;
             Token komentar = new Token();
 
             var jeRetazec = false;
             Token retazec = new Token();
-            
-            foreach(var r in text)
+
+            foreach (var r in text)
             {
                 var poziciaHlavy = 0;
                 var rowResult = new Dictionary<int, Token>();
@@ -186,7 +149,7 @@ namespace PisaciStroj.Lexer
                     {
                         if (jeKomentar)
                         {
-                            rowResult.Add(komentar.Pozicia, new Token() 
+                            rowResult.Add(komentar.Pozicia, new Token()
                             {
                                 Typ = TypTokenu.Komentar,
                                 Pozicia = komentar.Pozicia,
@@ -197,13 +160,26 @@ namespace PisaciStroj.Lexer
                             komentar.Dlzka = 0;
                         }
 
+                        if (jeRetazec)
+                        {
+                            rowResult.Add(retazec.Pozicia, new Token()
+                            {
+                                Typ = TypTokenu.Retazec,
+                                Pozicia = retazec.Pozicia,
+                                Dlzka = retazec.Dlzka
+                            });
+
+                            retazec.Pozicia = 0;
+                            retazec.Dlzka = 0;
+                        }
+
                         break;
                     }
 
                     if (jeKomentar)
                     {
                         var koniecKomentara = r.Read(poziciaHlavy, _koniecKomentara.Length);
-                        if(!(koniecKomentara == _koniecKomentara))
+                        if (!(koniecKomentara == _koniecKomentara))
                         {
                             poziciaHlavy++;
                             komentar.Dlzka++;
@@ -222,13 +198,13 @@ namespace PisaciStroj.Lexer
                             poziciaHlavy += koniecKomentara.Length;
                             continue;
                         }
-                        
+
                     }
                     else
                     {
                         if (!jeRetazec)
                         {
-                            if(!string.IsNullOrEmpty(_komentar))
+                            if (!string.IsNullOrEmpty(_komentar))
                             {
                                 var jednoRiadkovyKomentar = r.Read(poziciaHlavy, _komentar.Length);
                                 if (jednoRiadkovyKomentar == _komentar)
@@ -252,7 +228,7 @@ namespace PisaciStroj.Lexer
                                 {
                                     jeKomentar = true;
                                     komentar.Pozicia = poziciaHlavy;
-                                    komentar.Dlzka = 1;
+                                    komentar.Dlzka = _zaciatokKomentara.Length;
                                     poziciaHlavy++;
                                     continue;
                                 }
@@ -262,7 +238,7 @@ namespace PisaciStroj.Lexer
 
                     if (!jeRetazec)
                     {
-                        if(r.CharAt(poziciaHlavy) == '"' || r.CharAt(poziciaHlavy) == '\'')
+                        if (r.CharAt(poziciaHlavy) == '"' || r.CharAt(poziciaHlavy) == '\'')
                         {
                             jeRetazec = true;
                             retazec = new Token()
@@ -276,8 +252,8 @@ namespace PisaciStroj.Lexer
                     }
                     else
                     {
-                        if(poziciaHlavy < r.Length() - 1 && r.CharAt(poziciaHlavy) != '\\'
-                            && (r.CharAt(poziciaHlavy + 1) == '"' || r.CharAt(poziciaHlavy + 1) == '\'')) 
+                        if (poziciaHlavy < r.Length() - 2 && r.CharAt(poziciaHlavy) != '\\'
+                            && (r.CharAt(poziciaHlavy + 1) == '"' || r.CharAt(poziciaHlavy + 1) == '\''))
                         {
                             rowResult.Add(retazec.Pozicia, new Token()
                             {
@@ -285,7 +261,7 @@ namespace PisaciStroj.Lexer
                                 Pozicia = retazec.Pozicia,
                                 Dlzka = retazec.Dlzka + 2
                             });
-                            
+
                             jeRetazec = false;
 
                             poziciaHlavy += 2;
@@ -300,10 +276,14 @@ namespace PisaciStroj.Lexer
                         }
                     }
 
-                    if (zatvorky[riadok].ContainsKey(poziciaHlavy))
+                    Dictionary<int, Zatvorka> z;
+                    if (zatvorky.TryGetValue(riadok, out z))
                     {
-                        poziciaHlavy++;
-                        continue;
+                        if (z.ContainsKey(poziciaHlavy))
+                        {
+                            poziciaHlavy++;
+                            continue;
+                        }
                     }
 
                     if (JeBielyZnak(r.CharAt(poziciaHlavy)))
@@ -343,9 +323,19 @@ namespace PisaciStroj.Lexer
                 riadok++;
             }
 
+            return result;
+        }
+
+        public LexResult LexZoZatvorkami(List<GapBuffer> text)
+        {
+            var bmAlgo = new StackBracketMatching();
+            var zatvorky = bmAlgo.GetMatchingBrackets(text);
+
+            var tokeny = LexInternal(text, zatvorky);
+
             var lr = new LexResult()
             {
-                Tokeny = result,
+                Tokeny = tokeny,
                 Zatvorky = zatvorky
             };
 
@@ -365,7 +355,6 @@ namespace PisaciStroj.Lexer
             Token komentar = new Token();
 
             var jeRetazec = false;
-            Token retazec = new Token();
 
             foreach (var r in text)
             {
@@ -387,20 +376,6 @@ namespace PisaciStroj.Lexer
                             komentar.Pozicia = 0;
                             komentar.Dlzka = 0;
                         }
-
-                        //if (jeRetazec)
-                        //{
-                        //    rowResult.Add(retazec.Pozicia, new Token()
-                        //    {
-                        //        Typ = TypTokenu.Retazec,
-                        //        Pozicia = retazec.Pozicia,
-                        //        Dlzka = retazec.Dlzka
-                        //    });
-
-                        //    retazec.Pozicia = 0;
-                        //    retazec.Dlzka = 0;
-                        //    jeRetazec = false;
-                        //}
 
                         break;
                     }
@@ -457,7 +432,7 @@ namespace PisaciStroj.Lexer
                                 {
                                     jeKomentar = true;
                                     komentar.Pozicia = poziciaHlavy;
-                                    komentar.Dlzka = 1;
+                                    komentar.Dlzka = _zaciatokKomentara.Length;
                                     poziciaHlavy++;
                                     continue;
                                 }
@@ -470,11 +445,6 @@ namespace PisaciStroj.Lexer
                         if (r.CharAt(poziciaHlavy) == '"' || r.CharAt(poziciaHlavy) == '\'')
                         {
                             jeRetazec = true;
-                            retazec = new Token()
-                            {
-                                Pozicia = poziciaHlavy,
-                                Dlzka = 1
-                            };
                             poziciaHlavy++;
                             continue;
                         }
@@ -484,12 +454,6 @@ namespace PisaciStroj.Lexer
                         if (poziciaHlavy < r.Length() - 1 && r.CharAt(poziciaHlavy) != '\\'
                             && (r.CharAt(poziciaHlavy + 1) == '"' || r.CharAt(poziciaHlavy + 1) == '\''))
                         {
-                            rowResult.Add(retazec.Pozicia, new Token()
-                            {
-                                Typ = TypTokenu.Retazec,
-                                Pozicia = retazec.Pozicia,
-                                Dlzka = retazec.Dlzka + 2
-                            });
                             jeRetazec = false;
 
                             poziciaHlavy += 2;
@@ -497,7 +461,6 @@ namespace PisaciStroj.Lexer
                         }
                         else
                         {
-                            retazec.Dlzka++;
                             poziciaHlavy++;
 
                             continue;

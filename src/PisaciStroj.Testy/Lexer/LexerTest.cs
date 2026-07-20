@@ -4,6 +4,7 @@ using PisaciStroj.Lexer;
 using PisaciStroj.Pamat;
 using PisaciStroj.Testy;
 using PisaciStroj.Vyhladavanie;
+using PSMat.Testy.Lexer.Helpers;
 using PSMat.Testy.Lexer.Stubs;
 using PSMat.Testy.Obrazovka;
 using System;
@@ -24,8 +25,30 @@ namespace PSMat.Testy.Lexer
                 TestName = "JednoduchyLexerTest",
                 Pass = BasicTest()
             });
+            r.Add(new TestResult()
+            {
+                TestName = "VarVaraVarar",
+                Pass = VarVaraVarar()
+            });
 
             return r;
+        }
+
+        public bool VarVaraVarar()
+        {
+            var g = LexerStubs.CSharpGramatika();
+            var s = LexerStubs.JednoduchyRiadok();
+
+            var l = new LexAutomat(g);
+
+            var gb = new GapBuffer();
+            gb.Append(s.Text);
+
+            var t = l.Lex(gb);
+
+            var pass = TokensHelper.SuRovnakeTokeny(s.Tokens, t);
+
+            return pass;
         }
 
         public bool BasicTest()
@@ -39,7 +62,7 @@ namespace PSMat.Testy.Lexer
 
             var t = new List<GapBuffer>() { gb };
 
-            var tokeny = lexer.Lex(t);
+            var tokeny = lexer.LexZoZatvorkami(t);
 
             var ocakavane = new Dictionary<int, Token>
             {
@@ -57,23 +80,7 @@ namespace PSMat.Testy.Lexer
                     } },
             };
 
-            var pass = true;
-            if(tokeny.Tokeny.Count != 1)
-            {
-                pass = false;
-            }
-
-            if (tokeny.Tokeny[0][0].Typ != ocakavane[0].Typ
-                || tokeny.Tokeny[0][0].Pozicia != ocakavane[0].Pozicia
-                || tokeny.Tokeny[0][0].Dlzka != ocakavane[0].Dlzka
-
-
-                || tokeny.Tokeny[0][6].Typ != ocakavane[6].Typ
-                || tokeny.Tokeny[0][6].Pozicia != ocakavane[6].Pozicia
-                || tokeny.Tokeny[0][6].Dlzka != ocakavane[6].Dlzka) 
-            {
-                pass = false;
-            }
+            var pass = TokensHelper.SuRovnakeTokeny(tokeny.Tokeny[0], ocakavane);
 
             return pass;
         }

@@ -1,7 +1,15 @@
 ﻿using PisaciStroj.Lexer;
+using System.Collections.Generic;
 
 namespace PSMat.Testy.Lexer.Stubs
 {
+    public struct LexerStubData
+    {
+        public string Text { get; set; }
+
+        public Dictionary<int, Token> Tokens { get; set; }
+    }
+
     public static class LexerStubs
     {
         public static LexGramatika CmdLineGramatika()
@@ -66,6 +74,41 @@ namespace PSMat.Testy.Lexer.Stubs
             };
 
             return g;
+        }
+
+        public static LexerStubData JednoduchyRiadok()
+        {
+            return new LexerStubData()
+            {
+                Text = "var vara = \"var\"",
+                Tokens = new Dictionary<int, Token>()
+                {
+                    { 0, new Token()
+                    {
+                        Typ = TypTokenu.KlucoveSlovo,
+                        Pozicia = 0,
+                        Dlzka = 3
+                    } },
+                    { 4, new Token()
+                    {
+                        Typ = TypTokenu.Identifikator,
+                        Pozicia = 4,
+                        Dlzka = 4
+                    } },
+                    { 9, new Token()
+                    {
+                        Typ = TypTokenu.Operator,
+                        Pozicia = 9,
+                        Dlzka = 1
+                    } },
+                    { 11, new Token()
+                    {
+                        Typ = TypTokenu.Retazec,
+                        Pozicia = 11,
+                        Dlzka = 5
+                    } }
+                }
+            };
         }
     }
 }

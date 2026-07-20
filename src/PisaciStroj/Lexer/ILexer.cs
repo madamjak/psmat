@@ -73,7 +73,7 @@ namespace PisaciStroj.Lexer
 
         Dictionary<int, Token> Lex(GapBuffer text);
 
-        LexResult Lex(List<GapBuffer> text);
+        LexResult LexZoZatvorkami(List<GapBuffer> text);
 
         LexResult ZatvorkyAKomentare(List<GapBuffer> text);
     }
