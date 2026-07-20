@@ -37,8 +37,8 @@ namespace PisaciStroj.Testy
             //var testy = new GapBufferTest();
             //testy.Spust();
 
-            var t = new SyntaxHighlightTest();
-            t.CmdLineHighligting();
+            //var t = new SyntaxHighlightTest();
+            //t.CSharpHighlighting();
 
             //var t = new BracketMatchingTest();
             //t.Spust();
