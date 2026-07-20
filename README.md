@@ -1,7 +1,7 @@
 # PSMat
 
-<p align="center">
-<img src="./docs/images/royal_typewriter.png" alt="Typewriter image sourced from vecteezy.com">
+<p align="left">
+<img src="./docs/images/vecteezy_royal-typewriter_73201.png" alt="Typewriter image sourced from vecteezy.com" >
 </p>
 
 PSMat is simple text editor built for educational purposes to supplement bachelor thesis about data structures and algorithms used in text editors. The name is shortcut from "Pisaci Stroj autoMat" which you can loosely translate to english as "type writer automata".
