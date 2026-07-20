@@ -10,7 +10,13 @@ namespace PisaciAutomat.Obrazovka
 {
     public static class StylovaciAutomat
     {
-        public static string SyntaxHighligt(Dictionary<int, Token> tokens, GapBuffer riadok, int offset, int maxDlzka, VyhladaneSlovo? zvyraznenyText, FarbaPozadia pozadie, FarbaPozadia farbaZvyraznenia)
+        public static string SyntaxHighligt(Dictionary<int, Token> tokens, 
+            GapBuffer riadok, 
+            int offset, 
+            int maxDlzka, 
+            VyhladaneSlovo? zvyraznenyText, 
+            FarbaPozadia pozadie, 
+            FarbaPozadia farbaZvyraznenia)
         {
             var sb = new StringBuilder();
             var index = offset;
@@ -175,7 +181,7 @@ namespace PisaciAutomat.Obrazovka
             return sb.ToString();
         }
 
-        internal static string SyntaxAndSearchHighligt2(GapBuffer riadok, 
+        public static string SyntaxAndSearchHighligt2(GapBuffer riadok, 
             int offset, 
             int maxDlzka, 
             Dictionary<int, VyhladaneSlovo> slova, 
@@ -183,7 +189,8 @@ namespace PisaciAutomat.Obrazovka
             Dictionary<int, Token> tokeny, 
             Dictionary<int, Zatvorka> zatvorky, 
             Pozicia poziciaKurzora,
-            VyhladaneSlovo? zvyraznenyText)
+            VyhladaneSlovo? zvyraznenyText,
+            Dictionary<int, Token> regexTokens)
         {
             var sb = new StringBuilder();
             var index = 0;
@@ -194,6 +201,9 @@ namespace PisaciAutomat.Obrazovka
             Token? lastToken = null;
             bool extraZvyrazni = false;
             bool zvyrazniZatvorku = false;
+
+            Token? lastRegex = null;
+            var dlzkaRegexTokenu = 0;
             
             var dlzkaZvyraznenehoTextu = 0;
 
@@ -234,7 +244,7 @@ namespace PisaciAutomat.Obrazovka
                 }
 
                 Zatvorka z;
-                if(zatvorky.TryGetValue(index, out z))
+                if(zatvorky != null && zatvorky.TryGetValue(index, out z))
                 {
                     precitalZatvorku = true;
                     zvyrazniZatvorku = (poziciaKurzora.Riadok == z.Start.Riadok && poziciaKurzora.Stlpec == z.Start.Stlpec)
@@ -244,6 +254,13 @@ namespace PisaciAutomat.Obrazovka
                 if (zvyraznenyText.HasValue && zvyraznenyText.Value.Pozicia == index)
                 {
                     dlzkaZvyraznenehoTextu = Math.Min(zvyraznenyText.Value.Dlzka, maxDlzka);
+                }
+
+                Token r;
+                if(dlzkaRegexTokenu == 0 && regexTokens.TryGetValue(index, out r))
+                {
+                    dlzkaRegexTokenu = r.Dlzka;
+                    lastRegex = r;
                 }
 
                 if (dlzkaSlova > 0)
@@ -266,24 +283,57 @@ namespace PisaciAutomat.Obrazovka
                 {
                     if(index >= offset)
                     {
-                        var styl = VyberStyl(lastToken.Value.Typ);
-                        if (styl != StylTextu.Standard)
+                        if (precitalZatvorku)
                         {
-                            sb.Append(AnsiStyl(styl));
-                        }
-                        if (precitalSlovo)
-                        {
-                            sb.Append("\b");
-                        }
-                        sb.Append(riadok.Read(index, 1));
-                        if (styl != StylTextu.Standard || precitalSlovo)
-                        {
+                            sb.Append(AnsiStyl(StylTextu.RedBold));
+                            if (zvyrazniZatvorku)
+                            {
+                                sb.Append(StylZatvorky());
+                            }
+                            sb.Append(riadok.Read(index, 1));
                             sb.Append(AnsiReset());
+                        } else if (dlzkaRegexTokenu > 0)
+                        {
+                            var rstyl = VyberStylRegex(lastRegex.Value.Typ);
+                            if (rstyl != StylTextu.Standard)
+                            {
+                                sb.Append(AnsiStyl(rstyl));
+                            }
+                            if (precitalSlovo)
+                            {
+                                sb.Append("\b");
+                            }
+                            sb.Append(riadok.Read(index, 1));
+                            if (rstyl != StylTextu.Standard || precitalSlovo)
+                            {
+                                sb.Append(AnsiReset());
+                            }
+                        }
+                        else
+                        {
+                            var styl = VyberStyl(lastToken.Value.Typ);
+                            if (styl != StylTextu.Standard)
+                            {
+                                sb.Append(AnsiStyl(styl));
+                            }
+                            if (precitalSlovo)
+                            {
+                                sb.Append("\b");
+                            }
+                            sb.Append(riadok.Read(index, 1));
+                            if (styl != StylTextu.Standard || precitalSlovo)
+                            {
+                                sb.Append(AnsiReset());
+                            }
                         }
                     }
 
                     dlzkaTokenu--;
                     precitalToken = true;
+                    if(dlzkaRegexTokenu > 0)
+                    {
+                        dlzkaRegexTokenu--;
+                    }
                 }
 
                 if(!precitalToken && !precitalSlovo && precitalZatvorku)
@@ -414,6 +464,8 @@ namespace PisaciAutomat.Obrazovka
                     return "\u001b[3;2;1m";
                 case StylTextu.GreenItalic:
                     return "\u001b[3;32m";
+                case StylTextu.Green:
+                    return "\u001b[32m";
                 case StylTextu.OrangeBold:
                     return "\u001b[1;38;5;214m";
                 case StylTextu.OrangeClassic:
@@ -449,6 +501,7 @@ namespace PisaciAutomat.Obrazovka
             FaintBold,
             FaintItalic,
             GreenItalic,
+            Green,
             FaintBoldItalic,
             OrangeBold,
             OrangeClassic,
@@ -460,6 +513,19 @@ namespace PisaciAutomat.Obrazovka
             CyanBold,
             Blue,
             Biela
+        }
+
+        public static StylTextu VyberStylRegex(TypTokenu typ)
+        {
+            switch (typ)
+            {
+                case TypTokenu.Retazec:
+                    return StylTextu.OrangeClassic;
+                case TypTokenu.Operator:
+                    return StylTextu.CyanBold;
+                default:
+                    return StylTextu.Standard;
+            }
         }
 
         public static StylTextu VyberStyl(TypTokenu typ)
@@ -479,6 +545,8 @@ namespace PisaciAutomat.Obrazovka
                     return StylTextu.Yellow;
                 case TypTokenu.Komentar:
                     return StylTextu.GreenItalic;
+                case TypTokenu.Regex:
+                    return StylTextu.Green;
                 default:
                     return StylTextu.Standard;
             }

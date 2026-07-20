@@ -24,9 +24,9 @@ namespace PisaciStroj.Testy
     {
         static int Main(string[] args)
         {
-            return SpustTesty();
+            //return SpustTesty();
 
-            //return DebuggujTesty();
+            return DebuggujTesty();
         }
 
         private static int DebuggujTesty()
@@ -37,8 +37,8 @@ namespace PisaciStroj.Testy
             //var testy = new GapBufferTest();
             //testy.Spust();
 
-            //var t = new SyntaxHighlightTest();
-            //t.CSharpHighlighting();
+            var t = new SyntaxHighlightTest();
+            t.CmdLineHighligting();
 
             //var t = new BracketMatchingTest();
             //t.Spust();
@@ -50,7 +50,7 @@ namespace PisaciStroj.Testy
             //t.OtestujFollowPos2();
 
             //var t = new LexerTest();
-            //t.BasicTest();
+            //t.CmdLineRegexTest();
             return 0;
         }
 

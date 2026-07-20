@@ -20,13 +20,7 @@ namespace PSMat.Testy.Lexer.Stubs
                 Regex = "((f.n.e.x.t)|(f.p.r.e.v)|(f.a.l.l)|(r.a.l.l)|(r.f.r.s.t)|(r.s.t)|(s.a.a.s)).\u0000"
             };
 
-            var p2 = new LexPravidlo()
-            {
-                TypTokenu = TypTokenu.KlucovaFunkcia,
-                Regex = "(\\*|\\.|\\|).\u0000"
-            };
-
-            var pravidla = new LexPravidlo[] { p1, p2 };
+            var pravidla = new LexPravidlo[] { p1 };
             return new LexGramatika()
             {
                 Pravidla = pravidla

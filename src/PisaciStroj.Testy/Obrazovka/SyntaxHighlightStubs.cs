@@ -40,7 +40,7 @@ namespace PSMat.Testy.Obrazovka
         internal static List<GapBuffer> CmdLinePrikaz()
         {
             var r = new GapBuffer();
-            r.Append("saas \"C://temp/bla\"");
+            r.Append("saas \"C://temp/bla\" \\\\(a|b)*\\\\");
 
             return new List<GapBuffer>()
             {

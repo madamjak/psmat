@@ -41,7 +41,8 @@ namespace PisaciStroj.Lexer
         BieleMiesto,
         Symbol,
         Chyba,
-        KlucovaFunkcia
+        KlucovaFunkcia,
+        Regex
     }
 
     public struct Token
@@ -64,6 +65,8 @@ namespace PisaciStroj.Lexer
     {
         public Dictionary<int, Dictionary<int, Token>> Tokeny { get; set; }
 
+        public Dictionary<int, Dictionary<int, Token>> RegexTokeny { get; set; }
+
         public Dictionary<int, Dictionary<int, Zatvorka>> Zatvorky { get; set; }
     }
 
@@ -71,9 +74,9 @@ namespace PisaciStroj.Lexer
     {
         public void NastavLexer(LexGramatika gramatika);
 
-        Dictionary<int, Token> Lex(GapBuffer text);
+        Dictionary<int, Token> LexPreEditor(GapBuffer text);
 
-        LexResult LexZoZatvorkami(List<GapBuffer> text);
+        LexResult LexPrePrikazovyRiadok(List<GapBuffer> text);
 
         LexResult ZatvorkyAKomentare(List<GapBuffer> text);
     }
