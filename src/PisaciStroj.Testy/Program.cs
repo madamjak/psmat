@@ -2,6 +2,7 @@
 using PSMat.Testy.Obrazovka;
 using PSMat.Testy.Pamat;
 using PSMat.Testy.PrikazovyRiadok;
+using PSMat.Testy.Vyhladavanie;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,8 +38,8 @@ namespace PisaciStroj.Testy
             //var testy = new GapBufferTest();
             //testy.Spust();
 
-            var t = new SyntaxHighlightTest();
-            t.CmdLineHighligting();
+            //var t = new SyntaxHighlightTest();
+            //t.CmdLineHighligting();
 
             //var t = new BracketMatchingTest();
             //t.Spust();
@@ -49,8 +50,14 @@ namespace PisaciStroj.Testy
             //var t = new RegexAstTreeTest();
             //t.OtestujFollowPos2();
 
-            //var t = new LexerTest();
-            //t.CmdLineRegexTest();
+            var t = new LexerTest();
+            t.CmdLineRegexTest();
+
+            //var t = new VyhladavacTest();
+            //t.JednoduchyTestRegexVyhladavaca();
+
+            //var t = new RegexParserTest();
+            //t.ParseRegexTestKlucoveSlova();
             return 0;
         }
 
@@ -65,7 +72,9 @@ namespace PisaciStroj.Testy
                 new AhoSethiUllmanTest(),
                 new LexerTest(),
                 new BracketMatchingTest(),
-                new SyntaxHighlightTest()
+                new SyntaxHighlightTest(),
+                new VyhladavacTest(),
+                new RegexParserTest()
             };
 
             foreach (var t in testy)

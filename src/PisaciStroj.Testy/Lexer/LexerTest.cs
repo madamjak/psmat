@@ -39,7 +39,7 @@ namespace PSMat.Testy.Lexer
             ILexer lexer = new LexAutomat(g);
 
             var gb = new GapBuffer();
-            gb.Append("fnext \\\\(a|b)\\\\ \"lexer\" \\\\\"asdca");
+            gb.Append("fnext re{(a|b)} \"lexer\" r{\"asdca");
 
             var t = new List<GapBuffer>() { gb };
 
@@ -71,22 +71,22 @@ namespace PSMat.Testy.Lexer
 
             var ocakavaneRegex = new Dictionary<int, Token>
             {
-                { 9, new Token()
-                    {
-                        Typ = TypTokenu.Retazec,
-                        Pozicia = 9,
-                        Dlzka = 1
-                    } },
                 { 10, new Token()
                     {
-                        Typ = TypTokenu.Operator,
+                        Typ = TypTokenu.Retazec,
                         Pozicia = 10,
                         Dlzka = 1
                     } },
                 { 11, new Token()
                     {
-                        Typ = TypTokenu.Retazec,
+                        Typ = TypTokenu.Operator,
                         Pozicia = 11,
+                        Dlzka = 1
+                    } },
+                { 12, new Token()
+                    {
+                        Typ = TypTokenu.Retazec,
+                        Pozicia = 12,
                         Dlzka = 1
                     } },
             };

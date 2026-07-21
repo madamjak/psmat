@@ -44,7 +44,15 @@ namespace PisaciAutomat.Prikazy.Vyhladavanie
                 if (prikaz.VyhladavanyText != null)
                 {
                     search.VyhladavanyText = prikaz.VyhladavanyText;
-                    vyhladavac.NastavVyhladavanie(search.VyhladavanyText, prikaz.VyhladavanyRegex);
+                    if (prikaz.JeRegex)
+                    {
+                        vyhladavac.NastavRegexVyhladavanie(search.VyhladavanyText);
+                    }
+                    else
+                    {
+                        vyhladavac.NastavVyhladavanie(search.VyhladavanyText);
+                    }
+                    
                 }
             }
 

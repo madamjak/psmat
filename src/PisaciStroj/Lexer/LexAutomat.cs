@@ -7,6 +7,7 @@ namespace PisaciStroj.Lexer
 {
     public class LexAutomat : ILexer
     {
+        public static int RegexPrefix = 3;
         private AhoSethiUllman _sethiUllman;
         private MultipleDfaSimulator _dfa;
 
@@ -297,27 +298,34 @@ namespace PisaciStroj.Lexer
 
                     if (parsujRegex)
                     {
-                        
-                        if (poziciaHlavy <= r.Length() - 2 && r.CharAt(poziciaHlavy) == '\\'
-                                    && r.CharAt(poziciaHlavy + 1) == '\\')
+                        Dictionary<int, Zatvorka> rz;
+                        Zatvorka regUztvZatv;
+
+                        var re = r.Read(poziciaHlavy, RegexPrefix);
+                        if(re.Length == RegexPrefix 
+                            && re[0] == 'r' && re[1] == 'e' 
+                            && zatvorky.TryGetValue(riadok, out rz) && rz.TryGetValue(poziciaHlavy + RegexPrefix - 1, out regUztvZatv))
                         {
-                                
                             var regex = new Token()
                             {
+                                Typ = TypTokenu.Regex,
                                 Pozicia = poziciaHlavy,
-                                Dlzka = 2
+                                Dlzka = regUztvZatv.End.Stlpec + 1 //posun kurzor za zatvorku
+                                        - poziciaHlavy
                             };
-                            poziciaHlavy += 2;
 
-                            var tokeny = new Dictionary<int, Token>();
+                            rowResult.Add(poziciaHlavy, regex);
+
+                            poziciaHlavy += RegexPrefix;
+                            var koniecRegexu = regex.Pozicia + regex.Dlzka;
+                            
                             while (true)
                             {
-                                if(poziciaHlavy == r.Length())
+                                if(poziciaHlavy == koniecRegexu)
                                 {
                                     break;
                                 }
 
-                                Dictionary<int, Zatvorka> rz;
                                 if (zatvorky.TryGetValue(riadok, out rz))
                                 {
                                     if (rz.ContainsKey(poziciaHlavy))
@@ -339,31 +347,12 @@ namespace PisaciStroj.Lexer
                                     var token = VratNasledujuciToken(r, ref poziciaHlavy, _regexAutomat);
                                     if (token.HasValue)
                                     {
-                                        tokeny.Add(token.Value.Pozicia, token.Value);
+                                        regexTokeny.Add(token.Value.Pozicia, token.Value);
                                     }
                                 }
                                 else
                                 {
                                     _regexAutomat.Reset();
-
-                                    if (poziciaHlavy <= r.Length() - 2 && r.CharAt(poziciaHlavy) == '\\'
-                                    && r.CharAt(poziciaHlavy + 1) == '\\')
-                                    {
-                                        rowResult.Add(regex.Pozicia, new Token()
-                                        {
-                                            Typ = TypTokenu.Regex,
-                                            Pozicia = regex.Pozicia,
-                                            Dlzka = poziciaHlavy + 2 - regex.Pozicia
-                                        });
-
-                                        foreach (var t in tokeny)
-                                        {
-                                            regexTokeny.Add(t.Key, t.Value);
-                                        }
-
-                                        poziciaHlavy += 2;
-                                        break;
-                                    }
 
                                     poziciaHlavy++;
                                 }

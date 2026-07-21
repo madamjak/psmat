@@ -33,11 +33,16 @@ namespace PisaciAutomat.Prikazy.Vyhladavanie
                     }
                     p.Typ = typPrikazu == "fall" ? TypPrikazu.Vyhladaj : TypPrikazu.VyhladajDalsi;
 
-                    p.VyhladavanyText = prikazovyRiadok.Read(tokeny[1].Pozicia + 1, tokeny[1].Dlzka - 2);
+                    
 
                     if (tokeny[1].Typ == TypTokenu.Regex)
                     {
-                        p.VyhladavanyRegex = lexResults;
+                        p.JeRegex = true;
+                        p.VyhladavanyText = RegexParser.ParseRegex(lexResults, prikazovyRiadok, tokeny[1]);
+                    }
+                    else
+                    {
+                        p.VyhladavanyText = prikazovyRiadok.Read(tokeny[1].Pozicia + 1, tokeny[1].Dlzka - 2);
                     }
 
                     return r;
@@ -75,12 +80,16 @@ namespace PisaciAutomat.Prikazy.Vyhladavanie
                     }
 
                     p.Typ = typPrikazu == "rfrst" ? TypPrikazu.VyhladajNahrad : TypPrikazu.VyhladajNahradVsetky;
-                    p.VyhladavanyText = prikazovyRiadok.Read(tokeny[1].Pozicia + 1, tokeny[1].Dlzka - 2);
                     p.NovyText = prikazovyRiadok.Read(tokeny[2].Pozicia + 1, tokeny[2].Dlzka - 2);
 
                     if (tokeny[1].Typ == TypTokenu.Regex)
                     {
-                        p.VyhladavanyRegex = lexResults;
+                        p.JeRegex = true;
+                        p.VyhladavanyText = RegexParser.ParseRegex(lexResults, prikazovyRiadok, tokeny[1]);
+                    }
+                    else
+                    {
+                        p.VyhladavanyText = prikazovyRiadok.Read(tokeny[1].Pozicia + 1, tokeny[1].Dlzka - 2);
                     }
 
                     return r;
