@@ -19,7 +19,8 @@ namespace PisaciStroj.Vyhladavanie
 
     public interface IVyhladavac
     {
-        void NastavVyhladavanie(string vyhladavanyText, Lexer.LexResult vyhladavanyRegex);
+        void NastavVyhladavanie(string vyhladavanyText);
+        void NastavRegexVyhladavanie(string regex);
         VyhladaneSlovo? Vyhladaj(string vyhladavanyText, ParametreVypisu parametreVypisu, List<GapBuffer> riadky, bool obratene = false);
         VyhladaneSlovo? VyhladajNasledujuci(GapBuffer text, int pozicia, string vyhladavanyText, bool obratene = false);
         Dictionary<int, VyhladaneSlovo> VyhladajVsetky(GapBuffer riadok, string vyhladavanyText, bool obratene = false);
@@ -36,10 +37,8 @@ namespace PisaciStroj.Vyhladavanie
             _sethiUllman = new AhoSethiUllman();
         }
 
-        private void NastavVyhladavaciAutomat(string vyhladavanyText, LexResult lexResults)
+        private void NastavVyhladavaciAutomat(string regex)
         {
-            var regex = SkonstruujRegex(vyhladavanyText, lexResults);
-
             var a = _sethiUllman.BuildDfaForSearch(regex);
             
             _automat = new DfaSimulator(a);
@@ -63,9 +62,16 @@ namespace PisaciStroj.Vyhladavanie
             return VyhladajVsetkyInternal(riadok, vyhladavanyText, obratene, 0);
         }
 
-        public void NastavVyhladavanie(string vyhladavanyText, LexResult lexResults)
+        public void NastavRegexVyhladavanie(string regex)
         {
-            NastavVyhladavaciAutomat(vyhladavanyText, lexResults);
+            NastavVyhladavaciAutomat(regex);
+        }
+
+        public void NastavVyhladavanie(string vyhladavanyText)
+        {
+            var regex = SkonstruujRegex(vyhladavanyText);
+            
+            NastavVyhladavaciAutomat(regex);
         }
 
         public VyhladaneSlovo? Vyhladaj(string vyhladavanyText, ParametreVypisu parametreVypisu, List<GapBuffer> riadky)
@@ -154,7 +160,7 @@ namespace PisaciStroj.Vyhladavanie
             var result = default(VyhladaneSlovo?);
             var poziciaHlavy = pozicia;
             var najdenaPozicia = -1;
-
+            automat.Reset();
             while (true)
             {
                 if (poziciaHlavy == text.Length())
@@ -303,46 +309,24 @@ namespace PisaciStroj.Vyhladavanie
             return result;
         }
 
-        protected string SkonstruujRegex(string vyhladavanyText, LexResult lexResults)
+        private string SkonstruujRegex(string vyhladavanyText)
         {
             var sb = new StringBuilder();
 
-            if(lexResults != null && lexResults.RegexTokeny.Count > 0)
+            for (int i = 0; i < vyhladavanyText.Length; i++)
             {
-                return ParseRegex(lexResults, vyhladavanyText, sb);
-            }
-            else
-            {
-                for (int i = 0; i < vyhladavanyText.Length; i++)
+                var x = vyhladavanyText[i];
+                if (x == '(' || x == ')' || x == '.' || x == '*' || x == '|')
                 {
-                    var x = vyhladavanyText[i];
-                    if (x == '(' || x == ')' || x == '.' || x == '*' || x == '|')
-                    {
-                        sb.Append(string.Format("\\{0}", vyhladavanyText[i]));
-                    }
-                    else
-                    {
-                        sb.Append(vyhladavanyText[i]);
-                    }
-                    sb.Append('.');
+                    sb.Append(string.Format("\\{0}", vyhladavanyText[i]));
                 }
+                else
+                {
+                    sb.Append(vyhladavanyText[i]);
+                }
+                sb.Append('.');
             }
 
-            sb.Append('\0');
-
-            return sb.ToString();
-        }
-
-        private string ParseRegex(LexResult lexResults, string vyhladavanyText, StringBuilder sb)
-        {
-            sb.Append("(");
-            for (int i = 1; i < vyhladavanyText.Length - 1; i++)
-            {
-                sb.Append(vyhladavanyText[i]);
-            }
-            sb.Append(")");
-
-            sb.Append('.');
             sb.Append('\0');
 
             return sb.ToString();

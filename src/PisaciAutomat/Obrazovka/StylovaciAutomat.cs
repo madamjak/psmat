@@ -520,9 +520,11 @@ namespace PisaciAutomat.Obrazovka
             switch (typ)
             {
                 case TypTokenu.Retazec:
-                    return StylTextu.OrangeClassic;
+                    return StylTextu.Standard;
                 case TypTokenu.Operator:
                     return StylTextu.CyanBold;
+                case TypTokenu.KlucoveSlovo:
+                    return StylTextu.OrangeBold;
                 default:
                     return StylTextu.Standard;
             }

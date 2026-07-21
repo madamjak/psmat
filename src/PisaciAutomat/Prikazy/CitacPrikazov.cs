@@ -40,7 +40,7 @@ namespace PisaciAutomat.Prikazy
 
         public string VyhladavanyText { get; set; }
 
-        public LexResult VyhladavanyRegex { get; set; }
+        public bool JeRegex { get; set; }
 
         public string NovyText { get; set; }
 
