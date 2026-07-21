@@ -3,6 +3,7 @@ using PisaciStroj.Navigacia;
 using PisaciStroj.Pamat;
 using PisaciStroj.Vyhladavanie;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace PisaciAutomat.Prikazy
@@ -39,6 +40,8 @@ namespace PisaciAutomat.Prikazy
 
         public string VyhladavanyText { get; set; }
 
+        public LexResult VyhladavanyRegex { get; set; }
+
         public string NovyText { get; set; }
 
         public bool ZavriRiadok { get; internal set; }
@@ -65,7 +68,7 @@ namespace PisaciAutomat.Prikazy
 
                 if (Vyhladavanie.CitacPrikazov.VyhladavaciePrikazy.Contains(typPrikazu))
                 {
-                    return Vyhladavanie.CitacPrikazov.NacitajPrikaz(prikazovyRiadok, parts, typPrikazu);
+                    return Vyhladavanie.CitacPrikazov.NacitajPrikaz(prikazovyRiadok, parts, typPrikazu, tokeny);
                 }
                 else if (Subory.CitacPrikazov.VyhladavaciePrikazy.Contains(typPrikazu))
                 {

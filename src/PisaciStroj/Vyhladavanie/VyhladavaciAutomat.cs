@@ -1,4 +1,5 @@
 ﻿using Lexer.Algoritmy;
+using PisaciStroj.Lexer;
 using PisaciStroj.Pamat;
 using PisaciStroj.Parametre;
 using System.Collections.Generic;
@@ -18,7 +19,7 @@ namespace PisaciStroj.Vyhladavanie
 
     public interface IVyhladavac
     {
-        void NastavVyhladavanie(string vyhladavanyText);
+        void NastavVyhladavanie(string vyhladavanyText, Lexer.LexResult vyhladavanyRegex);
         VyhladaneSlovo? Vyhladaj(string vyhladavanyText, ParametreVypisu parametreVypisu, List<GapBuffer> riadky, bool obratene = false);
         VyhladaneSlovo? VyhladajNasledujuci(GapBuffer text, int pozicia, string vyhladavanyText, bool obratene = false);
         Dictionary<int, VyhladaneSlovo> VyhladajVsetky(GapBuffer riadok, string vyhladavanyText, bool obratene = false);
@@ -35,9 +36,9 @@ namespace PisaciStroj.Vyhladavanie
             _sethiUllman = new AhoSethiUllman();
         }
 
-        private void NastavVyhladavaciAutomat(string vyhladavanyText)
+        private void NastavVyhladavaciAutomat(string vyhladavanyText, LexResult lexResults)
         {
-            var regex = SkonstruujRegex(vyhladavanyText);
+            var regex = SkonstruujRegex(vyhladavanyText, lexResults);
 
             var a = _sethiUllman.BuildDfaForSearch(regex);
             
@@ -62,9 +63,9 @@ namespace PisaciStroj.Vyhladavanie
             return VyhladajVsetkyInternal(riadok, vyhladavanyText, obratene, 0);
         }
 
-        public void NastavVyhladavanie(string vyhladavanyText)
+        public void NastavVyhladavanie(string vyhladavanyText, LexResult lexResults)
         {
-            NastavVyhladavaciAutomat(vyhladavanyText);
+            NastavVyhladavaciAutomat(vyhladavanyText, lexResults);
         }
 
         public VyhladaneSlovo? Vyhladaj(string vyhladavanyText, ParametreVypisu parametreVypisu, List<GapBuffer> riadky)
@@ -138,11 +139,9 @@ namespace PisaciStroj.Vyhladavanie
 
         public VyhladaneSlovo? VyhladajNasledujuci(GapBuffer text, int pozicia, string vyhladavanyText, bool obratene = false)
         {
-            var regex = SkonstruujRegex(vyhladavanyText);
+            VhlAutomatatReset();
 
-            var automat = SkonstruujAutomat(regex);
-
-            return VyhladajNasledujuciInternal(text, pozicia, automat, obratene, 0);
+            return VyhladajNasledujuciInternal(text, pozicia, _automat, obratene, 0);
         }
 
         private VyhladaneSlovo? VyhladajNasledujuciInternal(GapBuffer text, int pozicia, IDfaSimulator automat, bool obratene, int indexRiadku)
@@ -235,25 +234,24 @@ namespace PisaciStroj.Vyhladavanie
             return result;
         }
 
-        public VyhladaneSlovo? VyhladajNasledujuciRegex(GapBuffer text, int pozicia, string regex)
-        {
-            var automat = SkonstruujAutomat(regex);
-
-            return VyhladajNasledujuciInternal(text, pozicia, automat, false, 0);
-        }
-
         private Dictionary<int, VyhladaneSlovo> VyhladajVsetkyInternal(GapBuffer text, string vyhladavanyText, bool obratene = false, int? indexRiadku = null)
         {
-            var regex = SkonstruujRegex(vyhladavanyText);
-
-            var automat = SkonstruujAutomat(regex);
+            VhlAutomatatReset();
 
             var i = 0;
             if (indexRiadku.HasValue)
             {
                 i = indexRiadku.Value;
             }
-            return VyhladajVsetkyInternal(text, automat, obratene, i);
+            return VyhladajVsetkyInternal(text, _automat, obratene, i);
+        }
+
+        private void VhlAutomatatReset()
+        {
+            if(_automat != null)
+            {
+                _automat.Reset();
+            }
         }
 
         private Dictionary<int, VyhladaneSlovo> VyhladajVsetkyInternal(GapBuffer text, IDfaSimulator automat, bool obratene, int indexRiadku)
@@ -305,43 +303,46 @@ namespace PisaciStroj.Vyhladavanie
             return result;
         }
 
-        public Dictionary<int, VyhladaneSlovo> VyhladajVsetkyRegex(GapBuffer text, string regex)
-        {
-            var automat = SkonstruujAutomat(regex);
-
-            return VyhladajVsetkyInternal(text, automat, false, 0);
-        }
-
-        protected virtual IDfaSimulator SkonstruujAutomat(string regex)
-        {
-            if(_automat != null)
-            {
-                _automat.Reset();
-                return _automat;
-            }
-
-            var automat = _sethiUllman.BuildDfaForSearch(regex);
-
-            return new DfaSimulator(automat);
-        }
-
-        protected string SkonstruujRegex(string vyhladavanyText)
+        protected string SkonstruujRegex(string vyhladavanyText, LexResult lexResults)
         {
             var sb = new StringBuilder();
-            for (int i = 0; i < vyhladavanyText.Length; i++)
+
+            if(lexResults != null && lexResults.RegexTokeny.Count > 0)
             {
-                var x = vyhladavanyText[i];
-                if (x == '(' || x == ')' || x == '.' || x == '*' || x == '|')
+                return ParseRegex(lexResults, vyhladavanyText, sb);
+            }
+            else
+            {
+                for (int i = 0; i < vyhladavanyText.Length; i++)
                 {
-                    sb.Append(string.Format("\\{0}", vyhladavanyText[i]));
+                    var x = vyhladavanyText[i];
+                    if (x == '(' || x == ')' || x == '.' || x == '*' || x == '|')
+                    {
+                        sb.Append(string.Format("\\{0}", vyhladavanyText[i]));
+                    }
+                    else
+                    {
+                        sb.Append(vyhladavanyText[i]);
+                    }
+                    sb.Append('.');
                 }
-                else
-                {
-                    sb.Append(vyhladavanyText[i]);
-                }
-                sb.Append('.');
             }
 
+            sb.Append('\0');
+
+            return sb.ToString();
+        }
+
+        private string ParseRegex(LexResult lexResults, string vyhladavanyText, StringBuilder sb)
+        {
+            sb.Append("(");
+            for (int i = 1; i < vyhladavanyText.Length - 1; i++)
+            {
+                sb.Append(vyhladavanyText[i]);
+            }
+            sb.Append(")");
+
+            sb.Append('.');
             sb.Append('\0');
 
             return sb.ToString();

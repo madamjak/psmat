@@ -12,7 +12,7 @@ namespace PisaciAutomat.Prikazy.Vyhladavanie
             "fall", "fnext", "fprev", "rfrst", "rall"
         };
 
-        public static PrikazovyAutomatResult NacitajPrikaz(GapBuffer prikazovyRiadok, List<Token> tokeny, string typPrikazu)
+        public static PrikazovyAutomatResult NacitajPrikaz(GapBuffer prikazovyRiadok, List<Token> tokeny, string typPrikazu, LexResult lexResults)
         {
             var r = new PrikazovyAutomatResult()
             {
@@ -23,25 +23,22 @@ namespace PisaciAutomat.Prikazy.Vyhladavanie
 
             try
             {
-                if (typPrikazu == "fall")
+                if (typPrikazu == "fall" || typPrikazu == "fnext")
                 {
-                    if (!(tokeny.Count == 2 && tokeny[1].Typ == TypTokenu.Retazec))
+                    if (!(tokeny.Count == 2 
+                        && (tokeny[1].Typ == TypTokenu.Retazec)
+                            || tokeny[1].Typ == TypTokenu.Regex))
                     {
                         return null;
                     }
-                    p.Typ = TypPrikazu.Vyhladaj;
+                    p.Typ = typPrikazu == "fall" ? TypPrikazu.Vyhladaj : TypPrikazu.VyhladajDalsi;
+
                     p.VyhladavanyText = prikazovyRiadok.Read(tokeny[1].Pozicia + 1, tokeny[1].Dlzka - 2);
 
-                    return r;
-                }
-                else if (typPrikazu == "fnext")
-                {
-                    if (!(tokeny.Count == 2 && tokeny[1].Typ == TypTokenu.Retazec))
+                    if (tokeny[1].Typ == TypTokenu.Regex)
                     {
-                        return null;
+                        p.VyhladavanyRegex = lexResults;
                     }
-                    p.Typ = TypPrikazu.VyhladajDalsi;
-                    p.VyhladavanyText = prikazovyRiadok.Read(tokeny[1].Pozicia + 1, tokeny[1].Dlzka - 2);
 
                     return r;
                 }
@@ -68,30 +65,23 @@ namespace PisaciAutomat.Prikazy.Vyhladavanie
 
                     return r;
                 }
-                else if (typPrikazu == "rfrst")
+                else if (typPrikazu == "rfrst" || typPrikazu == "rall")
                 {
-                    if (!(tokeny.Count == 3 && tokeny[1].Typ == TypTokenu.Retazec && tokeny[2].Typ == TypTokenu.Retazec))
+                    if (!(tokeny.Count == 3 
+                        && (tokeny[1].Typ == TypTokenu.Retazec || tokeny[1].Typ == TypTokenu.Regex)
+                        && tokeny[2].Typ == TypTokenu.Retazec))
                     {
                         return null;
                     }
 
-                    p.Typ = TypPrikazu.VyhladajNahrad;
+                    p.Typ = typPrikazu == "rfrst" ? TypPrikazu.VyhladajNahrad : TypPrikazu.VyhladajNahradVsetky;
                     p.VyhladavanyText = prikazovyRiadok.Read(tokeny[1].Pozicia + 1, tokeny[1].Dlzka - 2);
                     p.NovyText = prikazovyRiadok.Read(tokeny[2].Pozicia + 1, tokeny[2].Dlzka - 2);
 
-                    return r;
-                }
-                else if (typPrikazu == "rall")
-                {
-                    if (!(tokeny.Count == 3 && tokeny[1].Typ == TypTokenu.Retazec && tokeny[2].Typ == TypTokenu.Retazec))
+                    if (tokeny[1].Typ == TypTokenu.Regex)
                     {
-                        return null;
+                        p.VyhladavanyRegex = lexResults;
                     }
-
-                    p.Typ = TypPrikazu.VyhladajNahradVsetky;
-                    p.VyhladavanyText = prikazovyRiadok.Read(tokeny[1].Pozicia + 1, tokeny[1].Dlzka - 2);
-                    p.NovyText = prikazovyRiadok.Read(tokeny[2].Pozicia + 1, tokeny[2].Dlzka - 2);
-                    r.ZavriRiadok = true;
 
                     return r;
                 }

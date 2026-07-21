@@ -24,9 +24,9 @@ namespace PisaciStroj.Testy
     {
         static int Main(string[] args)
         {
-            //return SpustTesty();
+            return SpustTesty();
 
-            return DebuggujTesty();
+            //return DebuggujTesty();
         }
 
         private static int DebuggujTesty()
