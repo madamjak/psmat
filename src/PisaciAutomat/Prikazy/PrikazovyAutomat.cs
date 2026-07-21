@@ -52,7 +52,11 @@ namespace PisaciAutomat.Prikazy
 
         public PrikazovyAutomat()
         {
-            _lexer = new LexAutomat(NacitajLexGramatiku());
+            _lexer = new LexAutomat(new LexGramatika() 
+                                    {
+                                        Pravidla = GramatikaPrikazov.Gramatika()
+                                    });
+
             _riadok = new GapBuffer();
             _riadky = new List<GapBuffer> { _riadok };
             _parametreVypisu = new ParametreVypisu();
@@ -571,37 +575,6 @@ namespace PisaciAutomat.Prikazy
             {
                 sb.Append(VykreslovaciAutomat.NastavKurzor(1, _parametreVypisu.StlpecKurzora + 1));
                 sb.Append(VykreslovaciAutomat.NastavKurzorVisible());
-            }
-        }
-
-        private LexGramatika NacitajLexGramatiku()
-        {
-            try
-            {
-                var cesta = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Config/Lex/Commands.json");
-
-                LexGramatika gramatika;
-
-                using (var file = File.Open(cesta, FileMode.Open))
-                {
-                    using (var reader = new StreamReader(file))
-                    {
-                        var s = reader.ReadToEnd();
-
-                        gramatika = (LexGramatika)JsonConvert.DeserializeObject(s, typeof(LexGramatika));
-                    }
-                }
-
-                return gramatika;
-            }
-            catch (Exception ex)
-            {
-                ErrorLogger.GetInstance().Log(new Chyba()
-                {
-                    Ex = ex
-                });
-
-                return new LexGramatika();
             }
         }
     }

@@ -64,9 +64,9 @@ namespace PSMat.Testy.Obrazovka
             
             var ansi = sb.ToString();
 
-            Console.Write(ansi);
+            //Console.Write(ansi);
 
-            return ansi == "\u001b[48;5;236m\u001b[38;5;87msaas\u001b[0m\u001b[48;5;236m \u001b[0m\u001b[48;5;236m\u001b[38;5;27m\"C://temp/bla\"\u001b[0m";
+            return ansi == "\u001b[38;5;87ms\u001b[0m\u001b[38;5;87ma\u001b[0m\u001b[38;5;87ma\u001b[0m\u001b[38;5;87ms\u001b[0m \u001b[38;5;27m\"\u001b[0m\u001b[38;5;27mC\u001b[0m\u001b[38;5;27m:\u001b[0m\u001b[38;5;27m/\u001b[0m\u001b[38;5;27m/\u001b[0m\u001b[38;5;27mt\u001b[0m\u001b[38;5;27me\u001b[0m\u001b[38;5;27mm\u001b[0m\u001b[38;5;27mp\u001b[0m\u001b[38;5;27m/\u001b[0m\u001b[38;5;27mb\u001b[0m\u001b[38;5;27ml\u001b[0m\u001b[38;5;27ma\u001b[0m\u001b[38;5;27m\"\u001b[0m \u001b[32m\\\u001b[0m\u001b[32m\\\u001b[0m\u001b[1;38;5;196m(\u001b[0m\u001b[38;5;215ma\u001b[0m\u001b[1;38;5;87m|\u001b[0m\u001b[38;5;215mb\u001b[0m\u001b[1;38;5;196m)\u001b[0m\u001b[1;38;5;87m*\u001b[0m\u001b[32m\\\u001b[0m\u001b[32m\\\u001b[0m";
         }
 
         public bool CSharpHighlighting()

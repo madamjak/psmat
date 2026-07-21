@@ -13,9 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Config\Lex\Commands.Json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Config\Lex\Jazyk.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
