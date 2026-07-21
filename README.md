@@ -48,7 +48,7 @@ psmat C:\Tools\PSMat\ErrorLog\error-2026-07-17-17-19-37.txt
 ```
 
 ## Features
-The editor offers basic text editing features you would expect from a text editor, supplemented by configurable syntax highlighting and search feature. Text editing operations were designed in the attempt to be standard and usual for most users. Some of the keyboard shortcuts may be conflicting with Windows Terminal, and it may be needed to change Terminal settings to be able to use them with editor. 
+The editor offers basic text editing features you would expect from a text editor, supplemented by configurable syntax highlighting and search feature. Text editing operations were designed in an attempt to be standard and usual for most users. Some of the keyboard shortcuts may be conflicting with Windows Terminal, and it may be needed to change Terminal settings to be able to use them with editor. 
 Personally I needed to change for example [Ctrl] + [V] for paste or [Ctrl] + [Shift] + [Home] to select text from cursor to beginning.
 
 Syntax highlight is configurable via Jazyk.json file located in ```/Config``` folder in your installation location. Example simple config shown bellow. 
