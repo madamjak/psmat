@@ -31,7 +31,8 @@ namespace PisaciAutomat.Prikazy
         VyhladajNahrad,
         VyhladajNahradVsetky,
         UlozAko,
-        GoTo
+        GoToSlovo,
+        GoToPozicia
     }
 
     public class Prikaz
@@ -73,6 +74,10 @@ namespace PisaciAutomat.Prikazy
                 else if (Subory.CitacPrikazov.VyhladavaciePrikazy.Contains(typPrikazu))
                 {
                     return Subory.CitacPrikazov.NacitajPrikaz(prikazovyRiadok, parts, typPrikazu);
+                }
+                else if (Navigacia.CitacPrikazov.VyhladavaciePrikazy.Contains(typPrikazu))
+                {
+                    return Navigacia.CitacPrikazov.NacitajPrikaz(prikazovyRiadok, parts, typPrikazu);
                 }
                 else
                 {

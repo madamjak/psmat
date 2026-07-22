@@ -15,7 +15,7 @@ namespace PisaciAutomat.Prikazy.Vyhladavanie
 
         public static HashSet<TypPrikazu> TypyVyhladavacihPrikazov = new HashSet<TypPrikazu>()
         { TypPrikazu.Vyhladaj, TypPrikazu.VyhladajReset, TypPrikazu.VyhladajDalsi, TypPrikazu.VyhladajPredosly, TypPrikazu.VyhladajNahrad, TypPrikazu.VyhladajNahradVsetky,
-         TypPrikazu.GoTo };
+         TypPrikazu.GoToSlovo, TypPrikazu.GoToSlovo };
 
         public static ProcessorPrikazovResult SpracujPrikaz(Prikaz prikaz,
             ParametreVyhladavania search,
@@ -28,9 +28,18 @@ namespace PisaciAutomat.Prikazy.Vyhladavanie
                 Success = true
             };
 
-            if(prikaz.Typ == TypPrikazu.GoTo)
+            if(prikaz.Typ == TypPrikazu.GoToSlovo)
             {
                 search.VyhladaneSlovo = prikaz.GoTo;
+                var radok = Math.Max(0, prikaz.GoTo.Value.Riadok - 10);
+                var stlpec = prikaz.GoTo.Value.Pozicia + prikaz.GoTo.Value.Dlzka;
+                Kurzor.GoTo(radok, 0, parametreVypisu, editor.Riadky());
+                Kurzor.GoTo(prikaz.GoTo.Value.Riadok, stlpec, parametreVypisu, editor.Riadky());
+                return r;
+            }
+
+            if(prikaz.Typ == TypPrikazu.GoToPozicia)
+            {
                 var radok = Math.Max(0, prikaz.GoTo.Value.Riadok - 10);
                 var stlpec = prikaz.GoTo.Value.Pozicia + prikaz.GoTo.Value.Dlzka;
                 Kurzor.GoTo(radok, 0, parametreVypisu, editor.Riadky());

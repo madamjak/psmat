@@ -295,6 +295,11 @@ namespace PisaciAutomat
                     UlozSuborAko();
                     necitaj = true;
                 }
+                else if (vstup.Key == ConsoleKey.G)
+                {
+                    Goto();
+                    necitaj = true;
+                }
                 else if (vstup.Key == ConsoleKey.Q)
                 {
                     UkonciAplikaciu();
@@ -388,7 +393,7 @@ namespace PisaciAutomat
             var stavovyRiadok = new StavovyRiadokInfo()
             {
                 CestaKSuboru = _cestaKSuboru,
-                Stav = string.Format("Ln: {0}  Col: {1}  | Sel: {2} / {3}", _parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec,
+                Stav = string.Format("Ln: {0}  Col: {1}  | Sel: {2} / {3}", _parametreVypisu.IndexRiadok + 1, _parametreVypisu.IndexStlpec + 1,
                     _parametreVyberu.PocetZnakov > 0 ? _parametreVyberu.PocetZnakov.ToString() : "-",
                     _parametreVyberu.PocetRiadkov > 1 ? _parametreVyberu.PocetRiadkov.ToString() : "-"),
                 MaZmenu = _editor.MaZmenu(),
@@ -423,6 +428,16 @@ namespace PisaciAutomat
             {
                 UlozSuborAko = true,
                 ExistujucaCesta = _cestaKSuboru
+            };
+
+            CommandLineMode();
+        }
+
+        private void Goto()
+        {
+            _commandForCmdLine = new PrikazPrePrikazovyRiadok()
+            {
+                GoToPozicia = true
             };
 
             CommandLineMode();

@@ -165,7 +165,7 @@ namespace PisaciAutomat.Obrazovka
                     zvyraznenyText = Zvyraznovac.ZvyraznenyText(parametreVyberu, i, riadky[i].Length());
                 }
 
-                result.Riadky[riadokObrazovky] = string.Format("{0}{1}", Farby.StylCislaRiadkov((i).ToString(formatCislaRiadkov)),
+                result.Riadky[riadokObrazovky] = string.Format("{0}{1}", Farby.StylCislaRiadkov((i + 1).ToString(formatCislaRiadkov)),
                     StylovaciAutomat.SyntaxAndSearchHighligt2(riadky[i],
                     parametre.OffsetStlpec, parametre.Sirka - 1,
                     vyhladaneSlova, vSlovo, tokeny, zatvorky, poziciaKurzora,
