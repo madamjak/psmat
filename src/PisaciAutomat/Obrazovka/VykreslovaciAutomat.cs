@@ -15,8 +15,10 @@ namespace PisaciAutomat.Obrazovka
     public class ParametrePrekreslenia
     {
         public bool Resize { get; set; }
-
         public bool Necitaj { get; set; }
+        
+        public bool LenPrekresli { get; set; }
+
         
         //pre prikazovy riadok nastavene podla poctu riadkov
         public int OkrajVlavo { get; set; }
@@ -47,6 +49,8 @@ namespace PisaciAutomat.Obrazovka
 
         private StavovyRiadok _stavovyRiadok;
 
+        private LexResult _precitanyText;
+
         public VykreslovaciAutomat(ILexer lexer, IPisaciStroj editor, IVyhladavac vyhladavac)
         {
             _lexer = lexer;
@@ -59,16 +63,18 @@ namespace PisaciAutomat.Obrazovka
         {
             if (_aktualnaObrazovka != null && parametrePrekreslenia.Necitaj)
             {
-                //TODO v pripade navigace na zatvorku sa zatvorka nezvyrazni
                 _aktualnaObrazovka.Riadok = parametre.RiadokKurzora + 1;
                 _aktualnaObrazovka.Stlpec = parametre.StlpecKurzora + 1;
 
                 return _aktualnaObrazovka;
             }
 
-            var lexResult = _lexer.ZatvorkyAKomentare(_editor.Riadky());
+            if (!parametrePrekreslenia.LenPrekresli)
+            {
+                _precitanyText = _lexer.ZatvorkyAKomentare(_editor.Riadky());
+            }
 
-            return Precitaj2(parametre, search, lexResult, _editor, parametreVyberu, _lexer, _vyhladavac);
+            return Precitaj2(parametre, search, _precitanyText, _editor, parametreVyberu, _lexer, _vyhladavac);
         }
 
         public static EditorScreen Precitaj2(ParametreVypisu parametre,
