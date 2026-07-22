@@ -100,6 +100,7 @@ namespace PisaciAutomat
         public bool SpracujVstup(ConsoleKeyInfo vstup)
         {
             bool necitaj = false;
+            bool lenPrekresli = false;
 
             if (_cmdMode)
             {
@@ -151,11 +152,15 @@ namespace PisaciAutomat
                 {
                     bracketHighlightedPo = StackBracketMatching.Zatvorky.Contains(_editor.Riadky()[_parametreVypisu.IndexRiadok].CharAt(_parametreVypisu.IndexStlpec));
                 }
-                
-                var zmenaBracketHighlight = bracketHighlighted != bracketHighlightedPo;
+
+                var zmenaBracketHighlight = !(!bracketHighlighted && !bracketHighlightedPo);
                 if (!zmenaStranky && !zmenaVyberuTextu && !zmenaBracketHighlight)
                 {
                     necitaj = true;
+                }
+                if(zmenaVyberuTextu || zmenaBracketHighlight)
+                {
+                    lenPrekresli = true;
                 }
             }
             else if (vstup.Key == ConsoleKey.Backspace)
@@ -332,6 +337,7 @@ namespace PisaciAutomat
             var p = new ParametrePrekreslenia()
             {
                 Necitaj = necitaj,
+                LenPrekresli = lenPrekresli
             };
             Prekresli(p);
 
