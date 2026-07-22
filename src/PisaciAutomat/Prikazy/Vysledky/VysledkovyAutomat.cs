@@ -1,4 +1,5 @@
-﻿using PisaciAutomat.Obrazovka;
+﻿using PisaciAutomat.Config;
+using PisaciAutomat.Obrazovka;
 using PisaciStroj.Lexer;
 using PisaciStroj.Navigacia;
 using PisaciStroj.Pamat;
@@ -116,21 +117,23 @@ namespace PisaciAutomat.Prikazy.Vysledky
                     break;
                 }
 
-                var pozadie = StylovaciAutomat.FarbaPozadia.Siva;
+                var pozadie = Farby.FarbaPrikazRiadku();
+                var farbaVybraneho = Farby.FarbaVysledkov();
                 if (_parametreVypisu.IndexRiadok == i)
                 {
-                    pozadie = StylovaciAutomat.FarbaPozadia.CiernaDark;
+                    pozadie = Farby.FarbaVysledkov();
+                    farbaVybraneho = Farby.FarbaPrikazRiadku();
                 }
 
+                sb.Append(Farby.AnsiReset());
                 sb.Append(VykreslovaciAutomat.NastavKurzor(p.OkrajHore + 1 + pocetRiadkov, 1));
                 sb.Append(VykreslovaciAutomat.ZmazOdKurzoraPoKoniecRiadku());
 
                 if (_parametreVypisu.IndexRiadok == i)
                 {
                     sb.Append(VykreslovaciAutomat.NastavPozadie(p.OkrajVlavo - 2));
-                    sb.Append(StylovaciAutomat.AnsiStyl(StylovaciAutomat.StylTextu.Biela));
+                    sb.Append(Farby.AnsiStyl(Farby.FarbaIndikatoraPrikazRiadku()));
                     sb.Append("> ");
-                    sb.Append(StylovaciAutomat.AnsiReset());
                 }
                 else
                 {
@@ -144,14 +147,14 @@ namespace PisaciAutomat.Prikazy.Vysledky
                 sb.Append(StylovaciAutomat.SyntaxHighligt(tokeny, riadokEditora,
                     zaciatokRiadku,
                     _parametreVypisu.Sirka,
-                    zvyraznenyText, pozadie, StylovaciAutomat.FarbaPozadia.CiernaDark));
+                    zvyraznenyText, pozadie, farbaVybraneho));
 
                 var dlzkaVykresleneho = Math.Min(riadokEditora.Length() - zaciatokRiadku, _parametreVypisu.Sirka);
                 if (dlzkaVykresleneho < _parametreVypisu.Sirka)
                 {
-                    sb.Append(StylovaciAutomat.AnsiStyl(pozadie));
+                    sb.Append(Farby.AnsiStyl(pozadie));
                     sb.Append(VykreslovaciAutomat.NastavPozadie(_parametreVypisu.Sirka - dlzkaVykresleneho));
-                    sb.Append(StylovaciAutomat.AnsiReset());
+                    sb.Append(Farby.AnsiReset());
                 }
 
                 pocetRiadkov++;
@@ -165,6 +168,11 @@ namespace PisaciAutomat.Prikazy.Vysledky
             sb.Append(VykreslovaciAutomat.ZmazOdKurzoraPoKoniecRiadku());
             //medzera pred textom
             p.OkrajHore += pocetRiadkov + 1;
+        }
+
+        internal void ZmazInfoHlasku(StringBuilder sb)
+        {
+            VykreslovaciAutomat.ZmazHlasku(sb);
         }
     }
 }

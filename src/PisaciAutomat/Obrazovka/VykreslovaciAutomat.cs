@@ -1,4 +1,5 @@
-﻿using PisaciStroj;
+﻿using PisaciAutomat.Config;
+using PisaciStroj;
 using PisaciStroj.Lexer;
 using PisaciStroj.Navigacia;
 using PisaciStroj.Parametre;
@@ -164,7 +165,7 @@ namespace PisaciAutomat.Obrazovka
                     zvyraznenyText = Zvyraznovac.ZvyraznenyText(parametreVyberu, i, riadky[i].Length());
                 }
 
-                result.Riadky[riadokObrazovky] = string.Format("{0}  {1}", CislaRiadkov((i).ToString(formatCislaRiadkov)),
+                result.Riadky[riadokObrazovky] = string.Format("{0}{1}", Farby.StylCislaRiadkov((i).ToString(formatCislaRiadkov)),
                     StylovaciAutomat.SyntaxAndSearchHighligt2(riadky[i],
                     parametre.OffsetStlpec, parametre.Sirka - 1,
                     vyhladaneSlova, vSlovo, tokeny, zatvorky, poziciaKurzora,
@@ -186,6 +187,8 @@ namespace PisaciAutomat.Obrazovka
             ParametrePrekreslenia p, 
             StringBuilder sb)
         {
+            sb.Append(Farby.AnsiReset());
+
             if (!_cmdMode)
             {
                 sb.Append(NastavKurzor(1, 1));
@@ -202,8 +205,6 @@ namespace PisaciAutomat.Obrazovka
                 VykresliDialog(parametre, dialog, sb);
             }
 
-            sb.Append(_stavovyRiadok.Vykresli(p.Resize, stavovyRiadok, parametre));
-
             if (_aktualnaObrazovka == null || p.Resize)
             {
                 Vykresli(novaObrazovka, sb, stavovyRiadok, parametre);
@@ -214,33 +215,42 @@ namespace PisaciAutomat.Obrazovka
                 Prekresli(novaObrazovka, sb, stavovyRiadok, parametre, p);
                 _aktualnaObrazovka = novaObrazovka;
             }
+
+            _stavovyRiadok.Vykresli(p.Resize, stavovyRiadok, parametre, sb);
         }
 
         private static void VykresliDialog(ParametreVypisu parametre, string hlaska, StringBuilder sb)
         {
-            sb.Append(VykresliDialog(hlaska, parametre.OkrajVlavo));
+            sb.Append(VykresliDialog(hlaska, 1));
+            sb.Append(Farby.AnsiReset());
+            sb.Append(NastavKurzor(2, 1));
+            sb.Append(ZmazOdKurzoraPoKoniecRiadku());
+        }
+
+        public static void ZmazHlasku(StringBuilder sb)
+        {
             sb.Append(NastavKurzor(2, 1));
             sb.Append(ZmazOdKurzoraPoKoniecRiadku());
         }
 
         public static void VykresliInfoHlasku(ParametreVypisu parametre, Hlaska hlaska, StringBuilder sb)
         {
-            sb.Append(NastavKurzor(2, parametre.OkrajVlavo));
+            sb.Append(NastavKurzor(2, 1));
             sb.Append(ZmazOdKurzoraPoKoniecRiadku());
 
             if(hlaska.Typ == TypHlasky.Info)
             {
-                sb.Append(Info(hlaska.Sprava));
+                sb.Append(Farby.Info(hlaska.Sprava));
             }
 
             if(hlaska.Typ == TypHlasky.Chyba)
             {
-                sb.Append(Chyba(hlaska.Sprava));
+                sb.Append(Farby.Chyba(hlaska.Sprava));
             }
 
             if (hlaska.Typ == TypHlasky.Dialog)
             {
-                sb.Append(Dialog(hlaska.Sprava));
+                sb.Append(Farby.Dialog(hlaska.Sprava));
             }
 
             //sb.Append(HlaskaDialogu(hlaska));
@@ -311,30 +321,6 @@ namespace PisaciAutomat.Obrazovka
             return string.Format("\u001b[1K");
         }
 
-        public static string Info(string hlaska)
-        {
-            return string.Format("\u001b[44;1m{0}\u001b[0m{1}{2} {3} \u001b[0m", " i ",
-                StylovaciAutomat.AnsiStyl(StylovaciAutomat.FarbaPozadia.Siva),
-                StylovaciAutomat.AnsiStyl(StylovaciAutomat.StylTextu.Biela),  
-                hlaska);
-        }
-
-        public static string Dialog(string hlaska)
-        {
-            return string.Format("\u001b[42;1m{0}\u001b[0m{1}{2} {3} \u001b[0m", " ? ",
-                StylovaciAutomat.AnsiStyl(StylovaciAutomat.FarbaPozadia.Siva),
-                StylovaciAutomat.AnsiStyl(StylovaciAutomat.StylTextu.Biela),
-                hlaska);
-        }
-
-        public static string Chyba(string hlaska)
-        {
-            return string.Format("\u001b[41;1m{0}\u001b[0m{1}{2} {3} \u001b[0m", " ! ",
-                StylovaciAutomat.AnsiStyl(StylovaciAutomat.FarbaPozadia.Siva),
-                StylovaciAutomat.AnsiStyl(StylovaciAutomat.StylTextu.Biela),
-                hlaska);
-        }
-
         public static string Chyba2()
         {
             return string.Format("\u001b[41;1m{0}\u001b[0m", " ! ");
@@ -343,32 +329,17 @@ namespace PisaciAutomat.Obrazovka
         public static string HlaskaDialogu(string v)
         {
             //return string.Format("\u001b[42;1m {0} \u001b[0m", v);
-            return Dialog(v);
+            return Farby.Dialog(v);
         }
 
-        public static string CislaRiadkov(string v)
-        {
-            return string.Format("\u001b[2m{0}\u001b[0m", v);
-        }
 
         public static string VykresliDialog(string hlaska, int okraj)
         {
             var sb = new StringBuilder();
             sb.Append(NastavKurzor(1, 1));
             sb.Append(ZmazOdKurzoraPoKoniecRiadku());
-            sb.Append(NastavKurzor(1, okraj + 1));
+            sb.Append(NastavKurzor(1, 1));
             sb.Append(HlaskaDialogu(hlaska));
-
-            return sb.ToString();
-        }
-
-        public static string VykresliChybu(int okraj)
-        {
-            var sb = new StringBuilder();
-            sb.Append(VykreslovaciAutomat.NastavKurzor(2, 1));
-            sb.Append(VykreslovaciAutomat.ZmazOdKurzoraPoKoniecRiadku());
-            sb.Append(VykreslovaciAutomat.NastavKurzor(2, okraj + 1));
-            sb.Append(VykreslovaciAutomat.Chyba2());
 
             return sb.ToString();
         }

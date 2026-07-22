@@ -1,4 +1,5 @@
-﻿using PisaciAutomat.Obrazovka;
+﻿using PisaciAutomat.Config;
+using PisaciAutomat.Obrazovka;
 using PisaciStroj.Chyby;
 using PSMat.Windows;
 using System;
@@ -23,6 +24,9 @@ namespace PSMat
 
         public static void Main(string[] args)
         {
+            var consoleBgColor = Console.BackgroundColor;
+            var consoleFgColor = Console.ForegroundColor;
+
             try
             {
                 if (PisaciAutomat.OperatingSystem.IsWindows())
@@ -32,8 +36,9 @@ namespace PSMat
                     Console.TreatControlCAsInput = true;
                 }
 
-                var cestaKSuboru = args != null && args.Length == 1 ? args[0] : null;
-                NacitajSubor(cestaKSuboru);
+                NacitajSubor(args);
+
+                NastavDarkMode(args);
 
                 Thread resizeThread = new Thread(ResizeListener)
                 {
@@ -56,24 +61,27 @@ namespace PSMat
                         break;
                     }
                 }
+
+                ResetujPozadieKonzoly(consoleBgColor, consoleFgColor);
             }
             catch (Exception ex)
             {
                 _chyba = true;
 
                 Console.Write(VykreslovaciAutomat.EraseScreen());
+                ResetujPozadieKonzoly(consoleBgColor, consoleFgColor);
                 
                 var logger = ErrorLogger.GetInstance();
                 logger.Log(new Chyba() { Ex = ex });
                 var cesta = logger.UlozDoSuboru();
                 var sprava =
                     string.Format("Neocakavana chyba, mozne nahlasit na {0}{1}{2} a pridat zaznam ulozeny v subore {3}{4}{5}",
-                    StylovaciAutomat.AnsiStyl(StylovaciAutomat.StylTextu.Cyan), 
-                    "https://github.com/madamjak/psmat/issues/", 
-                    StylovaciAutomat.AnsiReset(),
-                    StylovaciAutomat.AnsiStyl(StylovaciAutomat.StylTextu.Yellow), 
+                    Farby.AnsiStyl(Farby.StylTextu.Cyan), 
+                    "https://github.com/madamjak/psmat/issues/",
+                    Farby.AnsiReset2(),
+                    Farby.AnsiStyl(Farby.StylTextu.Yellow), 
                     cesta,
-                    StylovaciAutomat.AnsiReset());
+                    Farby.AnsiReset2());
                 Console.Write(VykreslovaciAutomat.VykresliChybu2(sprava));
             }
             finally
@@ -88,6 +96,38 @@ namespace PSMat
 
                 Environment.Exit(_chyba ? 1 : 0);
             }
+        }
+
+        private static void ResetujPozadieKonzoly(ConsoleColor consoleBgColor, ConsoleColor consoleFgColor)
+        {
+            Console.BackgroundColor = consoleBgColor;
+            Console.ForegroundColor = consoleFgColor;
+            Console.Clear();
+        }
+
+        private static void NastavDarkMode(string[] args)
+        {
+            var darkMode = false;
+            if(args != null && args.Length > 0)
+            {
+                for(int i = 0; i < args.Length; i++)
+                {
+                    if(args[i] == "-dm")
+                    {
+                        darkMode = true;
+                    }
+                }
+            }
+
+            if (darkMode)
+            {
+                Farby.DarkMode = true;
+            }
+                
+            Console.Write(Farby.AnsiReset());
+
+            //nastav kurzor
+            Console.Write(Farby.StylKurzora());
         }
 
         private static bool OperaciaSEditorom(AkciaSEditorom akcia)
@@ -106,8 +146,20 @@ namespace PSMat
             }
         }
 
-        private static void NacitajSubor(string cesta)
+        private static void NacitajSubor(string[] args)
         {
+            var cesta = string.Empty;
+            if (args != null && args.Length > 0)
+            {
+                for (int i = 0; i < args.Length; i++)
+                {
+                    if (args[i] != "-dm")
+                    {
+                        cesta = args[i];
+                    }
+                }
+            }
+
             var editor = PisaciAutomat.Program.GetInstance();
 
             editor.NacitajSubor(cesta);
