@@ -652,6 +652,36 @@ namespace PisaciAutomat
             }
         }
 
+        public string UlozZalohu()
+        {
+            try 
+            {
+                if (_editor.MaZmenu())
+                {
+                    var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Backup");
+                    if (!Directory.Exists(dir))
+                    {
+                        Directory.CreateDirectory(dir);
+                    }
+
+                    var cesta = Path.Combine(dir, string.Format("backup-{0}.txt", DateTime.Now.ToString("yyy-MM-dd-HH-mm-ss")));
+
+                    using (var writer = new StreamWriter(Path.GetFullPath(cesta)))
+                    {
+                        writer.Write(_editor.PrecitajTextNaUlozenie());
+                    }
+
+                    return cesta;
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
         public void NacitajSubor(string cesta)
         {
             if (string.IsNullOrWhiteSpace(cesta))

@@ -82,7 +82,15 @@ namespace PSMat
                     Farby.AnsiStyl(Farby.StylTextu.Yellow), 
                     cesta,
                     Farby.AnsiReset2());
-                Console.Write(VykreslovaciAutomat.VykresliChybu2(sprava));
+                Console.WriteLine(VykreslovaciAutomat.VykresliChybu2(sprava));
+
+                var cestaZalohy = PisaciAutomat.Program.GetInstance().UlozZalohu();
+                if (cestaZalohy != null)
+                {
+                    Console.Write(string.Format("Zaloha rozpracovanej prace ulozena v subore {0}{1}{2}", Farby.AnsiStyl(Farby.StylTextu.Yellow),
+                    cestaZalohy,
+                    Farby.AnsiReset2()));
+                }
             }
             finally
             {
