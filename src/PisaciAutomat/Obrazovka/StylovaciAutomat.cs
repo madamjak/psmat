@@ -1,10 +1,12 @@
-﻿using PisaciStroj.Lexer;
+﻿using PisaciAutomat.Config;
+using PisaciStroj.Lexer;
 using PisaciStroj.Navigacia;
 using PisaciStroj.Pamat;
 using PisaciStroj.Vyhladavanie;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using static PisaciAutomat.Config.Farby;
 
 namespace PisaciAutomat.Obrazovka
 {
@@ -43,7 +45,7 @@ namespace PisaciAutomat.Obrazovka
                 Token t;
                 if (dlzkaZvyraznenehoTextu > 0)
                 {
-                    sb.Append(StylVyberuTextu(farbaZvyraznenia));
+                    sb.Append(AnsiStyl(farbaZvyraznenia));
                     sb.Append(riadok.Read(index, 1));
                     sb.Append(AnsiReset());
                     dlzkaZvyraznenehoTextu--;
@@ -89,98 +91,6 @@ namespace PisaciAutomat.Obrazovka
             return sb.ToString();
         }
 
-
-        public static string SyntaxAndSearchHighligt(Dictionary<int, Token> tokens, GapBuffer riadok, int offset, int maxDlzka, Dictionary<int, VyhladaneSlovo> slova, VyhladaneSlovo? vyhladaneSlovo)
-        {
-            var sb = new StringBuilder();
-            var index = offset;
-            var dlzka = 0;
-
-            var dlzkaSlova = 0;
-            var dlzkaTokenu = 0;
-            Token? lastToken = null;
-            bool extraZvyrazni = false;
-
-            while (true)
-            {
-                var precitalSlovo = false;
-                var precitalToken = false;
-
-                if (index >= riadok.Length())
-                {
-                    break;
-                }
-
-                if (dlzka == maxDlzka)
-                {
-                    break;
-                }
-
-                VyhladaneSlovo s;
-                if (dlzkaSlova == 0 && slova.TryGetValue(index, out s))
-                {
-                    dlzkaSlova = s.Dlzka;
-                    extraZvyrazni = vyhladaneSlovo.HasValue && vyhladaneSlovo.Value.Pozicia == s.Pozicia;
-                }
-
-                Token t;
-                if (dlzkaTokenu == 0 && tokens.TryGetValue(index, out t))
-                {
-                    dlzkaTokenu = t.Dlzka;
-                    lastToken = t;
-                }
-
-                if (dlzkaSlova > 0) 
-                { 
-                    sb.Append(extraZvyrazni ? StylSearchResultExtra() : StylSearchResult());
-
-                    sb.Append(riadok.Read(index, 1));
-
-                    if (dlzkaTokenu == 0)
-                    {
-                        sb.Append(AnsiReset());
-                    }
-
-                    dlzkaSlova--;
-                    precitalSlovo = true;
-                }
-
-                if (dlzkaTokenu > 0)
-                {
-                    var styl = VyberStyl(lastToken.Value.Typ);
-                    if (styl != StylTextu.Standard)
-                    {
-                        sb.Append(AnsiStyl(styl));
-                    }
-
-                    if (precitalSlovo)
-                    {
-                        sb.Append("\b");
-                    }
-
-                    sb.Append(riadok.Read(index, 1));
-
-                    if (styl != StylTextu.Standard || precitalSlovo)
-                    {
-                        sb.Append(AnsiReset());
-                    }
-
-                    dlzkaTokenu--;
-                    precitalToken = true;
-                }
-
-                if (!precitalSlovo && !precitalToken)
-                {
-                    sb.Append(riadok.Read(index, 1));
-                }
-
-                index += 1;
-                dlzka += 1;
-            }
-
-            return sb.ToString();
-        }
-
         public static string SyntaxAndSearchHighligt2(GapBuffer riadok, 
             int offset, 
             int maxDlzka, 
@@ -190,7 +100,8 @@ namespace PisaciAutomat.Obrazovka
             Dictionary<int, Zatvorka> zatvorky, 
             Pozicia poziciaKurzora,
             VyhladaneSlovo? zvyraznenyText,
-            Dictionary<int, Token> regexTokens)
+            Dictionary<int, Token> regexTokens,
+            FarbaPozadia? pozadieRiadku = null)
         {
             var sb = new StringBuilder();
             var index = 0;
@@ -207,6 +118,7 @@ namespace PisaciAutomat.Obrazovka
             
             var dlzkaZvyraznenehoTextu = 0;
 
+            sb.Append(AnsiReset(pozadieRiadku));
             while (true)
             {
                 var precitalSlovo = false;
@@ -217,9 +129,9 @@ namespace PisaciAutomat.Obrazovka
                 {
                     if(index == 0 && zvyraznenyText.HasValue)
                     {
-                        sb.Append(StylVyberuTextu(FarbaPozadia.Modra));
+                        sb.Append(AnsiStyl(Farby.FarbaVysledkov()));
                         sb.Append(" ");
-                        sb.Append(AnsiReset());
+                        sb.Append(AnsiReset(pozadieRiadku));
                     }
                     break;
                 }
@@ -271,7 +183,7 @@ namespace PisaciAutomat.Obrazovka
                         sb.Append(riadok.Read(index, 1));
                         if (dlzkaTokenu == 0)
                         {
-                            sb.Append(AnsiReset());
+                            sb.Append(AnsiReset(pozadieRiadku));
                         }
                     }
 
@@ -285,13 +197,12 @@ namespace PisaciAutomat.Obrazovka
                     {
                         if (precitalZatvorku)
                         {
-                            sb.Append(AnsiStyl(StylTextu.RedBold));
                             if (zvyrazniZatvorku)
                             {
-                                sb.Append(StylZatvorky());
+                                sb.Append(Farby.StylSearchResultExtra());
                             }
                             sb.Append(riadok.Read(index, 1));
-                            sb.Append(AnsiReset());
+                            sb.Append(AnsiReset(pozadieRiadku));
                         } else if (dlzkaRegexTokenu > 0)
                         {
                             var rstyl = VyberStylRegex(lastRegex.Value.Typ);
@@ -306,7 +217,7 @@ namespace PisaciAutomat.Obrazovka
                             sb.Append(riadok.Read(index, 1));
                             if (rstyl != StylTextu.Standard || precitalSlovo)
                             {
-                                sb.Append(AnsiReset());
+                                sb.Append(AnsiReset(pozadieRiadku));
                             }
                         }
                         else
@@ -323,7 +234,7 @@ namespace PisaciAutomat.Obrazovka
                             sb.Append(riadok.Read(index, 1));
                             if (styl != StylTextu.Standard || precitalSlovo)
                             {
-                                sb.Append(AnsiReset());
+                                sb.Append(AnsiReset(pozadieRiadku));
                             }
                         }
                     }
@@ -340,13 +251,12 @@ namespace PisaciAutomat.Obrazovka
                 {
                     if(index >= offset)
                     {
-                        sb.Append(AnsiStyl(StylTextu.RedBold));
                         if (zvyrazniZatvorku)
                         {
-                            sb.Append(StylZatvorky());
+                            sb.Append(Farby.StylSearchResultExtra());
                         }
                         sb.Append(riadok.Read(index, 1));
-                        sb.Append(AnsiReset());
+                        sb.Append(AnsiReset(pozadieRiadku));
                     }
                 }
                 
@@ -359,10 +269,10 @@ namespace PisaciAutomat.Obrazovka
                 {
                     if(index >= offset)
                     {
-                        sb.Append(StylVyberuTextu(FarbaPozadia.Modra));
+                        sb.Append(Farby.AnsiStyl(Farby.FarbaVysledkov()));
                         sb.Append("\b");
                         sb.Append(riadok.Read(index, 1));
-                        sb.Append(AnsiReset());
+                        sb.Append(AnsiReset(pozadieRiadku));
 
                         dlzkaZvyraznenehoTextu--;
                     }
@@ -376,182 +286,6 @@ namespace PisaciAutomat.Obrazovka
             }
 
             return sb.ToString();
-        }
-
-        private static string StylSearchResult()
-        {
-            return string.Format("\u001b[42;1m");
-        }
-
-        private static string StylSearchResultExtra()
-        {
-            return string.Format("\u001b[41;1m");
-        }
-
-        private static string StylZatvorky()
-        {
-            return string.Format("\u001b[48;5;250m");
-        }
-
-        private static string StylVyberuTextu(FarbaPozadia p)
-        {
-            //return string.Format("\u001b[1;37;44m");
-            return AnsiStyl(p);
-        }
-
-        public static string AnsiReset()
-        {
-            return "\u001b[0m";
-        }
-                
-        public enum FarbaPozadia
-        {
-            Zlta,
-            Cyan,
-            Siva,
-            Modra,
-            Cervena,
-            Zelena,
-            Biela,
-            CervenaLight,
-            CiernaDark
-        }
-        
-        public static string AnsiStyl(FarbaPozadia p)
-        {
-            switch (p)
-            {
-                case FarbaPozadia.Zlta:
-                    return "\u001b[1;90;103m";
-                case FarbaPozadia.Cyan:
-                    return "\u001b[1;90;106m";
-                case FarbaPozadia.Siva:
-                    return "\u001b[48;5;236m";
-                case FarbaPozadia.Biela:
-                    return "\u001b[1;90;107m";
-                case FarbaPozadia.Modra:
-                    return "\u001b[44m";
-                case FarbaPozadia.Cervena:
-                    return "\u001b[41;1m";
-                case FarbaPozadia.Zelena:
-                    return "\u001b[42;1m";
-                case FarbaPozadia.CervenaLight:
-                    return "\u001b[48;5;124m";
-                case FarbaPozadia.CiernaDark:
-                    return "\u001b[48;5;232m";
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
-        public static string AnsiStyl(StylTextu styl)
-        {
-            switch (styl)
-            {
-                case StylTextu.Bold:
-                    return "\u001b[1m";
-                case StylTextu.Faint:
-                    return "\u001b[2m";
-                case StylTextu.Italic:
-                    return "\u001b[3m";
-                case StylTextu.Underline:
-                    return "\u001b[4m";
-                case StylTextu.FaintItalic:
-                    return "\u001b[2;3m";
-                case StylTextu.FaintBold:
-                    return "\u001b[2;1m";
-                case StylTextu.FaintBoldItalic:
-                    return "\u001b[3;2;1m";
-                case StylTextu.GreenItalic:
-                    return "\u001b[3;32m";
-                case StylTextu.Green:
-                    return "\u001b[32m";
-                case StylTextu.OrangeBold:
-                    return "\u001b[1;38;5;214m";
-                case StylTextu.OrangeClassic:
-                    return "\u001b[38;5;215m";
-                case StylTextu.YellowItalic:
-                    return "\u001b[3;38;5;226m";
-                case StylTextu.Yellow:
-                    return "\u001b[38;5;226m";
-                case StylTextu.RedBold:
-                    return "\u001b[1;38;5;196m";
-                case StylTextu.Red:
-                    return "\u001b[38;5;196m";
-                case StylTextu.Cyan:
-                    return "\u001b[38;5;87m";
-                case StylTextu.CyanBold:
-                    return "\u001b[1;38;5;87m";
-                case StylTextu.Blue:
-                    return "\u001b[38;5;27m";
-                case StylTextu.Biela:
-                    return "\u001b[38;5;15m";
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
-        public enum StylTextu
-        {
-            Standard,
-            Bold,
-            Faint,
-            Italic,
-            Underline,
-            FaintBold,
-            FaintItalic,
-            GreenItalic,
-            Green,
-            FaintBoldItalic,
-            OrangeBold,
-            OrangeClassic,
-            YellowItalic,
-            RedBold,
-            Red,
-            Yellow,
-            Cyan,
-            CyanBold,
-            Blue,
-            Biela
-        }
-
-        public static StylTextu VyberStylRegex(TypTokenu typ)
-        {
-            switch (typ)
-            {
-                case TypTokenu.Retazec:
-                    return StylTextu.Standard;
-                case TypTokenu.Operator:
-                    return StylTextu.CyanBold;
-                case TypTokenu.KlucoveSlovo:
-                    return StylTextu.OrangeBold;
-                default:
-                    return StylTextu.Standard;
-            }
-        }
-
-        public static StylTextu VyberStyl(TypTokenu typ)
-        {
-            switch (typ)
-            {
-                case TypTokenu.KlucoveSlovo:
-                    return StylTextu.Cyan;
-                case TypTokenu.KlucovaFunkcia:
-                    return StylTextu.OrangeClassic;
-                case TypTokenu.Operator:
-                case TypTokenu.Symbol:
-                    return StylTextu.RedBold;
-                case TypTokenu.Retazec:
-                    return StylTextu.Blue;
-                case TypTokenu.Cislo:
-                    return StylTextu.Yellow;
-                case TypTokenu.Komentar:
-                    return StylTextu.GreenItalic;
-                case TypTokenu.Regex:
-                    return StylTextu.Green;
-                default:
-                    return StylTextu.Standard;
-            }
         }
     }
 }

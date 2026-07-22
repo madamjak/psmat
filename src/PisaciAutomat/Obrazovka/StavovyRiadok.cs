@@ -1,4 +1,5 @@
-﻿using PisaciStroj.Parametre;
+﻿using PisaciAutomat.Config;
+using PisaciStroj.Parametre;
 using PisaciStroj.Vypis;
 using System;
 using System.Collections.Generic;
@@ -17,9 +18,10 @@ namespace PisaciAutomat.Obrazovka
     {
         private static StavovyRiadokInfo _aktualnyStav;
 
-        public string Vykresli(bool resize, StavovyRiadokInfo stavovyRiadok, ParametreVypisu parametre)
+        public string Vykresli(bool resize, StavovyRiadokInfo stavovyRiadok, ParametreVypisu parametre, StringBuilder sb)
         {
-            var sb = new StringBuilder();
+            sb.Append(Farby.AnsiStyl(Farby.FarbaIndikatoraPrikazRiadku()));
+            sb.Append(Farby.AnsiStyl(Farby.FarbaPrikazRiadku()));
             if (_aktualnyStav == null || resize)
             {
                 sb.Append(VykresliStavovyRiadok(stavovyRiadok, parametre));
@@ -39,6 +41,7 @@ namespace PisaciAutomat.Obrazovka
                 _aktualnyStav = stavovyRiadok;
             }
 
+            sb.Append(Farby.AnsiReset());
             return sb.ToString();
         }
 
@@ -63,8 +66,8 @@ namespace PisaciAutomat.Obrazovka
                     stavovyRiadok.Stav = string.Format("{0}{1}", stavovyRiadok.Stav, "  ");
                 }
 
-                sb.Append(StylovaciAutomat.AnsiStyl(StylovaciAutomat.StylTextu.Biela));
-                sb.Append(StylovaciAutomat.AnsiStyl(StylovaciAutomat.FarbaPozadia.Siva));
+                sb.Append(Farby.AnsiStyl(Farby.FarbaIndikatoraPrikazRiadku()));
+                sb.Append(Farby.AnsiStyl(Farby.FarbaPrikazRiadku()));
 
                 //zaciatok vypisu info
                 var s = parametre.SirkaKonzoly - stavovyRiadok.Stav.Length - 3;
@@ -96,10 +99,9 @@ namespace PisaciAutomat.Obrazovka
 
                 sb.Append(stavovyRiadok.Stav);
 
-                var farba = stavovyRiadok.MaZmenu ? StylovaciAutomat.FarbaPozadia.Cervena : StylovaciAutomat.FarbaPozadia.Zelena;
-                sb.Append(StylovaciAutomat.AnsiStyl(farba));
+                var farba = stavovyRiadok.MaZmenu ? Farby.FarbaPozadia.Cervena : Farby.FarbaPozadia.Zelena;
+                sb.Append(Farby.AnsiStyl(farba));
                 sb.Append(VykreslovaciAutomat.NastavPozadie(3));
-                sb.Append(StylovaciAutomat.AnsiReset());
             }
 
             return sb.ToString();
@@ -113,8 +115,6 @@ namespace PisaciAutomat.Obrazovka
             var maxDlzkaNazvu = (int)(parametre.SirkaKonzoly * 0.7) - okrajVpravo;
             sb.Append(VykreslovaciAutomat.NastavKurzor(parametre.VyskaKonzoly, 1));
             sb.Append(VykreslovaciAutomat.ZmazOdKurzoraPoKoniecRiadku());
-            sb.Append(StylovaciAutomat.AnsiStyl(StylovaciAutomat.StylTextu.Biela));
-            sb.Append(StylovaciAutomat.AnsiStyl(StylovaciAutomat.FarbaPozadia.Siva));
             sb.Append(VykreslovaciAutomat.NastavPozadie(parametre.OkrajVlavo));
 
             var dlzkaNazvu = stavovyRiadok.CestaKSuboru.Length;
@@ -129,7 +129,6 @@ namespace PisaciAutomat.Obrazovka
             }
 
             sb.Append(stavovyRiadok.CestaKSuboru);
-            sb.Append(StylovaciAutomat.AnsiReset());
 
             //stav    
             sb.Append(PrekresliStavovyRiadok(parametre, stavovyRiadok, true));

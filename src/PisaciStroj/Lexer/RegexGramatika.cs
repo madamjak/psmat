@@ -20,6 +20,11 @@
                 },
                 new LexPravidlo()
                 {
+                    TypTokenu = TypTokenu.Retazec,
+                    Regex = "((\\\\.\\*)|(\\\\.\\.)|(\\\\.\\|)).\u0000"
+                },
+                new LexPravidlo()
+                {
                     TypTokenu = TypTokenu.Operator,
                     Regex = "(\\*|\\.|\\|).\u0000"
                 },

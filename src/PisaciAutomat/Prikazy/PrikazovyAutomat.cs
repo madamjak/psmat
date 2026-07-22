@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using PisaciAutomat.Config;
 using PisaciAutomat.Obrazovka;
 using PisaciAutomat.Prikazy.Vysledky;
 using PisaciStroj.Chyby;
@@ -49,6 +50,7 @@ namespace PisaciAutomat.Prikazy
         //search results
         private VysledkovyAutomat _vysledky;
         private bool _resultsMode;
+        private bool _zmazHlasku;
 
         public PrikazovyAutomat()
         {
@@ -329,6 +331,7 @@ namespace PisaciAutomat.Prikazy
             if (r.Ukonci)
             {
                 _resultsMode = false;
+                _zmazHlasku = true;
                 return new PrikazovyAutomatResult()
                 {
                     ZavriRiadok = true,
@@ -338,6 +341,7 @@ namespace PisaciAutomat.Prikazy
             else if (r.ZavriVysledky)
             {
                 _resultsMode = false;
+                _zmazHlasku = true;
             }
 
             return new PrikazovyAutomatResult();
@@ -503,27 +507,30 @@ namespace PisaciAutomat.Prikazy
 
                 return;
             }
+
+            if (_zmazHlasku)
+            {
+                _vysledky.ZmazInfoHlasku(sb);
+                _zmazHlasku = false;
+            }
         }
 
         public void PrekresliPrikazovyRiadok(ParametrePrekreslenia p, StringBuilder sb)
         {
-            var pozadie = StylovaciAutomat.FarbaPozadia.Siva;
+            var pozadie = Farby.FarbaPrikazRiadku();
             if (_chyba)
             {
-                pozadie = StylovaciAutomat.FarbaPozadia.CervenaLight;
+                pozadie = Farby.FarbaPozadia.CervenaLight;
                 _chyba = false;
             }
-
-            sb.Append(VykreslovaciAutomat.NastavKurzor(2, 1));
-            sb.Append(VykreslovaciAutomat.ZmazOdKurzoraPoKoniecRiadku());
 
             sb.Append(VykreslovaciAutomat.NastavKurzor(1, 1));
             sb.Append(VykreslovaciAutomat.ZmazOdKurzoraPoKoniecRiadku());
 
             sb.Append(VykreslovaciAutomat.NastavPozadie(p.OkrajVlavo - 2));
-            sb.Append(StylovaciAutomat.AnsiStyl(StylovaciAutomat.StylTextu.Biela));
+            sb.Append(Farby.AnsiStyl(Farby.FarbaIndikatoraPrikazRiadku()));
             sb.Append("> ");
-            sb.Append(StylovaciAutomat.AnsiReset());
+
 
             if (_riadok.Length() > 0)
             {
@@ -558,14 +565,15 @@ namespace PisaciAutomat.Prikazy
                         zatvorky,
                         pozicia,
                         zvyraznenyText,
-                        regexTokens));
+                        regexTokens,
+                        pozadie));
             }
 
             if (_riadok.Length() < _parametreVypisu.Sirka)
             {
-                sb.Append(StylovaciAutomat.AnsiStyl(pozadie));
+                sb.Append(Farby.AnsiStyl(pozadie));
                 sb.Append(VykreslovaciAutomat.NastavPozadie(_parametreVypisu.Sirka - _riadok.Length()));
-                sb.Append(StylovaciAutomat.AnsiReset());
+                sb.Append(Farby.AnsiReset());
             }
         }
 
