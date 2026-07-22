@@ -32,6 +32,10 @@ namespace PisaciAutomat.Prikazy
                 {
                     return Subory.ProcesorPrikazov.SpracujPrikaz(prikaz, parametreVypisu, editor);
                 }
+                else if (Navigacia.ProcesorPrikazov.TypyVyhladavacihPrikazov.Contains(prikaz.Typ))
+                {
+                    return Navigacia.ProcesorPrikazov.SpracujPrikaz(prikaz, parametreVypisu, editor);
+                }
                 else
                 {
                     return r;

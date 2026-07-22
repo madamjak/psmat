@@ -18,15 +18,20 @@ namespace PisaciAutomat.Prikazy
 {
     public struct PrikazPrePrikazovyRiadok
     {
+        //search
         public string VyhladavanyText { get; set; }
 
+        //save
         public bool UlozSuborAko { get; set; }
         public string ExistujucaCesta { get; set; }
 
         //find all vysledky
         public bool ZobrazVysledky { get; set; }
         public Dictionary<int, Dictionary<int, VyhladaneSlovo>> Vysledky { get; set; }
-        public VyhladaneSlovo? GoTo { get; set; }
+        public VyhladaneSlovo? GoToSlovo { get; set; }
+
+        //goto
+        public bool GoToPozicia { get; set; }
     }
 
     public class PrikazovyAutomat
@@ -103,18 +108,37 @@ namespace PisaciAutomat.Prikazy
                     return new PrikazovyAutomatResult();
                 }
 
-                if (prikazZEditora.Value.GoTo.HasValue)
+                if (prikazZEditora.Value.GoToSlovo.HasValue)
                 {
                     return new PrikazovyAutomatResult()
                     {
                         Prikaz = new Prikaz()
                         {
-                            Typ = TypPrikazu.GoTo,
-                            GoTo = prikazZEditora.Value.GoTo.Value
+                            Typ = TypPrikazu.GoToSlovo,
+                            GoTo = prikazZEditora.Value.GoToSlovo.Value
                         }
                     };
                 }
-                
+
+                if (prikazZEditora.Value.GoToPozicia)
+                {
+                    _riadok.Delete(0, _riadok.Length());
+                    _parametreVypisu.Stlpec = 0;
+                    _parametreVypisu.OffsetStlpec = 0;
+
+                    var prikaz = "goto ";
+
+                    foreach (char ch in prikaz)
+                    {
+                        NapisZnak(ch);
+                    }
+
+                    return new PrikazovyAutomatResult() 
+                    {
+                        Hlaska = "Zadaj cislo riadku a stlpca."
+                    };
+                }
+
             } else if (vstup.HasValue)
             {
                 var r = SpracujVstup(vstup.Value);

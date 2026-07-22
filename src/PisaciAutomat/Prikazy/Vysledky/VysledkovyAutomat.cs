@@ -87,7 +87,7 @@ namespace PisaciAutomat.Prikazy.Vysledky
             {
                 Prikaz = new PrikazPrePrikazovyRiadok()
                 {
-                    GoTo = slovo
+                    GoToSlovo = slovo
                 }
             };
         }
