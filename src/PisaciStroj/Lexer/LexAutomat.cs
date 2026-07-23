@@ -1,5 +1,6 @@
 ﻿using Lexer.Algoritmy;
 using PisaciStroj.Lexer.Algoritmy;
+using PisaciStroj.Navigacia;
 using PisaciStroj.Pamat;
 using System.Collections.Generic;
 
@@ -438,10 +439,12 @@ namespace PisaciStroj.Lexer
 
         public LexResult ZatvorkyAKomentare(List<GapBuffer> text)
         {
-            var bmAlgo = new StackBracketMatching();
-            var zatvorky = bmAlgo.GetMatchingBrackets(text);
+            Stack<Pozicia> _stack1 = new Stack<Pozicia>(); // ( )
+            Stack<Pozicia> _stack2 = new Stack<Pozicia>(); // { }
+            Stack<Pozicia> _stack3 = new Stack<Pozicia>(); // [ ]
 
-            var result = new Dictionary<int, Dictionary<int, Token>>();
+            var komentare = new Dictionary<int, Dictionary<int, Token>>();
+            var zatvorky = new Dictionary<int, Dictionary<int, Zatvorka>>();
 
             var riadok = 0;
 
@@ -561,19 +564,89 @@ namespace PisaciStroj.Lexer
                         }
                     }
 
+                    if (r.CharAt(poziciaHlavy) == '(')
+                    {
+                        _stack1.Push(new Pozicia()
+                        {
+                            Riadok = riadok,
+                            Stlpec = poziciaHlavy
+                        });
+                    }
+                    if (r.CharAt(poziciaHlavy) == '{')
+                    {
+                        _stack2.Push(new Pozicia()
+                        {
+                            Riadok = riadok,
+                            Stlpec = poziciaHlavy
+                        });
+                    }
+                    if (r.CharAt(poziciaHlavy) == '[')
+                    {
+                        _stack3.Push(new Pozicia()
+                        {
+                            Riadok = riadok,
+                            Stlpec = poziciaHlavy
+                        });
+                    }
+
+                    if (r.CharAt(poziciaHlavy) == ')' && _stack1.Count > 0)
+                    {
+                        var z = new Zatvorka()
+                        {
+                            Start = _stack1.Pop(),
+                            End = new Pozicia()
+                            {
+                                Riadok = riadok,
+                                Stlpec = poziciaHlavy
+                            }
+                        };
+
+                        StackBracketMatching.PridajZDoVysl(zatvorky, z);
+                    }
+
+                    if (r.CharAt(poziciaHlavy) == '}' && _stack2.Count > 0)
+                    {
+                        var z = new Zatvorka()
+                        {
+                            Start = _stack2.Pop(),
+                            End = new Pozicia()
+                            {
+                                Riadok = riadok,
+                                Stlpec = poziciaHlavy
+                            }
+                        };
+
+                        StackBracketMatching.PridajZDoVysl(zatvorky, z);
+                    }
+
+                    if (r.CharAt(poziciaHlavy) == ']' && _stack3.Count > 0)
+                    {
+                        var z = new Zatvorka()
+                        {
+                            Start = _stack3.Pop(),
+                            End = new Pozicia()
+                            {
+                                Riadok = riadok,
+                                Stlpec = poziciaHlavy
+                            }
+                        };
+
+                        StackBracketMatching.PridajZDoVysl(zatvorky, z);
+                    }
+
                     poziciaHlavy++;
                 }
 
                 if(rowResult.Count > 0)
                 {
-                    result.Add(riadok, rowResult);
+                    komentare.Add(riadok, rowResult);
                 }
                 riadok++;
             }
 
             var lr = new LexResult()
             {
-                Tokeny = result,
+                Komentare = komentare,
                 Zatvorky = zatvorky
             };
 

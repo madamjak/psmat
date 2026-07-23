@@ -4,6 +4,12 @@ namespace PisaciStroj.Navigacia
 {
     public struct Pozicia
     {
+        public Pozicia(int r, int s)
+        {
+            Riadok = r;
+            Stlpec = s;
+        }
+
         public int Riadok { get; set; }
 
         public int Stlpec { get; set; }
