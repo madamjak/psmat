@@ -71,6 +71,9 @@ namespace PisaciAutomat
         private string _dialog;
         private TypDialogu? _typDialogu;
 
+        //prekreslovanie
+        private ParametrePrekreslenia _parametrePrekreslenia;
+
         private const int _okrajHore = 2;
         private void Konstruktor()
         {
@@ -99,8 +102,7 @@ namespace PisaciAutomat
 
         public bool SpracujVstup(ConsoleKeyInfo vstup)
         {
-            bool necitaj = false;
-            bool lenPrekresli = false;
+            _parametrePrekreslenia = new ParametrePrekreslenia();
 
             if (_cmdMode)
             {
@@ -154,42 +156,41 @@ namespace PisaciAutomat
                 }
 
                 var zmenaBracketHighlight = !(!bracketHighlighted && !bracketHighlightedPo);
-                if (!zmenaStranky && !zmenaVyberuTextu && !zmenaBracketHighlight)
+                _parametrePrekreslenia.Necitaj = true;
+                if(zmenaStranky || zmenaVyberuTextu || zmenaBracketHighlight)
                 {
-                    necitaj = true;
-                }
-                if(zmenaVyberuTextu || zmenaBracketHighlight)
-                {
-                    lenPrekresli = true;
+                    _parametrePrekreslenia.Necitaj = false;
+                    _parametrePrekreslenia.LenPrekresli = true;
                 }
             }
             else if (vstup.Key == ConsoleKey.Backspace)
             {
                 if (Zvyraznovac.MaVybranyText(_parametreVyberu))
                 {
-                    _editor.ZmazText(_parametreVyberu.Zaciatok.Value.Stlpec, _parametreVyberu.Zaciatok.Value.Riadok,
-                        _parametreVyberu.Koniec.Value.Stlpec, _parametreVyberu.Koniec.Value.Riadok, _parametreVypisu);
-
-                    _parametreVyberu = new ParametreVyberu();
+                    ZmazVybranyText();
                 }
                 else
                 {
+                    _parametrePrekreslenia.ZaciatokAkcie = new Pozicia(_parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec);
                     _editor.ZmazText(_parametreVypisu);
+                    _parametrePrekreslenia.KoniecAkcie = new Pozicia(_parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec);
+                    _parametrePrekreslenia.ZmazalAleboZapisal = true;
                 }
             }
             else if (vstup.Key == ConsoleKey.Delete)
             {
                 if (Zvyraznovac.MaVybranyText(_parametreVyberu))
                 {
-                    _editor.ZmazText(_parametreVyberu.Zaciatok.Value.Stlpec, _parametreVyberu.Zaciatok.Value.Riadok,
-                        _parametreVyberu.Koniec.Value.Stlpec, _parametreVyberu.Koniec.Value.Riadok, _parametreVypisu);
-
-                    _parametreVyberu = new ParametreVyberu();
+                    ZmazVybranyText();
                 }
                 else
                 {
                     Kurzor.PosunKurzorDoprava(_parametreVypisu, _editor.Riadky());
+
+                    _parametrePrekreslenia.ZaciatokAkcie = new Pozicia(_parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec);
                     _editor.ZmazText(_parametreVypisu);
+                    _parametrePrekreslenia.KoniecAkcie = new Pozicia(_parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec);
+                    _parametrePrekreslenia.ZmazalAleboZapisal = true;
                 }
             } 
             else if (vstup.Key == ConsoleKey.Tab)
@@ -199,7 +200,16 @@ namespace PisaciAutomat
                     var maVybrany = Zvyraznovac.MaVybranyText(_parametreVyberu);
                     if (!maVybrany || !Zvyraznovac.MaVybranyTextPreMultiLineOkraj(_parametreVyberu))
                     {
+                        _parametrePrekreslenia.ZaciatokAkcie = new Pozicia(_parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec);
+
                         _editor.ZmazOkraj(_parametreVypisu, _parametreVyberu);
+
+                        _parametrePrekreslenia.KoniecAkcie = new Pozicia(_parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec);
+                        
+                        if(_parametrePrekreslenia.ZaciatokAkcie.Stlpec != _parametrePrekreslenia.KoniecAkcie.Stlpec)
+                        {
+                            _parametrePrekreslenia.ZmazalAleboZapisal = true;
+                        }
                     }
                     else
                     {
@@ -213,12 +223,16 @@ namespace PisaciAutomat
                     {
                         if (maVybrany)
                         {
-                            _editor.ZmazText(_parametreVyberu.Zaciatok.Value.Stlpec, _parametreVyberu.Zaciatok.Value.Riadok,
-                                _parametreVyberu.Koniec.Value.Stlpec, _parametreVyberu.Koniec.Value.Riadok, _parametreVypisu);
-
-                            _parametreVyberu = new ParametreVyberu();
+                            ZmazVybranyText();
                         }
-                        _editor.PridajOkraj(_parametreVypisu);
+                        else
+                        {
+                            _parametrePrekreslenia.ZaciatokAkcie = new Pozicia(_parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec);
+
+                            _editor.PridajOkraj(_parametreVypisu);
+                            _parametrePrekreslenia.KoniecAkcie = new Pozicia(_parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec);
+                            _parametrePrekreslenia.ZmazalAleboZapisal = true;
+                        }
                     }
                     else
                     {
@@ -230,18 +244,18 @@ namespace PisaciAutomat
             {
                 if (Zvyraznovac.MaVybranyText(_parametreVyberu))
                 {
-                    _editor.ZmazText(_parametreVyberu.Zaciatok.Value.Stlpec, _parametreVyberu.Zaciatok.Value.Riadok,
-                    _parametreVyberu.Koniec.Value.Stlpec, _parametreVyberu.Koniec.Value.Riadok, _parametreVypisu);
-
-                    _parametreVyberu = new ParametreVyberu();
+                    ZmazVybranyText();
                 }
-
-                _editor.NapisText(Environment.NewLine, _parametreVypisu);
+                else
+                {
+                    _editor.NapisText(Environment.NewLine, _parametreVypisu);
+                }
             }
             else if ((vstup.Modifiers & ConsoleModifiers.Control) == ConsoleModifiers.Control)
             {
                 if (vstup.Key == ConsoleKey.Z)
                 {
+                    //TODO jednoznakove undo/redo by sa dalo optimalizovat...pozri na ParametrePrekreslenia
                     _editor.VratPoslednuOperaciu(_parametreVypisu);
                     _parametreVyberu = new ParametreVyberu();
                 }
@@ -257,6 +271,8 @@ namespace PisaciAutomat
                         _parametreVyberu.Koniec.Value.Riadok, _parametreVyberu.Koniec.Value.Stlpec);
 
                     Clipboard.Clipboard.SkopirujDoClipboardu(_skopirovanyText);
+
+                    _parametrePrekreslenia.Necitaj = true;
                 }
                 else if (vstup.Key == ConsoleKey.X && Zvyraznovac.MaVybranyText(_parametreVyberu))
                 {
@@ -266,10 +282,7 @@ namespace PisaciAutomat
 
                     Clipboard.Clipboard.SkopirujDoClipboardu(_skopirovanyText);
 
-                    _editor.ZmazText(_parametreVyberu.Zaciatok.Value.Stlpec, _parametreVyberu.Zaciatok.Value.Riadok,
-                        _parametreVyberu.Koniec.Value.Stlpec, _parametreVyberu.Koniec.Value.Riadok, _parametreVypisu);
-
-                    _parametreVyberu = new ParametreVyberu();
+                    ZmazVybranyText();
                 }
                 else if (vstup.Key == ConsoleKey.V)
                 {
@@ -277,6 +290,7 @@ namespace PisaciAutomat
 
                     if (!string.IsNullOrEmpty(_skopirovanyText))
                     {
+
                         _editor.NapisText(_skopirovanyText, _parametreVypisu);
                         _parametreVyberu = new ParametreVyberu();
                     }
@@ -284,26 +298,30 @@ namespace PisaciAutomat
                 else if (vstup.Key == ConsoleKey.F)
                 {
                     VyhladajZvyraznenyText();
+
+                    _parametrePrekreslenia.LenPrekresli = true;
                 }
                 else if (vstup.Key == ConsoleKey.A)
                 {
                     _parametreVyberu = new ParametreVyberu();
                     Zvyraznovac.VyberVsetko(_parametreVyberu, _parametreVypisu, _editor.Riadky());
+
+                    _parametrePrekreslenia.LenPrekresli = true;
                 }
                 else if (vstup.Key == ConsoleKey.S)
                 {
                     UlozSubor();
-                    necitaj = true;
+                    _parametrePrekreslenia.Necitaj = true;
                 }
                 else if (vstup.Key == ConsoleKey.N)
                 {
                     UlozSuborAko();
-                    necitaj = true;
+                    _parametrePrekreslenia.Necitaj = true;
                 }
                 else if (vstup.Key == ConsoleKey.G)
                 {
                     Goto();
-                    necitaj = true;
+                    _parametrePrekreslenia.Necitaj = true;
                 }
                 else if (vstup.Key == ConsoleKey.Q)
                 {
@@ -312,19 +330,22 @@ namespace PisaciAutomat
                 else if (vstup.Key == ConsoleKey.W)
                 {
                     CommandLineMode();
+                    _parametrePrekreslenia.Necitaj = true;
                 }
             }
             else if (IsPrintable(vstup.KeyChar))
             {
                 if (Zvyraznovac.MaVybranyText(_parametreVyberu))
                 {
-                    _editor.ZmazText(_parametreVyberu.Zaciatok.Value.Stlpec, _parametreVyberu.Zaciatok.Value.Riadok,
-                    _parametreVyberu.Koniec.Value.Stlpec, _parametreVyberu.Koniec.Value.Riadok, _parametreVypisu);
-
-                    _parametreVyberu = new ParametreVyberu();
+                    ZmazVybranyText();
                 }
-
-                _editor.NapisZnak(vstup.KeyChar, _parametreVypisu);
+                else
+                {
+                    _parametrePrekreslenia.ZaciatokAkcie = new Pozicia(_parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec);
+                    _editor.NapisZnak(vstup.KeyChar, _parametreVypisu);
+                    _parametrePrekreslenia.KoniecAkcie = new Pozicia(_parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec);
+                    _parametrePrekreslenia.ZmazalAleboZapisal = true;
+                }
             }
 
             if (_ukonci)
@@ -334,14 +355,30 @@ namespace PisaciAutomat
                 return false;
             }
 
-            var p = new ParametrePrekreslenia()
-            {
-                Necitaj = necitaj,
-                LenPrekresli = lenPrekresli
-            };
-            Prekresli(p);
+            Prekresli(_parametrePrekreslenia);
 
             return true;
+        }
+
+        private void ZmazVybranyText()
+        {
+            if (_parametreVyberu.Zaciatok.Value.Riadok == _parametreVyberu.Koniec.Value.Riadok)
+            {
+                var mazeRiadok = _parametreVyberu.Zaciatok.Value.Stlpec == 0
+                && _parametreVyberu.Koniec.Value.Stlpec == _editor.Riadky()[_parametreVyberu.Koniec.Value.Riadok].Length();
+
+                if (!mazeRiadok)
+                {
+                    _parametrePrekreslenia.ZaciatokAkcie = _parametreVyberu.Zaciatok.Value;
+                    _parametrePrekreslenia.KoniecAkcie = _parametreVyberu.Koniec.Value;
+                    _parametrePrekreslenia.ZmazalAleboZapisal = true;
+                }
+            }
+
+            _editor.ZmazText(_parametreVyberu.Zaciatok.Value.Stlpec, _parametreVyberu.Zaciatok.Value.Riadok,
+                                    _parametreVyberu.Koniec.Value.Stlpec, _parametreVyberu.Koniec.Value.Riadok, _parametreVypisu);
+
+            _parametreVyberu = new ParametreVyberu();
         }
 
         public void Resize(int novaSirka, int novaVyska)
@@ -365,7 +402,8 @@ namespace PisaciAutomat
 
             var p = new ParametrePrekreslenia()
             {
-                Resize = true
+                Resize = true,
+                LenPrekresli = true
             };
             Prekresli(p);
         }

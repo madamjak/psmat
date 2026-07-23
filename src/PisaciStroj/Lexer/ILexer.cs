@@ -68,6 +68,8 @@ namespace PisaciStroj.Lexer
         public Dictionary<int, Dictionary<int, Token>> RegexTokeny { get; set; }
 
         public Dictionary<int, Dictionary<int, Zatvorka>> Zatvorky { get; set; }
+
+        public Dictionary<int, Dictionary<int, Token>> Komentare { get; set; }
     }
 
     public interface ILexer

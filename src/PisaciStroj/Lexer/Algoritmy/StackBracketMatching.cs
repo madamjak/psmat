@@ -22,8 +22,6 @@ namespace PisaciStroj.Lexer.Algoritmy
             var result = new Dictionary<int, Dictionary<int, Zatvorka>>();
             for (int i = 0; i < text.Count; i++)
             {
-                var rowResult = new Dictionary<int, Zatvorka>();
-
                 var index = 0;
                 var riadok = text[i];
                 while (true)
@@ -110,7 +108,7 @@ namespace PisaciStroj.Lexer.Algoritmy
             return result;
         }
 
-        private static void PridajZDoVysl(Dictionary<int, Dictionary<int, Zatvorka>> vysl, Zatvorka z)
+        public static void PridajZDoVysl(Dictionary<int, Dictionary<int, Zatvorka>> vysl, Zatvorka z)
         {
             Dictionary<int, Zatvorka> r = null;
             if(vysl.TryGetValue(z.Start.Riadok, out r))
@@ -136,6 +134,96 @@ namespace PisaciStroj.Lexer.Algoritmy
                     { z.End.Stlpec, z }
                 });
             }
+        }
+
+        public static Dictionary<int, Zatvorka> GetMatchingBrackets(GapBuffer riadok, int i)
+        {
+            Stack<Pozicia> _stack1 = new Stack<Pozicia>(); // ( )
+            Stack<Pozicia> _stack2 = new Stack<Pozicia>(); // { }
+            Stack<Pozicia> _stack3 = new Stack<Pozicia>(); // [ ]
+            var index = 0;
+            var r = new Dictionary<int, Zatvorka>();
+            while (true)
+            {
+                if (index == riadok.Length())
+                {
+                    break;
+                }
+
+                if (riadok.CharAt(index) == '(')
+                {
+                    _stack1.Push(new Pozicia()
+                    {
+                        Riadok = i,
+                        Stlpec = index
+                    });
+                }
+                if (riadok.CharAt(index) == '{')
+                {
+                    _stack2.Push(new Pozicia()
+                    {
+                        Riadok = i,
+                        Stlpec = index
+                    });
+                }
+                if (riadok.CharAt(index) == '[')
+                {
+                    _stack3.Push(new Pozicia()
+                    {
+                        Riadok = i,
+                        Stlpec = index
+                    });
+                }
+
+                if (riadok.CharAt(index) == ')' && _stack1.Count > 0)
+                {
+                    var z = new Zatvorka()
+                    {
+                        Start = _stack1.Pop(),
+                        End = new Pozicia()
+                        {
+                            Riadok = i,
+                            Stlpec = index
+                        }
+                    };
+
+                    r.Add(index, z);
+                }
+
+                if (riadok.CharAt(index) == '}' && _stack2.Count > 0)
+                {
+                    var z = new Zatvorka()
+                    {
+                        Start = _stack2.Pop(),
+                        End = new Pozicia()
+                        {
+                            Riadok = i,
+                            Stlpec = index
+                        }
+                    };
+
+                    r.Add(index, z);
+                }
+
+                if (riadok.CharAt(index) == ']' && _stack3.Count > 0)
+                {
+                    var z = new Zatvorka()
+                    {
+                        Start = _stack3.Pop(),
+                        End = new Pozicia()
+                        {
+                            Riadok = i,
+                            Stlpec = index
+                        }
+                    };
+
+                    r.Add(index, z);
+                }
+
+                index++;
+            }
+
+            return r;
         }
     }
 }
