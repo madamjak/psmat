@@ -188,6 +188,7 @@ namespace PisaciStroj.Lexer.Algoritmy
                     };
 
                     r.Add(index, z);
+                    r.Add(z.Start.Stlpec, z);
                 }
 
                 if (riadok.CharAt(index) == '}' && _stack2.Count > 0)
@@ -203,6 +204,7 @@ namespace PisaciStroj.Lexer.Algoritmy
                     };
 
                     r.Add(index, z);
+                    r.Add(z.Start.Stlpec, z);
                 }
 
                 if (riadok.CharAt(index) == ']' && _stack3.Count > 0)
@@ -218,6 +220,7 @@ namespace PisaciStroj.Lexer.Algoritmy
                     };
 
                     r.Add(index, z);
+                    r.Add(z.Start.Stlpec, z);
                 }
 
                 index++;

@@ -165,7 +165,7 @@ namespace PisaciAutomat.Obrazovka
 
                 if (zvyraznenyText.HasValue && zvyraznenyText.Value.Pozicia == index)
                 {
-                    dlzkaZvyraznenehoTextu = Math.Min(zvyraznenyText.Value.Dlzka, maxDlzka);
+                    dlzkaZvyraznenehoTextu = zvyraznenyText.Value.Dlzka;
                 }
 
                 Token r;
@@ -273,9 +273,9 @@ namespace PisaciAutomat.Obrazovka
                         sb.Append("\b");
                         sb.Append(riadok.Read(index, 1));
                         sb.Append(AnsiReset(pozadieRiadku));
-
-                        dlzkaZvyraznenehoTextu--;
                     }
+
+                    dlzkaZvyraznenehoTextu--;
                 }
 
                 if(index >= offset)
