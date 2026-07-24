@@ -13,8 +13,8 @@ namespace PisaciStroj.Lexer
         private MultipleDfaSimulator _dfa;
 
         private string _komentar;
-        private string _zaciatokKomentara;
-        private string _koniecKomentara;
+        public static string _zaciatokKomentara;
+        public static string _koniecKomentara;
 
         private MultipleDfaSimulator _regexAutomat;
 

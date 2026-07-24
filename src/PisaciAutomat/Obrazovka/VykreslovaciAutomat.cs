@@ -19,10 +19,12 @@ namespace PisaciAutomat.Obrazovka
         public bool Necitaj { get; set; }
         public bool LenPrekresli { get; set; }
         public bool Resize { get; set; }
-        public Pozicia ZaciatokAkcie { get; set; }
-        public Pozicia KoniecAkcie { get; set; }
-        public bool ZmazalAleboZapisal { get; set; }
-
+        
+        //optimalizacia upravy jedneho riadku
+        public int ZaciatocnyStlpec { get; set; }
+        public int KonecnySlpec { get; set; }
+        public bool UpravaAleboPrekreslenieRiadku { get; set; }
+        public bool OptimalizaciaPrekreslenia { get; set; }
 
         //pre prikazovy riadok nastavene podla poctu riadkov
         public int OkrajVlavo { get; set; }
@@ -75,19 +77,332 @@ namespace PisaciAutomat.Obrazovka
 
             if(_precitanyText == null)
             {
-                _precitanyText = _lexer.ZatvorkyAKomentare(_editor.Riadky());
+                PrecitajText();
             }
             else
             {
-                if(!Optimalizacie.UpravPrecitanyText(parametrePrekreslenia, parametre, _precitanyText, _editor.Riadky()))
+                //uprava na riadku ak sa da necitaj
+                if (parametrePrekreslenia.UpravaAleboPrekreslenieRiadku)
                 {
-                    var zatvAKomentare = _lexer.ZatvorkyAKomentare(_editor.Riadky());
-                    _precitanyText.Zatvorky = zatvAKomentare.Zatvorky;
-                    _precitanyText.Komentare = zatvAKomentare.Komentare;
+                    return JednoriadkovaUprava(parametrePrekreslenia, parametre, search, parametreVyberu);
+                }
+                //ak nebolo nic zmenene necitaj znova
+                else if (parametrePrekreslenia.LenPrekresli)
+                {
+                    //uloz neupravene riadky na znovu-pouzitie pri highlightingu co sa da, ukladaj vsak vzdy len stranku
+                    Optimalizacie.UpravTokenyRiadkov(_precitanyText.Tokeny,
+                        parametre,
+                        _precitanyText,
+                        _editor.Riadky(),
+                        _lexer);
+                }
+                //viacriadkove upravy
+                else
+                {
+                    PrecitajText();
                 }
             }
-            
+
             return Precitaj2(parametre, search, _precitanyText, _editor, parametreVyberu, _lexer, _vyhladavac);
+        }
+
+        private EditorScreen JednoriadkovaUprava(ParametrePrekreslenia parametrePrekreslenia, 
+            ParametreVypisu parametre, 
+            ParametreVyhladavania search,
+            ParametreVyberu parametreVyberu)
+        {
+            if (parametrePrekreslenia.LenPrekresli)
+            {
+                //uloz neupravene riadky na znovu-pouzitie pri highlightingu co sa da, ukladaj vsak vzdy len stranku
+                Optimalizacie.UpravTokenyRiadkov(_precitanyText.Tokeny,
+                    parametre,
+                    _precitanyText,
+                    _editor.Riadky(),
+                    _lexer);
+
+                if (parametrePrekreslenia.OptimalizaciaPrekreslenia)
+                {
+                    UpravEditorScreen(parametrePrekreslenia, parametre, search, parametreVyberu);
+                    PrekresliUpravenyRiadok(parametrePrekreslenia, parametre, search, parametreVyberu);
+                    return _aktualnaObrazovka;
+                }
+
+                return Precitaj2(parametre, search, _precitanyText, _editor, parametreVyberu, _lexer, _vyhladavac);
+            }
+            else if (Optimalizacie.UpravPrecitanyText(parametrePrekreslenia, parametre, _precitanyText, _editor.Riadky()))
+            {
+                _precitanyText.Tokeny[parametre.IndexRiadok] = Optimalizacie.PrecitajTokenyRiadku(_precitanyText, _lexer, _editor.Riadky(), parametre.IndexRiadok);
+
+                if (parametrePrekreslenia.OptimalizaciaPrekreslenia)
+                {
+                    UpravEditorScreen(parametrePrekreslenia, parametre, search, parametreVyberu);
+                    PrekresliUpravenyRiadok(parametrePrekreslenia, parametre, search, parametreVyberu);
+                    return _aktualnaObrazovka;
+                }
+
+                return Precitaj2(parametre, search, _precitanyText, _editor, parametreVyberu, _lexer, _vyhladavac);
+            }
+            else
+            {
+                PrecitajText();
+                return Precitaj2(parametre, search, _precitanyText, _editor, parametreVyberu, _lexer, _vyhladavac);
+            }
+        }
+
+        private void PrekresliUpravenyRiadok(ParametrePrekreslenia parametrePrekreslenia, ParametreVypisu parametre, ParametreVyhladavania search, ParametreVyberu parametreVyberu)
+        {
+            var pocetZnakov = parametrePrekreslenia.KonecnySlpec - parametrePrekreslenia.ZaciatocnyStlpec;
+            var mazanie = false;
+            if(pocetZnakov < 0)
+            {
+                mazanie = true;
+            }
+
+            var indexRiadok = parametre.IndexRiadok;
+            var indexStlpec = parametre.IndexStlpec;
+
+            var sb = new StringBuilder();
+            sb.Append(NastavKurzorUnVisible());
+            if (mazanie && !parametrePrekreslenia.LenPrekresli)
+            {
+                var pocetPotrebnych = Math.Abs(pocetZnakov);
+                sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, parametre.StlpecKurzora + 1));
+                DeleteCharacterShiftTextLeft(pocetPotrebnych, sb);
+
+                //vyber aktualne slovo
+                var _navigovaciPrikaz = new NavigovaciPrikaz();
+                var _parametreVyberu = new ParametreVyberu();
+                if (parametre.IndexStlpec < _editor.Riadky()[parametre.IndexRiadok].Length() - 1)
+                {
+                    _navigovaciPrikaz.Vyber = false;
+                    _navigovaciPrikaz.Typ = TypNavigacie.SlovoDoprava;
+
+                    Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
+                }
+
+                _navigovaciPrikaz.Vyber = true;
+                _navigovaciPrikaz.Typ = TypNavigacie.SlovoDolava;
+                _parametreVyberu = new ParametreVyberu();
+
+                if (parametre.IndexStlpec > 0)
+                {
+                    Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
+                }
+                if (parametre.IndexStlpec > 0)
+                {
+                    Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
+                }
+                if (parametre.IndexStlpec > 0)
+                {
+                    Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
+                }
+
+                if (_parametreVyberu.Zaciatok.HasValue) 
+                { 
+                    Kurzor.GoTo(indexRiadok, _parametreVyberu.Zaciatok.Value.Stlpec, parametre, _editor.Riadky());
+                }
+
+                sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, parametre.StlpecKurzora + 1));
+
+
+                var stlpecCitania = _parametreVyberu.Zaciatok.HasValue ? _parametreVyberu.Zaciatok.Value.Stlpec : parametre.IndexStlpec - 1;
+                var pocet = _parametreVyberu.Zaciatok.HasValue ? _parametreVyberu.PocetZnakov : 1;
+                var stlpecPisania = _parametreVyberu.Zaciatok.HasValue ? parametre.StlpecKurzora + 1 : parametre.StlpecKurzora;
+
+                var uprava = PrecitajRiadok(parametre,
+                                search,
+                                _precitanyText,
+                                parametreVyberu,
+                                _lexer,
+                                _vyhladavac,
+                                _editor.Riadky(),
+                                parametre.IndexRiadok,
+                                stlpecCitania,
+                                pocet);
+
+
+                sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, stlpecPisania));
+                ShiftTextRightAndInsert(uprava, pocetZnakov, sb);
+
+                var stlpec = KonecnyStlpecRiadkuObrazovky(parametre, _editor.Riadky()[parametre.IndexRiadok].Length());
+
+                if (stlpec.HasValue)
+                {
+                    //ak treba zaplnit prazdne miesto na konci riadku
+                    uprava =
+                    PrecitajRiadok(parametre,
+                                search,
+                                _precitanyText,
+                                parametreVyberu,
+                                _lexer,
+                                _vyhladavac,
+                                _editor.Riadky(),
+                                parametre.IndexRiadok,
+                                stlpec.Value.IndexStlpec,
+                                pocetPotrebnych);
+
+                    sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, stlpec.Value.StlpecKurzora + 1));
+                    ShiftTextRightAndInsert(uprava, pocetPotrebnych, sb);
+                }
+
+                Kurzor.GoTo(indexRiadok, indexStlpec, parametre, _editor.Riadky());
+                sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, parametre.StlpecKurzora + 1));
+            }
+            else if (parametrePrekreslenia.LenPrekresli)
+            {
+                var stlpecCitania = parametrePrekreslenia.ZaciatocnyStlpec;
+                if (parametrePrekreslenia.KonecnySlpec < parametrePrekreslenia.ZaciatocnyStlpec)
+                {
+                    stlpecCitania = parametrePrekreslenia.KonecnySlpec;
+                }
+                var pocet = Math.Abs(parametrePrekreslenia.KonecnySlpec - parametrePrekreslenia.ZaciatocnyStlpec);
+
+                var uprava = PrecitajRiadok(parametre,
+                                search,
+                                _precitanyText,
+                                parametreVyberu,
+                                _lexer,
+                                _vyhladavac,
+                                _editor.Riadky(),
+                                parametre.IndexRiadok,
+                                stlpecCitania,
+                                pocet);
+
+                Kurzor.GoTo(parametre.IndexRiadok, stlpecCitania, parametre, _editor.Riadky());
+                sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, parametre.StlpecKurzora + 1));
+                DeleteCharacterShiftTextLeft(pocet, sb);
+                sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, parametre.StlpecKurzora + 1));
+                ShiftTextRightAndInsert(uprava, pocet, sb);
+
+                Kurzor.GoTo(indexRiadok, indexStlpec, parametre, _editor.Riadky());
+                sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, parametre.StlpecKurzora + 1));
+            }
+            else
+            {
+                //vyber aktualne slovo
+                var _navigovaciPrikaz = new NavigovaciPrikaz();
+                var _parametreVyberu = new ParametreVyberu();
+                if (parametre.IndexStlpec < _editor.Riadky()[parametre.IndexRiadok].Length() - 1)
+                {
+                    _navigovaciPrikaz.Vyber = false;
+                    _navigovaciPrikaz.Typ = TypNavigacie.SlovoDoprava;
+
+                    Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
+                }
+                
+                _navigovaciPrikaz.Vyber = true;
+                _navigovaciPrikaz.Typ = TypNavigacie.SlovoDolava;
+                _parametreVyberu = new ParametreVyberu();
+                
+                if (parametre.IndexStlpec > 0)
+                {
+                    Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
+                }
+                if(parametre.IndexStlpec > 0)
+                {
+                    Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
+                }
+                if (parametre.IndexStlpec > 0)
+                {
+                    Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
+                }
+
+                var stlpecCitania = _parametreVyberu.Zaciatok.HasValue ? _parametreVyberu.Zaciatok.Value.Stlpec : parametre.IndexStlpec - 1;
+                var pocet = Math.Min(_parametreVyberu.Zaciatok.HasValue ? _parametreVyberu.PocetZnakov : 1, parametre.Sirka - 1);
+                var stlpecPisania = _parametreVyberu.Zaciatok.HasValue ? parametre.StlpecKurzora + 1 : parametre.StlpecKurzora;
+
+                if (_parametreVyberu.Zaciatok.HasValue)
+                {
+                    //vyhni sa nespravnemu zvyrazneniu zatvorky...
+                    Kurzor.PosunKurzorDoprava(parametre, _editor.Riadky());
+                }
+
+                var uprava = PrecitajRiadok(parametre,
+                                search,
+                                _precitanyText,
+                                parametreVyberu,
+                                _lexer,
+                                _vyhladavac,
+                                _editor.Riadky(),
+                                parametre.IndexRiadok,
+                                stlpecCitania,
+                                pocet);
+                sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, stlpecPisania));
+                ShiftTextRightAndInsert(uprava, pocetZnakov, sb);
+
+                var stlpec = KonecnyStlpecRiadkuObrazovky(parametre, _editor.Riadky()[parametre.IndexRiadok].Length());
+
+                if (stlpec.HasValue)
+                {
+                    //ak treba zaplnit prazdne miesto na konci riadku
+                    sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, parametre.SirkaKonzoly));
+                    ShiftTextRightAndInsert(" ", 2, sb);
+                }
+
+
+                Kurzor.GoTo(indexRiadok, indexStlpec, parametre, _editor.Riadky());
+                sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, parametre.StlpecKurzora + 1));
+            }
+            Console.Write(sb.ToString());
+        }
+
+        private struct PoziciaNaRiadku
+        {
+            public int IndexStlpec { get; set; }
+            public int StlpecKurzora { get; set; }
+        }
+        private PoziciaNaRiadku? KonecnyStlpecRiadkuObrazovky(ParametreVypisu parametre, int dlzkaRiadku)
+        {
+            var stlpec = parametre.Stlpec;
+            var indexStlpec = parametre.Stlpec + parametre.OffsetStlpec;
+
+            while (true)
+            {
+                if(indexStlpec == dlzkaRiadku)
+                {
+                    return null;
+                }
+
+                if (stlpec == parametre.Sirka - 2)
+                {
+                    return new PoziciaNaRiadku()
+                    {
+                        IndexStlpec = indexStlpec,
+                        StlpecKurzora = stlpec + parametre.OkrajVlavo
+                    };
+                }
+
+                stlpec++;
+                indexStlpec++;
+            }
+        }
+
+        private void UpravEditorScreen(ParametrePrekreslenia parametrePrekreslenia, ParametreVypisu parametre, ParametreVyhladavania search, ParametreVyberu parametreVyberu)
+        {
+            var okraj = _editor.Riadky().Count.ToString().Length + 2;
+            if (okraj == 3)
+            {
+                okraj = 5;
+            }
+            var formatCislaRiadkov = "D" + (okraj - 2);
+            var novyRiadok = UpravRiadokObrazovky(parametre,
+                search,
+                _precitanyText,
+                parametreVyberu,
+                _lexer,
+                _vyhladavac,
+                _editor.Riadky(),
+                formatCislaRiadkov,
+                parametre.IndexRiadok);
+
+            _aktualnaObrazovka.Riadky[parametre.Riadok] = novyRiadok;
+            _aktualnaObrazovka.Riadok = parametre.RiadokKurzora + 1;
+            _aktualnaObrazovka.Stlpec = parametre.StlpecKurzora + 1;
+        }
+
+        private void PrecitajText()
+        {
+            _precitanyText = _lexer.ZatvorkyAKomentare(_editor.Riadky());
         }
 
         public static EditorScreen Precitaj2(ParametreVypisu parametre,
@@ -115,69 +430,8 @@ namespace PisaciAutomat.Obrazovka
                     break;
                 }
 
-                Dictionary<int, VyhladaneSlovo> vyhladaneSlova = new Dictionary<int, VyhladaneSlovo>();
-                VyhladaneSlovo? vSlovo = null;
-                Dictionary<int, Token> tokeny = null;
-                Dictionary<int, Zatvorka> zatvorky = null;
-                VyhladaneSlovo? zvyraznenyText = null;
-                Dictionary<int, Token> regexTokens = new Dictionary<int, Token>();
-
-                if(search.VyhladaneSlova != null)
-                {
-                    if(!search.VyhladaneSlova.TryGetValue(i, out vyhladaneSlova))
-                    {
-                        vyhladaneSlova = new Dictionary<int, VyhladaneSlovo>();
-                    }
-                }
-                else if (search.VyhladavanyText != null)
-                {
-                    vyhladaneSlova = vyhladavac.VyhladajVsetky(riadky[i], search.VyhladavanyText, search.Obratene);
-                }
-
-                if (search.VyhladaneSlovo.HasValue && search.VyhladaneSlovo.Value.Riadok == i)
-                {
-                    vSlovo = search.VyhladaneSlovo;
-                }
-
-                var nezmenenyRiadok = false;
-                if (lexResult.Tokeny == null || !lexResult.Tokeny.TryGetValue(i, out tokeny) || tokeny == null)
-                {
-                    tokeny = PrecitajTokenyRiadku(lexResult, lexer, riadky, i);
-                }
-                else
-                {
-                    nezmenenyRiadok = true;
-                }
-
-                if (lexResult.Zatvorky == null || !lexResult.Zatvorky.TryGetValue(i, out zatvorky))
-                {
-                    zatvorky = new Dictionary<int, Zatvorka>();
-                }
-
-                var poziciaKurzora = new Pozicia()
-                {
-                    Riadok = parametre.IndexRiadok,
-                    Stlpec = parametre.IndexStlpec
-                };
-
-
-                if (Zvyraznovac.MaVybranyText(parametreVyberu))
-                {
-                    zvyraznenyText = Zvyraznovac.ZvyraznenyText(parametreVyberu, i, riadky[i].Length());
-                }
-
-                //if (nezmenenyRiadok)
-                //{
-                //    result.Riadky[riadokObrazovky] = _aktualnaObrazovka.Riadky[riadokObrazovky];
-                //}
-                //else
-                //{
-                    result.Riadky[riadokObrazovky] = string.Format("{0}{1}", Farby.StylCislaRiadkov((i + 1).ToString(formatCislaRiadkov)),
-                    StylovaciAutomat.SyntaxAndSearchHighligt2(riadky[i],
-                    parametre.OffsetStlpec, parametre.Sirka - 1,
-                    vyhladaneSlova, vSlovo, tokeny, zatvorky, poziciaKurzora,
-                    zvyraznenyText, regexTokens));
-                //}
+                result.Riadky[riadokObrazovky] = UpravRiadokObrazovky(parametre, 
+                    search, lexResult, parametreVyberu, lexer, vyhladavac, riadky, formatCislaRiadkov, i);
 
                 pocetRiadkov++;
                 riadokObrazovky++;
@@ -186,45 +440,92 @@ namespace PisaciAutomat.Obrazovka
             return result;
         }
 
-        private static Dictionary<int, Token> PrecitajTokenyRiadku(LexResult lexResult, ILexer lexer, List<GapBuffer> riadky, int i)
+        private static string UpravRiadokObrazovky(ParametreVypisu parametre, 
+            ParametreVyhladavania search, 
+            LexResult lexResult, 
+            ParametreVyberu parametreVyberu, 
+            ILexer lexer, 
+            IVyhladavac vyhladavac, 
+            List<GapBuffer> riadky, 
+            string formatCislaRiadkov, 
+            int i)
         {
-            Dictionary<int, Token> tokeny;
-            Dictionary<int, Token> noveTokeny = null;
-            if (lexResult.Komentare == null || !lexResult.Komentare.TryGetValue(i, out noveTokeny))
-            {
-                noveTokeny = new Dictionary<int, Token>();
-            }
+            return string.Format("{0}{1}", Farby.StylCislaRiadkov((i + 1).ToString(formatCislaRiadkov)), PrecitajRiadok(
+                                parametre,
+                                search,
+                                lexResult,
+                                parametreVyberu,
+                                lexer,
+                                vyhladavac,
+                                riadky,
+                                i,
+                                parametre.OffsetStlpec,
+                                parametre.Sirka - 1));
+        }
 
-            tokeny = lexer.LexPreEditor(riadky[i]);
+        private static string PrecitajRiadok(
+            ParametreVypisu parametre, 
+            ParametreVyhladavania search, 
+            LexResult lexResult, 
+            ParametreVyberu parametreVyberu, 
+            ILexer lexer, 
+            IVyhladavac vyhladavac, 
+            List<GapBuffer> riadky, 
+            int indexRiadku,
+            int offsetStlpec,
+            int sirka)
+        {
+            Dictionary<int, VyhladaneSlovo> vyhladaneSlova = new Dictionary<int, VyhladaneSlovo>();
+            VyhladaneSlovo? vSlovo = null;
+            Dictionary<int, Token> tokeny = null;
+            Dictionary<int, Zatvorka> zatvorky = null;
+            VyhladaneSlovo? zvyraznenyText = null;
+            Dictionary<int, Token> regexTokens = new Dictionary<int, Token>();
 
-            foreach (var to in tokeny)
+            if (search.VyhladaneSlova != null)
             {
-                var zvyrazniToken = true;
-                foreach (var koment in noveTokeny)
+                if (!search.VyhladaneSlova.TryGetValue(indexRiadku, out vyhladaneSlova))
                 {
-                    if (koment.Key <= to.Key && to.Key <= koment.Key + koment.Value.Dlzka)
-                    {
-                        zvyrazniToken = false;
-                    }
-                }
-
-                if (zvyrazniToken)
-                {
-                    noveTokeny.Add(to.Key, to.Value);
+                    vyhladaneSlova = new Dictionary<int, VyhladaneSlovo>();
                 }
             }
-
-            if(lexResult.Tokeny == null)
+            else if (search.VyhladavanyText != null)
             {
-                lexResult.Tokeny = new Dictionary<int, Dictionary<int, Token>>();
-                lexResult.Tokeny.Add(i, noveTokeny);
-            }
-            else
-            {
-                lexResult.Tokeny[i] = noveTokeny;
+                vyhladaneSlova = vyhladavac.VyhladajVsetky(riadky[indexRiadku], search.VyhladavanyText, search.Obratene);
             }
 
-            return noveTokeny;
+            if (search.VyhladaneSlovo.HasValue && search.VyhladaneSlovo.Value.Riadok == indexRiadku)
+            {
+                vSlovo = search.VyhladaneSlovo;
+            }
+
+
+            if (lexResult.Tokeny == null || !lexResult.Tokeny.TryGetValue(indexRiadku, out tokeny))
+            {
+                tokeny = Optimalizacie.PrecitajTokenyRiadku(lexResult, lexer, riadky, indexRiadku);
+            }
+
+            if (lexResult.Zatvorky == null || !lexResult.Zatvorky.TryGetValue(indexRiadku, out zatvorky))
+            {
+                zatvorky = new Dictionary<int, Zatvorka>();
+            }
+
+            var poziciaKurzora = new Pozicia()
+            {
+                Riadok = parametre.IndexRiadok,
+                Stlpec = parametre.IndexStlpec
+            };
+
+
+            if (Zvyraznovac.MaVybranyText(parametreVyberu))
+            {
+                zvyraznenyText = Zvyraznovac.ZvyraznenyText(parametreVyberu, indexRiadku, riadky[indexRiadku].Length());
+            }
+
+            return StylovaciAutomat.SyntaxAndSearchHighligt2(riadky[indexRiadku],
+            offsetStlpec, sirka,
+            vyhladaneSlova, vSlovo, tokeny, zatvorky, poziciaKurzora,
+            zvyraznenyText, regexTokens);
         }
 
         public void VykresliNaKonzolu(EditorScreen novaObrazovka,
@@ -333,6 +634,25 @@ namespace PisaciAutomat.Obrazovka
             sb.Append(NastavKurzor(i + parametre.OkrajHore + 1, 1));
             sb.Append(ZmazOdKurzoraPoKoniecRiadku());
             sb.Append(novaObrazovka.Riadky[i]);
+        }
+
+        /// <summary>
+        /// https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
+        /// </summary>
+        private static void ShiftTextRightAndInsert(string novyAnsiKod, int pocetZnakov, StringBuilder sb)
+        {
+            ShiftTextRightAndInsertSpace(pocetZnakov, sb);
+            sb.Append(novyAnsiKod);
+        }
+
+        private static void ShiftTextRightAndInsertSpace(int pocetZnakov, StringBuilder sb)
+        {
+            sb.Append(string.Format("\u001b[{0}@", pocetZnakov));
+        }
+
+        private static void DeleteCharacterShiftTextLeft(int pocetZnakov, StringBuilder sb)
+        {
+            sb.Append(string.Format("\u001b[{0}P", pocetZnakov));
         }
 
         public static void Vykresli(EditorScreen novaObrazovka, StringBuilder sb, StavovyRiadokInfo stavovyRiadok, ParametreVypisu parametre)

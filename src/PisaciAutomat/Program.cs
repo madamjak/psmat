@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Threading;
 
 namespace PisaciAutomat
 {
@@ -102,7 +103,14 @@ namespace PisaciAutomat
 
         public bool SpracujVstup(ConsoleKeyInfo vstup)
         {
+            //---monitor optimalizacie prekreslenia
+            var indexRiadok = _parametreVypisu.IndexRiadok;
+            var indexStlpec = _parametreVypisu.IndexStlpec;
+            var offsetStlpec = _parametreVypisu.OffsetStlpec;
+            var offsetRiadok = _parametreVypisu.OffsetRiadok;
+            var dlzkaRiadku = _editor.Riadky()[indexRiadok].Length();
             _parametrePrekreslenia = new ParametrePrekreslenia();
+            //---
 
             if (_cmdMode)
             {
@@ -129,11 +137,6 @@ namespace PisaciAutomat
                     _parametreVyberu = new ParametreVyberu();
                 }
 
-                var indexRiadok = _parametreVypisu.IndexRiadok;
-                var indexStlpec = _parametreVypisu.IndexStlpec;
-                var offsetRiadok = _parametreVypisu.OffsetRiadok;
-                var offsetStlpec = _parametreVypisu.OffsetStlpec;
-
                 var bracketHighlighted = false;
                 if (_parametreVypisu.IndexStlpec < _editor.Riadky()[_parametreVypisu.IndexRiadok].Length())
                 {
@@ -143,11 +146,11 @@ namespace PisaciAutomat
                 Navigator.Naviguj(_navigovaciPrikaz, _parametreVypisu, _editor.Riadky(), _parametreVyberu);
 
                 var zmenaStranky = offsetRiadok != _parametreVypisu.OffsetRiadok || offsetStlpec != _parametreVypisu.OffsetStlpec;                
-                var zmenaVyberuTextu = (malVybranyText && !Zvyraznovac.MaVybranyText(_parametreVyberu))
-                    || (!malVybranyText && Zvyraznovac.MaVybranyText(_parametreVyberu))
+                var zmenaVyberuTextu = (!malVybranyText && Zvyraznovac.MaVybranyText(_parametreVyberu))
                     || (Zvyraznovac.MaVybranyText(_parametreVyberu) 
                         && (indexRiadok != _parametreVypisu.IndexRiadok 
                         || indexStlpec != _parametreVypisu.IndexStlpec));
+                var resetVyberuTextu = malVybranyText && !Zvyraznovac.MaVybranyText(_parametreVyberu);
 
                 var bracketHighlightedPo = false;
                 if (_parametreVypisu.IndexStlpec < _editor.Riadky()[_parametreVypisu.IndexRiadok].Length())
@@ -156,11 +159,23 @@ namespace PisaciAutomat
                 }
 
                 var zmenaBracketHighlight = !(!bracketHighlighted && !bracketHighlightedPo);
+
                 _parametrePrekreslenia.Necitaj = true;
-                if(zmenaStranky || zmenaVyberuTextu || zmenaBracketHighlight)
+                if(zmenaStranky || zmenaVyberuTextu || resetVyberuTextu || zmenaBracketHighlight)
                 {
                     _parametrePrekreslenia.Necitaj = false;
                     _parametrePrekreslenia.LenPrekresli = true;
+                    _parametrePrekreslenia.ZaciatocnyStlpec = indexStlpec;
+                    if (zmenaVyberuTextu && indexRiadok == _parametreVypisu.IndexRiadok)
+                    {
+                        _parametrePrekreslenia.UpravaAleboPrekreslenieRiadku = true;
+                        _parametrePrekreslenia.KonecnySlpec = _parametreVypisu.IndexStlpec;
+                        if (zmenaVyberuTextu && !zmenaStranky)
+                        {
+                            _parametrePrekreslenia.OptimalizaciaPrekreslenia = true;
+                        }
+                        
+                    }
                 }
             }
             else if (vstup.Key == ConsoleKey.Backspace)
@@ -171,10 +186,10 @@ namespace PisaciAutomat
                 }
                 else
                 {
-                    _parametrePrekreslenia.ZaciatokAkcie = new Pozicia(_parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec);
                     _editor.ZmazText(_parametreVypisu);
-                    _parametrePrekreslenia.KoniecAkcie = new Pozicia(_parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec);
-                    _parametrePrekreslenia.ZmazalAleboZapisal = true;
+
+                    MonitorOptimalzaciePrekreslenia(indexStlpec, indexRiadok, offsetStlpec, dlzkaRiadku);
+                    
                 }
             }
             else if (vstup.Key == ConsoleKey.Delete)
@@ -187,10 +202,13 @@ namespace PisaciAutomat
                 {
                     Kurzor.PosunKurzorDoprava(_parametreVypisu, _editor.Riadky());
 
-                    _parametrePrekreslenia.ZaciatokAkcie = new Pozicia(_parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec);
+                    indexRiadok = _parametreVypisu.IndexRiadok;
+                    indexStlpec = _parametreVypisu.IndexStlpec;
+                    offsetStlpec = _parametreVypisu.OffsetStlpec;
+                    
                     _editor.ZmazText(_parametreVypisu);
-                    _parametrePrekreslenia.KoniecAkcie = new Pozicia(_parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec);
-                    _parametrePrekreslenia.ZmazalAleboZapisal = true;
+
+                    MonitorOptimalzaciePrekreslenia(indexStlpec, indexRiadok, offsetStlpec, dlzkaRiadku);
                 }
             } 
             else if (vstup.Key == ConsoleKey.Tab)
@@ -200,16 +218,9 @@ namespace PisaciAutomat
                     var maVybrany = Zvyraznovac.MaVybranyText(_parametreVyberu);
                     if (!maVybrany || !Zvyraznovac.MaVybranyTextPreMultiLineOkraj(_parametreVyberu))
                     {
-                        _parametrePrekreslenia.ZaciatokAkcie = new Pozicia(_parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec);
-
                         _editor.ZmazOkraj(_parametreVypisu, _parametreVyberu);
 
-                        _parametrePrekreslenia.KoniecAkcie = new Pozicia(_parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec);
-                        
-                        if(_parametrePrekreslenia.ZaciatokAkcie.Stlpec != _parametrePrekreslenia.KoniecAkcie.Stlpec)
-                        {
-                            _parametrePrekreslenia.ZmazalAleboZapisal = true;
-                        }
+                        MonitorOptimalzaciePrekreslenia(indexStlpec, indexRiadok, offsetStlpec, dlzkaRiadku);
                     }
                     else
                     {
@@ -227,11 +238,9 @@ namespace PisaciAutomat
                         }
                         else
                         {
-                            _parametrePrekreslenia.ZaciatokAkcie = new Pozicia(_parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec);
-
                             _editor.PridajOkraj(_parametreVypisu);
-                            _parametrePrekreslenia.KoniecAkcie = new Pozicia(_parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec);
-                            _parametrePrekreslenia.ZmazalAleboZapisal = true;
+
+                            MonitorOptimalzaciePrekreslenia(indexStlpec, indexRiadok, offsetStlpec, dlzkaRiadku);
                         }
                     }
                     else
@@ -341,10 +350,8 @@ namespace PisaciAutomat
                 }
                 else
                 {
-                    _parametrePrekreslenia.ZaciatokAkcie = new Pozicia(_parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec);
                     _editor.NapisZnak(vstup.KeyChar, _parametreVypisu);
-                    _parametrePrekreslenia.KoniecAkcie = new Pozicia(_parametreVypisu.IndexRiadok, _parametreVypisu.IndexStlpec);
-                    _parametrePrekreslenia.ZmazalAleboZapisal = true;
+                    MonitorOptimalzaciePrekreslenia(indexStlpec, indexRiadok, offsetStlpec, dlzkaRiadku);
                 }
             }
 
@@ -360,21 +367,56 @@ namespace PisaciAutomat
             return true;
         }
 
+        private void MonitorOptimalzaciePrekreslenia(int indexStlpec, int indexRiadok, int offsetStlpec, int dlzkaRiadku)
+        {
+            var upravaNaRiadku = indexRiadok == _parametreVypisu.IndexRiadok;
+
+            if (!upravaNaRiadku)
+            {
+                return;
+            }
+
+            if(indexStlpec == _parametreVypisu.IndexStlpec)
+            {
+                return;
+            }
+
+            _parametrePrekreslenia.UpravaAleboPrekreslenieRiadku = true;
+            _parametrePrekreslenia.KonecnySlpec = _parametreVypisu.IndexStlpec;
+            _parametrePrekreslenia.ZaciatocnyStlpec = indexStlpec;
+
+            var zapis = _parametreVypisu.IndexStlpec - indexStlpec > 0;
+            var jednoznakoveMazanie = _parametreVypisu.IndexStlpec - indexStlpec == -1;
+            if (indexRiadok == _parametreVypisu.IndexRiadok
+                && offsetStlpec == _parametreVypisu.OffsetStlpec
+                && (zapis || jednoznakoveMazanie || dlzkaRiadku < _parametreVypisu.SirkaKonzoly))
+            {
+                _parametrePrekreslenia.OptimalizaciaPrekreslenia = true;
+            }
+        }
+
         private void ZmazVybranyText()
         {
             if (_parametreVyberu.Zaciatok.Value.Riadok == _parametreVyberu.Koniec.Value.Riadok)
             {
+                var dlzkaRiadku = _editor.Riadky()[_parametreVyberu.Koniec.Value.Riadok].Length();
                 var mazeRiadok = _parametreVyberu.Zaciatok.Value.Stlpec == 0
-                && _parametreVyberu.Koniec.Value.Stlpec == _editor.Riadky()[_parametreVyberu.Koniec.Value.Riadok].Length();
-
+                && _parametreVyberu.Koniec.Value.Stlpec == dlzkaRiadku;
+                
                 if (!mazeRiadok)
                 {
-                    _parametrePrekreslenia.ZaciatokAkcie = _parametreVyberu.Zaciatok.Value;
-                    _parametrePrekreslenia.KoniecAkcie = _parametreVyberu.Koniec.Value;
-                    _parametrePrekreslenia.ZmazalAleboZapisal = true;
+                    _parametrePrekreslenia.ZaciatocnyStlpec = _parametreVyberu.Koniec.Value.Stlpec;
+                    _parametrePrekreslenia.KonecnySlpec = _parametreVyberu.Zaciatok.Value.Stlpec;
+                    _parametrePrekreslenia.UpravaAleboPrekreslenieRiadku = true;
+
+                    var jednoznakoveMazanie = _parametrePrekreslenia.KonecnySlpec - _parametrePrekreslenia.ZaciatocnyStlpec == -1;
+                    if(jednoznakoveMazanie || dlzkaRiadku < _parametreVypisu.SirkaKonzoly)
+                    {
+                        _parametrePrekreslenia.OptimalizaciaPrekreslenia = true;
+                    }
                 }
             }
-
+            
             _editor.ZmazText(_parametreVyberu.Zaciatok.Value.Stlpec, _parametreVyberu.Zaciatok.Value.Riadok,
                                     _parametreVyberu.Koniec.Value.Stlpec, _parametreVyberu.Koniec.Value.Riadok, _parametreVypisu);
 
