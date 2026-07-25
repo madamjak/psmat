@@ -28,6 +28,8 @@ namespace PisaciStroj.Lexer
         public LexAutomat()
         {
             _sethiUllman = new AhoSethiUllman();
+            _regexAutomat = SkonstruujRegexAutomat(RegexGramatika.RegexG());
+            NastavLexer(new LexGramatika());
         }
 
         public void NastavLexer(LexGramatika gramatika)

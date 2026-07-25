@@ -169,15 +169,45 @@ namespace PisaciStroj.Vyhladavanie
                 }
 
                 var canRead = automat.ReadSymbol(text.CharAt(poziciaHlavy));
+
                 if (canRead && najdenaPozicia == -1)
                 {
                     najdenaPozicia = poziciaHlavy;
                 }
-                
+
                 poziciaHlavy++;
+
+                if (!canRead)
+                {
+                    automat.Reset();
+                    if(najdenaPozicia > -1)
+                    {
+                        poziciaHlavy--;
+                        najdenaPozicia = -1;
+                        continue;
+                    }
+                }
 
                 if (automat.IsAccepting().HasValue)
                 {
+                    while (true)
+                    {
+                        if (poziciaHlavy == text.Length())
+                        {
+                            break;
+                        }
+
+                        if(!canRead || !automat.IsAccepting().HasValue)
+                        {
+                            poziciaHlavy--;
+                            break;
+                        }
+
+                        canRead = automat.ReadSymbol(text.CharAt(poziciaHlavy));
+
+                        poziciaHlavy++;
+                    }
+
                     result = new VyhladaneSlovo
                     {
                         Riadok = indexRiadku,
@@ -186,12 +216,6 @@ namespace PisaciStroj.Vyhladavanie
                     };
                     
                     break;
-                }
-
-                if (!canRead)
-                {
-                    automat.Reset();
-                    najdenaPozicia = -1;
                 }
             }
 

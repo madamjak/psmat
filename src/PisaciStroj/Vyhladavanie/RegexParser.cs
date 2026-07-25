@@ -47,18 +47,58 @@ namespace PisaciStroj.Vyhladavanie
                     if (lastT.HasValue)
                     {
                         if((lastT.Value.Typ != TypTokenu.Operator && t.Typ != TypTokenu.Operator)
-                           || (riadok.CharAt(lastT.Value.Pozicia) == '*') && t.Typ != TypTokenu.Operator)
+                           || (riadok.CharAt(lastT.Value.Pozicia) == '*' && t.Typ != TypTokenu.Operator))
                         {
                             sb.Append(".");
                         }
                     }
+                    else if (i > zaciatokRegexu && t.Typ != TypTokenu.Operator && riadok.CharAt(i - 1) != '(')
+                    {
+                        sb.Append(".");
+                    }
+
                     if(t.Dlzka == 1)
                     {
                         sb.Append(riadok.CharAt(i));
                         i++;
                     }
+                    else if(t.Typ == TypTokenu.Retazec && t.Dlzka > 1)
+                    {
+                        var dalsiIndex = i + t.Dlzka;
+                        if(dalsiIndex < koniecRegexu)
+                        {
+                            Token uzaver;
+                            if(regexTokeny.TryGetValue(dalsiIndex, out uzaver)
+                                && uzaver.Typ == TypTokenu.Operator
+                                && riadok.CharAt(dalsiIndex) == '*')
+                            {
+                                //uzaver plati pre posledny znak a nie cely retazec
+                                t.Dlzka--;
+                                NahradToken(t, sb, riadok);
+
+                                t = uzaver;
+                                sb.Append(".(");
+                                sb.Append(riadok.CharAt(dalsiIndex - 1));
+                                sb.Append(riadok.CharAt(dalsiIndex));
+                                sb.Append(")");
+
+                                i = dalsiIndex + 1;
+                            }
+                            else
+                            {
+                                NahradToken(t, sb, riadok);
+                                i += t.Dlzka;
+                            }
+                        }
+                        else
+                        {
+                            NahradToken(t, sb, riadok);
+                            i += t.Dlzka;
+                        }
+                    }
                     else
-                    {NahradToken(t, sb, riadok);
+                    {
+                        NahradToken(t, sb, riadok);
                         i += t.Dlzka;
                     }
 
@@ -66,10 +106,15 @@ namespace PisaciStroj.Vyhladavanie
                 }
                 else
                 {
-                    if (lastT.HasValue && lastT.Value.Typ != TypTokenu.Operator)
+                    if (i > zaciatokRegexu 
+                        && ((lastT.HasValue && (lastT.Value.Typ != TypTokenu.Operator || riadok.CharAt(lastT.Value.Pozicia) == '*'))
+                            || !lastT.HasValue)
+                        && riadok.CharAt(i) != ')')
                     {
                         sb.Append(".");
                     }
+
+                    lastT = null;
 
                     sb.Append(riadok.CharAt(i));
                     i++;
