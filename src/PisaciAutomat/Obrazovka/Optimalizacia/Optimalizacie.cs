@@ -29,6 +29,11 @@ namespace PisaciAutomat.Obrazovka
             LexResult precitanyText, 
             List<GapBuffer> gapBuffers)
         {
+            if (!LexAutomat._lexerNastaveny)
+            {
+                return true;
+            }
+
             var result = new OptimalizacieResult();
 
             Komentare.UpravExistujuciKomentar(parametrePrekreslenia, parametre, precitanyText, gapBuffers, result);

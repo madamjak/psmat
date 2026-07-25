@@ -85,7 +85,7 @@ namespace PisaciAutomat
             NastavFarby(config);
 
             _vyhladavac = new VyhladavaciAutomat();
-            _editor = new PisaciStroj.Program(_vyhladavac, config != null ? config.UndoLimit : 10);
+            _editor = new PisaciStroj.Program(_vyhladavac);
             _lexer = new LexAutomat();
             _vykreslovaciAutomat = new VykreslovaciAutomat(_lexer, _editor, _vyhladavac);
             _cmdLineEditor = new PrikazovyAutomat();

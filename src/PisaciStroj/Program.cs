@@ -54,7 +54,8 @@ namespace PisaciStroj
 
         public Program(IVyhladavac vyhladavac, int? undoLimit = null)
         {
-            _pamatOperacii = new PamatOperacii(undoLimit);
+            //obmedzeny pocet undo moze sposobovat v pripade aktualnej implementacie problem pri komplexnych operaciach ako napr vyhladajnahradvsetky apod.
+            _pamatOperacii = new PamatOperacii(null);
             _riadky = new List<GapBuffer>() { new GapBuffer() };
 
             _vyhladavac = vyhladavac;

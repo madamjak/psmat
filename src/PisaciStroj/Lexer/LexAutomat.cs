@@ -13,8 +13,10 @@ namespace PisaciStroj.Lexer
         private MultipleDfaSimulator _dfa;
 
         private string _komentar;
-        public static string _zaciatokKomentara;
-        public static string _koniecKomentara;
+        public static string _zaciatokKomentara { get; private set; }
+        public static string _koniecKomentara { get; private set; }
+
+        public static bool _lexerNastaveny { get; private set; }
 
         private MultipleDfaSimulator _regexAutomat;
 
@@ -39,6 +41,8 @@ namespace PisaciStroj.Lexer
             _komentar = gramatika.JednoriadkovyKomentar;
             _zaciatokKomentara = gramatika.ZaciatokKomentara;
             _koniecKomentara = gramatika.KoniecKomentara;
+
+            _lexerNastaveny = true;
         }
 
         private MultipleDfaSimulator SkonstruujRegexAutomat(LexPravidlo[] pravidla)
@@ -78,7 +82,7 @@ namespace PisaciStroj.Lexer
         /// </summary>
         public Dictionary<int, Token> LexPreEditor(GapBuffer text)
         {
-            if (_dfa == null)
+            if (_dfa == null || !_lexerNastaveny)
             {
                 return new Dictionary<int, Token>();
             }
@@ -447,6 +451,15 @@ namespace PisaciStroj.Lexer
 
             var komentare = new Dictionary<int, Dictionary<int, Token>>();
             var zatvorky = new Dictionary<int, Dictionary<int, Zatvorka>>();
+
+            if (!_lexerNastaveny)
+            {
+                return new LexResult()
+                {
+                    Zatvorky = zatvorky,
+                    Komentare = komentare
+                };
+            }
 
             var riadok = 0;
 
