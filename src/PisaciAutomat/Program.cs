@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using PisaciAutomat.Config;
 using PisaciAutomat.Obrazovka;
 using PisaciAutomat.Prikazy;
 using PisaciAutomat.Subory;
@@ -80,8 +81,11 @@ namespace PisaciAutomat
         {
             NacitajLexGramatiku();
 
+            var config = NacitajConfig();
+            NastavFarby(config);
+
             _vyhladavac = new VyhladavaciAutomat();
-            _editor = new PisaciStroj.Program(_vyhladavac);
+            _editor = new PisaciStroj.Program(_vyhladavac, config != null ? config.UndoLimit : 10);
             _lexer = new LexAutomat();
             _vykreslovaciAutomat = new VykreslovaciAutomat(_lexer, _editor, _vyhladavac);
             _cmdLineEditor = new PrikazovyAutomat();
@@ -95,6 +99,21 @@ namespace PisaciAutomat
             };
 
             _search = new ParametreVyhladavania();
+        }
+
+        private void NastavFarby(UserConfig config)
+        {
+            var darkMode = config != null ? config.DarkMode : false;
+
+            if (darkMode)
+            {
+                Farby.DarkMode = true;
+            }
+
+            Console.Write(Farby.AnsiReset());
+
+            //nastav kurzor
+            Console.Write(Farby.StylKurzora());
         }
 
         public int SirkaKonzoly => _parametreVypisu.SirkaKonzoly;
@@ -729,6 +748,37 @@ namespace PisaciAutomat
                 {
                     Ex = ex
                 });
+            }
+        }
+
+        private UserConfig NacitajConfig()
+        {
+            try
+            {
+                var cesta = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Config/UserConfig.json");
+
+                UserConfig konfig;
+
+                using (var file = File.Open(cesta, FileMode.Open))
+                {
+                    using (var reader = new StreamReader(file))
+                    {
+                        var s = reader.ReadToEnd();
+
+                        konfig = (UserConfig) JsonConvert.DeserializeObject(s, typeof(UserConfig));
+                    }
+                }
+
+                return konfig;
+            }
+            catch (Exception ex)
+            {
+                ErrorLogger.GetInstance().Log(new Chyba()
+                {
+                    Ex = ex
+                });
+
+                return null;
             }
         }
 

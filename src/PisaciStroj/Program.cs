@@ -52,9 +52,9 @@ namespace PisaciStroj
             _riadky = riadky;
         }
 
-        public Program(IVyhladavac vyhladavac)
+        public Program(IVyhladavac vyhladavac, int? undoLimit = null)
         {
-            _pamatOperacii = new PamatOperacii();
+            _pamatOperacii = new PamatOperacii(undoLimit);
             _riadky = new List<GapBuffer>() { new GapBuffer() };
 
             _vyhladavac = vyhladavac;
@@ -77,6 +77,8 @@ namespace PisaciStroj
                     NapisZnakInternal(c, p);
                 }
             }
+
+            _pamatOperacii.SuborUlozeny();
         }
 
         public void NapisText(string vstup, ParametreVypisu parametreVypisu)

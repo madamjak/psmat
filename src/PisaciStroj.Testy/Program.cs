@@ -25,9 +25,9 @@ namespace PisaciStroj.Testy
     {
         static int Main(string[] args)
         {
-            return SpustTesty();
+            //return SpustTesty();
 
-            //return DebuggujTesty();
+            return DebuggujTesty();
         }
 
         private static int DebuggujTesty()
@@ -59,8 +59,11 @@ namespace PisaciStroj.Testy
             //var t = new RegexParserTest();
             //t.JednoduchyParseRegexTest();
 
-            var t = new RegexVyhladavanie();
-            t.Test4();
+            //var t = new RegexVyhladavanie();
+            //t.Test4();
+
+            var t = new CyclicStackTest();
+            t.Test2();
             return 0;
         }
 
@@ -78,7 +81,8 @@ namespace PisaciStroj.Testy
                 new SyntaxHighlightTest(),
                 new VyhladavacTest(),
                 new RegexParserTest(),
-                new RegexVyhladavanie()
+                new RegexVyhladavanie(),
+                new CyclicStackTest()
             };
 
             foreach (var t in testy)

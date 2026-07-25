@@ -3,42 +3,106 @@ using System.Collections.Generic;
 
 namespace PisaciStroj.Pamat
 {
+    public interface IZasobnikOperacii
+    {
+        void Push(Operacia o);
+        Operacia Pop();
+        void Clear();
+    }
+
+    public class CSharpStack : IZasobnikOperacii
+    {
+        private Stack<Operacia> _stack;
+
+        public CSharpStack()
+        {
+            _stack = new Stack<Operacia>();
+        }
+
+        public void Clear()
+        {
+            _stack.Clear();
+        }
+
+        public Operacia Pop()
+        {
+            return _stack.Pop();
+        }
+
+        public void Push(Operacia o)
+        {
+            _stack.Push(o);
+        }
+    }
+
+    public class CustomCyclicStack : IZasobnikOperacii
+    {
+        private CyclicStack<Operacia> _stack;
+
+        public CustomCyclicStack(int size)
+        {
+            _stack = new CyclicStack<Operacia>(size);
+        }
+
+        public void Clear()
+        {
+            _stack.Clear();
+        }
+
+        public Operacia Pop()
+        {
+            return _stack.Pop();
+        }
+
+        public void Push(Operacia o)
+        {
+            _stack.Push(o);
+        }
+    }
+
     internal class PamatOperacii
     {
-        private Stack<Operacia> _operacieNaVratenie;
-        private Stack<Operacia> _operacieNaZopakovanie;
+        private IZasobnikOperacii _operacieNaVratenie;
+        private IZasobnikOperacii _operacieNaZopakovanie;
 
         public int PocetOperaciiNaVratenie { get; private set; }
         public int PocetOperaciiNaZopakovanie { get; private set; }
 
+        private int? _limit;
+
         private DateTime? _posledneUlozenie;
         private int _pocetOperaciiOdPoslUlozenia;
 
-        public PamatOperacii()
+        public PamatOperacii(int? undoLimit = null)
         {
-            _operacieNaVratenie = new Stack<Operacia>();
-            _operacieNaZopakovanie = new Stack<Operacia>();
+            if (undoLimit.HasValue)
+            {
+                _limit = undoLimit;
+                _operacieNaVratenie = new CustomCyclicStack(undoLimit.Value);
+                _operacieNaZopakovanie = new CustomCyclicStack(undoLimit.Value);
+            }
+            else
+            {
+                _operacieNaVratenie = new CSharpStack();
+                _operacieNaZopakovanie = new CSharpStack();
+            }
         }
+
         public void PridajOperaciuNaVratenie(Operacia operacia)
         {
-            if (_posledneUlozenie.HasValue)
-            {
-                _pocetOperaciiOdPoslUlozenia++;
-            }
+            _pocetOperaciiOdPoslUlozenia++;
 
             _operacieNaVratenie.Push(operacia);
 
-            PocetOperaciiNaVratenie++;
+            if(!_limit.HasValue || PocetOperaciiNaVratenie < _limit.Value)
+            {
+                PocetOperaciiNaVratenie++;
+            }
         }
-
-        
 
         public void PridajOperaciuNaZopakovanie(Operacia operacia)
         {
-            if (_posledneUlozenie.HasValue)
-            {
-                _pocetOperaciiOdPoslUlozenia--;
-            }
+            _pocetOperaciiOdPoslUlozenia--;
 
             _operacieNaZopakovanie.Push(operacia);
 
@@ -78,10 +142,9 @@ namespace PisaciStroj.Pamat
 
         internal bool MaZmenu()
         {
-            var upravenyNeulozeny = PocetOperaciiNaVratenie > 0 && !_posledneUlozenie.HasValue;
-            var zmeneny = _posledneUlozenie.HasValue && _pocetOperaciiOdPoslUlozenia != 0;
+            var ulozeny = _posledneUlozenie.HasValue && _pocetOperaciiOdPoslUlozenia == 0;
 
-            return upravenyNeulozeny || zmeneny;
+            return !ulozeny;
         }
     }
 }

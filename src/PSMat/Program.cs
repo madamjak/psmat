@@ -38,8 +38,6 @@ namespace PSMat
 
                 NacitajSubor(args);
 
-                NastavDarkMode(args);
-
                 Thread resizeThread = new Thread(ResizeListener)
                 {
                     IsBackground = true // Ends when main app ends
@@ -111,31 +109,6 @@ namespace PSMat
             Console.BackgroundColor = consoleBgColor;
             Console.ForegroundColor = consoleFgColor;
             Console.Clear();
-        }
-
-        private static void NastavDarkMode(string[] args)
-        {
-            var darkMode = false;
-            if(args != null && args.Length > 0)
-            {
-                for(int i = 0; i < args.Length; i++)
-                {
-                    if(args[i] == "-dm")
-                    {
-                        darkMode = true;
-                    }
-                }
-            }
-
-            if (darkMode)
-            {
-                Farby.DarkMode = true;
-            }
-                
-            Console.Write(Farby.AnsiReset());
-
-            //nastav kurzor
-            Console.Write(Farby.StylKurzora());
         }
 
         private static bool OperaciaSEditorom(AkciaSEditorom akcia)
