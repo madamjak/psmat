@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 
 namespace Lexer.Algoritmy
 {
@@ -96,6 +97,12 @@ namespace Lexer.Algoritmy
                         }
                         break;
                     case ')':
+
+                        if(_operatorStack.Peek() == '(')
+                        {
+                            _operatorStack.Pop();
+                            break;
+                        }
 
                         while (true)
                         {
@@ -234,7 +241,28 @@ namespace Lexer.Algoritmy
                 }
             }
 
+            //..for debug
+            //var sb = new StringBuilder();
+            //InorderTraversalPrint(tree.Root, sb);
+            //var a = sb.ToString();
+
             return tree;
+        }
+
+        private static void InorderTraversalPrint(RegexAstNode node, StringBuilder sb)
+        {
+            if (node == null)
+            {
+                return;
+            }
+
+            sb.Append('(');
+
+            InorderTraversalPrint(node.Left, sb);
+            sb.Append(node.Key);
+            InorderTraversalPrint(node.Right, sb);
+
+            sb.Append(')');
         }
     }
 }

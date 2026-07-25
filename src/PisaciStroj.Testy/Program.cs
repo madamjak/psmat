@@ -50,14 +50,17 @@ namespace PisaciStroj.Testy
             //var t = new RegexAstTreeTest();
             //t.OtestujFollowPos2();
 
-            var t = new LexerTest();
-            t.CmdLineRegexTest();
+            //var t = new LexerTest();
+            //t.CmdLineRegexTest();
 
             //var t = new VyhladavacTest();
             //t.JednoduchyTestRegexVyhladavaca();
 
             //var t = new RegexParserTest();
-            //t.ParseRegexTestKlucoveSlova();
+            //t.JednoduchyParseRegexTest();
+
+            var t = new RegexVyhladavanie();
+            t.Test4();
             return 0;
         }
 
@@ -74,7 +77,8 @@ namespace PisaciStroj.Testy
                 new BracketMatchingTest(),
                 new SyntaxHighlightTest(),
                 new VyhladavacTest(),
-                new RegexParserTest()
+                new RegexParserTest(),
+                new RegexVyhladavanie()
             };
 
             foreach (var t in testy)

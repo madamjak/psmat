@@ -1,5 +1,6 @@
 ﻿using PisaciStroj.Lexer;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Lexer.Algoritmy
 {
