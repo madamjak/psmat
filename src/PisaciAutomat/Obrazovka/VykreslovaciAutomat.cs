@@ -346,12 +346,13 @@ namespace PisaciAutomat.Obrazovka
             Console.Write(sb.ToString());
         }
 
-        private struct PoziciaNaRiadku
+        public struct PoziciaNaRiadku
         {
             public int IndexStlpec { get; set; }
             public int StlpecKurzora { get; set; }
         }
-        private PoziciaNaRiadku? KonecnyStlpecRiadkuObrazovky(ParametreVypisu parametre, int dlzkaRiadku)
+
+        public static PoziciaNaRiadku? KonecnyStlpecRiadkuObrazovky(ParametreVypisu parametre, int dlzkaRiadku)
         {
             var stlpec = parametre.Stlpec;
             var indexStlpec = parametre.Stlpec + parametre.OffsetStlpec;
@@ -639,18 +640,18 @@ namespace PisaciAutomat.Obrazovka
         /// <summary>
         /// https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
         /// </summary>
-        private static void ShiftTextRightAndInsert(string novyAnsiKod, int pocetZnakov, StringBuilder sb)
+        public static void ShiftTextRightAndInsert(string novyAnsiKod, int pocetZnakov, StringBuilder sb)
         {
             ShiftTextRightAndInsertSpace(pocetZnakov, sb);
             sb.Append(novyAnsiKod);
         }
 
-        private static void ShiftTextRightAndInsertSpace(int pocetZnakov, StringBuilder sb)
+        public static void ShiftTextRightAndInsertSpace(int pocetZnakov, StringBuilder sb)
         {
             sb.Append(string.Format("\u001b[{0}@", pocetZnakov));
         }
 
-        private static void DeleteCharacterShiftTextLeft(int pocetZnakov, StringBuilder sb)
+        public static void DeleteCharacterShiftTextLeft(int pocetZnakov, StringBuilder sb)
         {
             sb.Append(string.Format("\u001b[{0}P", pocetZnakov));
         }
@@ -743,6 +744,22 @@ namespace PisaciAutomat.Obrazovka
                     break;
                 }
                 sb.Append(" ");
+                i++;
+            }
+            return sb.ToString();
+        }
+
+        public static string NastavPozadie(int sirka, Farby.FarbaPozadia farba)
+        {
+            var i = 0;
+            var sb = new StringBuilder();
+            while (true)
+            {
+                if (i == sirka)
+                {
+                    break;
+                }
+                sb.Append(string.Format("{0} {1}", Farby.AnsiStyl(farba), Farby.AnsiReset()));
                 i++;
             }
             return sb.ToString();
