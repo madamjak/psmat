@@ -38,16 +38,19 @@ namespace PisaciAutomat.Obrazovka.Optimalizacia
                     obsahujeZatvorky = true;
                 }
 
-                var zaciatokKomentara = r.Read(s, LexAutomat._zaciatokKomentara.Length);
-                if (zaciatokKomentara == LexAutomat._zaciatokKomentara)
+                if (!string.IsNullOrEmpty(LexAutomat._zaciatokKomentara) && !string.IsNullOrEmpty(LexAutomat._koniecKomentara))
                 {
-                    obsahujeZaciatokKomentara = true;
-                }
+                    var zaciatokKomentara = r.Read(s, LexAutomat._zaciatokKomentara.Length);
+                    if (zaciatokKomentara == LexAutomat._zaciatokKomentara)
+                    {
+                        obsahujeZaciatokKomentara = true;
+                    }
 
-                var koniecKomentara = r.Read(s, LexAutomat._koniecKomentara.Length);
-                if (koniecKomentara == LexAutomat._koniecKomentara)
-                {
-                    obsahujeKoniecKomentara = true;
+                    var koniecKomentara = r.Read(s, LexAutomat._koniecKomentara.Length);
+                    if (koniecKomentara == LexAutomat._koniecKomentara)
+                    {
+                        obsahujeKoniecKomentara = true;
+                    }
                 }
 
                 s++;

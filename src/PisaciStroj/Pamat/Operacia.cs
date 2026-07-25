@@ -1,6 +1,6 @@
 ﻿namespace PisaciStroj.Pamat
 {
-    internal enum TypOperacie
+    public enum TypOperacie
     {
         Zapis,
         Mazanie,
@@ -10,7 +10,7 @@
         ZmazOdsek
     }
 
-    internal class Operacia
+    public class Operacia
     {
         public int ZaciatocnyStlpec { get; set; }
 
