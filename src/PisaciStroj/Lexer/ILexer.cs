@@ -81,5 +81,6 @@ namespace PisaciStroj.Lexer
         LexResult LexPrePrikazovyRiadok(List<GapBuffer> text);
 
         LexResult ZatvorkyAKomentare(List<GapBuffer> text);
+        bool JeLexerNastaveny();
     }
 }

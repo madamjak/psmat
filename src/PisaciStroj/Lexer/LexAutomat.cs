@@ -16,7 +16,7 @@ namespace PisaciStroj.Lexer
         public static string _zaciatokKomentara { get; private set; }
         public static string _koniecKomentara { get; private set; }
 
-        public static bool _lexerNastaveny { get; private set; }
+        public bool _lexerNastaveny { get; private set; }
 
         private MultipleDfaSimulator _regexAutomat;
 
@@ -31,7 +31,7 @@ namespace PisaciStroj.Lexer
         {
             _sethiUllman = new AhoSethiUllman();
             _regexAutomat = SkonstruujRegexAutomat(RegexGramatika.RegexG());
-            NastavLexer(new LexGramatika());
+            _dfa = BuildDfaAutomaton(new LexGramatika());
         }
 
         public void NastavLexer(LexGramatika gramatika)
@@ -43,6 +43,11 @@ namespace PisaciStroj.Lexer
             _koniecKomentara = gramatika.KoniecKomentara;
 
             _lexerNastaveny = true;
+        }
+
+        public bool JeLexerNastaveny()
+        {
+            return _lexerNastaveny;
         }
 
         private MultipleDfaSimulator SkonstruujRegexAutomat(LexPravidlo[] pravidla)

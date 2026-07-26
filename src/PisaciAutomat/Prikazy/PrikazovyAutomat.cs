@@ -239,13 +239,13 @@ namespace PisaciAutomat.Prikazy
                 var zmenaBracketHighlight = !(!bracketHighlighted && !bracketHighlightedPo);
 
                 _parametreVykreslovania.Necitaj = true;
-                if (zmenaStranky || zmenaVyberuTextu || resetVyberuTextu || zmenaBracketHighlight)
+                if (zmenaStranky || zmenaVyberuTextu || resetVyberuTextu || zmenaBracketHighlight || _chybaReset)
                 {
                     _parametreVykreslovania.Necitaj = false;
                     _parametreVykreslovania.LenPrekresli = true;
                     _parametreVykreslovania.ZaciatocnyStlpec = indexStlpec;
                     _parametreVykreslovania.KonecnySlpec = _parametreVypisu.IndexStlpec;
-                    if (zmenaVyberuTextu)
+                    if (zmenaVyberuTextu && !_chybaReset)
                     {
                         if (zmenaVyberuTextu && !zmenaStranky)
                         {

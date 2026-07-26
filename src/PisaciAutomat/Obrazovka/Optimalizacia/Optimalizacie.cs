@@ -27,9 +27,10 @@ namespace PisaciAutomat.Obrazovka
             ParametrePrekreslenia parametrePrekreslenia, 
             ParametreVypisu parametre,
             LexResult precitanyText, 
-            List<GapBuffer> gapBuffers)
+            List<GapBuffer> gapBuffers,
+            ILexer lexer)
         {
-            if (!LexAutomat._lexerNastaveny)
+            if (!lexer.JeLexerNastaveny())
             {
                 return true;
             }
@@ -56,6 +57,11 @@ namespace PisaciAutomat.Obrazovka
             ILexer lexer)
         {
             var noveTokeny = new Dictionary<int, Dictionary<int, Token>>();
+
+            if (!lexer.JeLexerNastaveny())
+            {
+                return;
+            }
 
             var riadok = parametreVypisu.OffsetRiadok;
             var vyska = parametreVypisu.Vyska;
