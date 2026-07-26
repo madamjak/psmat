@@ -129,11 +129,19 @@ namespace PisaciAutomat.Obrazovka
 
                 return Precitaj2(parametre, search, _precitanyText, _editor, parametreVyberu, _lexer, _vyhladavac);
             }
-            else if (Optimalizacie.UpravPrecitanyText(parametrePrekreslenia, parametre, _precitanyText, _editor.Riadky()))
+            else if (Optimalizacie.UpravPrecitanyText(parametrePrekreslenia, parametre, _precitanyText, _editor.Riadky(), _lexer))
             {
-                _precitanyText.Tokeny[parametre.IndexRiadok] = Optimalizacie.PrecitajTokenyRiadku(_precitanyText, _lexer, _editor.Riadky(), parametre.IndexRiadok);
+                var tokenyRiadku = _precitanyText.Tokeny[parametre.IndexRiadok].Values.ToList();
+                var obsahovalRetazec = tokenyRiadku.Any(x => x.Typ == TypTokenu.Retazec);
+                
+                var noveTokeny = Optimalizacie.PrecitajTokenyRiadku(_precitanyText, _lexer, _editor.Riadky(), parametre.IndexRiadok);
+                var obsahujeRetazec = noveTokeny.Values.ToList().Any(x => x.Typ == TypTokenu.Retazec);
 
-                if (parametrePrekreslenia.OptimalizaciaPrekreslenia)
+                _precitanyText.Tokeny[parametre.IndexRiadok] = noveTokeny;
+
+                var prekresliCely = obsahovalRetazec || obsahujeRetazec;
+
+                if (parametrePrekreslenia.OptimalizaciaPrekreslenia && !prekresliCely)
                 {
                     UpravEditorScreen(parametrePrekreslenia, parametre, search, parametreVyberu);
                     PrekresliUpravenyRiadok(parametrePrekreslenia, parametre, search, parametreVyberu);
@@ -209,6 +217,8 @@ namespace PisaciAutomat.Obrazovka
                 var pocet = _parametreVyberu.Zaciatok.HasValue ? _parametreVyberu.PocetZnakov : 1;
                 var stlpecPisania = _parametreVyberu.Zaciatok.HasValue ? parametre.StlpecKurzora + 1 : parametre.StlpecKurzora;
 
+                //vyhni sa nespravnemu zvyrazneniu zatvorky...
+                Kurzor.GoTo(indexRiadok, _editor.Riadky()[parametre.IndexRiadok].Length(), parametre, _editor.Riadky());
                 var uprava = PrecitajRiadok(parametre,
                                 search,
                                 _precitanyText,
@@ -311,11 +321,8 @@ namespace PisaciAutomat.Obrazovka
                 var pocet = Math.Min(_parametreVyberu.Zaciatok.HasValue ? _parametreVyberu.PocetZnakov : 1, parametre.Sirka - 1);
                 var stlpecPisania = _parametreVyberu.Zaciatok.HasValue ? parametre.StlpecKurzora + 1 : parametre.StlpecKurzora;
 
-                if (_parametreVyberu.Zaciatok.HasValue)
-                {
-                    //vyhni sa nespravnemu zvyrazneniu zatvorky...
-                    Kurzor.PosunKurzorDoprava(parametre, _editor.Riadky());
-                }
+                //vyhni sa nespravnemu zvyrazneniu zatvorky...
+                Kurzor.GoTo(indexRiadok, _editor.Riadky()[parametre.IndexRiadok].Length(), parametre, _editor.Riadky());
 
                 var uprava = PrecitajRiadok(parametre,
                                 search,

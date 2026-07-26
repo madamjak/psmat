@@ -7,6 +7,7 @@ using PisaciStroj.Parametre;
 using PisaciStroj.Vyhladavanie;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace PisaciAutomat.Prikazy.Vykreslovanie
@@ -39,10 +40,30 @@ namespace PisaciAutomat.Prikazy.Vykreslovanie
 
             if (p2 != null && p2.OptimalizaciaPrekreslenia && !chybaReset)
             {
-                _tokeny = _lexer.LexPrePrikazovyRiadok(riadky);
-                PrekresliUpravenyRiadok(p2, parametreVypisu, vyber, riadok, riadky);
+                var prekresliCely = false;
 
-                return string.Empty;
+                if(_tokeny != null && _tokeny.Tokeny.Count > 0)
+                {
+                    var tokenyRiadku = _tokeny.Tokeny[parametreVypisu.IndexRiadok].Values.ToList();
+                    prekresliCely = tokenyRiadku.Any(x => x.Typ == TypTokenu.Retazec || x.Typ == TypTokenu.Regex);
+                }
+
+                _tokeny = _lexer.LexPrePrikazovyRiadok(riadky);
+
+                if (_tokeny.Tokeny.Count > 0)
+                {
+                    var noveTokeny = _tokeny.Tokeny[parametreVypisu.IndexRiadok].Values.ToList();
+                    prekresliCely = prekresliCely || noveTokeny.Any(x => x.Typ == TypTokenu.Retazec || x.Typ == TypTokenu.Regex);
+                }
+
+                _tokeny = _lexer.LexPrePrikazovyRiadok(riadky);
+
+                if (!prekresliCely)
+                {
+                    PrekresliUpravenyRiadok(p2, parametreVypisu, vyber, riadok, riadky);
+
+                    return string.Empty;
+                }
             }
 
             var sb = new StringBuilder();
@@ -141,7 +162,9 @@ namespace PisaciAutomat.Prikazy.Vykreslovanie
                 var stlpecCitania = _parametreVyberu.Zaciatok.HasValue ? _parametreVyberu.Zaciatok.Value.Stlpec : parametre.IndexStlpec - 1;
                 var pocet = _parametreVyberu.Zaciatok.HasValue ? _parametreVyberu.PocetZnakov : 1;
                 var stlpecPisania = _parametreVyberu.Zaciatok.HasValue ? parametre.StlpecKurzora + 1 : parametre.StlpecKurzora;
-                
+
+                //vyhni sa nespravnemu zvyrazneniu zatvorky...
+                Kurzor.GoTo(indexRiadok, riadok.Length(), parametre, riadky);
                 var uprava = PrecitajRiadok(parametre,
                                 parametreVyberu,
                                 riadky,
@@ -233,11 +256,8 @@ namespace PisaciAutomat.Prikazy.Vykreslovanie
                 var pocet = Math.Min(_parametreVyberu.Zaciatok.HasValue ? _parametreVyberu.PocetZnakov : 1, parametre.Sirka - 1);
                 var stlpecPisania = _parametreVyberu.Zaciatok.HasValue ? parametre.StlpecKurzora + 1 : parametre.StlpecKurzora;
 
-                if (_parametreVyberu.Zaciatok.HasValue)
-                {
-                    //vyhni sa nespravnemu zvyrazneniu zatvorky...
-                    Kurzor.PosunKurzorDoprava(parametre, riadky);
-                }
+                //vyhni sa nespravnemu zvyrazneniu zatvorky...
+                Kurzor.GoTo(indexRiadok, riadok.Length(), parametre, riadky);
 
                 var uprava = PrecitajRiadok(parametre,
                                 parametreVyberu,
