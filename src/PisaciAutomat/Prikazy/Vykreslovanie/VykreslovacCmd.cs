@@ -19,15 +19,12 @@ namespace PisaciAutomat.Prikazy.Vykreslovanie
 
         private LexResult _tokeny;
 
-        private bool _chyba;
-
         public VykreslovacCmd(ILexer lexer)
         {
             _lexer = lexer;
         }
 
-        public string PrecitajPrikazovyRiadok(ParametrePrekreslenia p,
-            ParametrePrekreslenia p2, //cmd parametre
+        public string PrecitajPrikazovyRiadok(ParametrePrekreslenia p2, //cmd parametre
             GapBuffer riadok,
             ParametreVypisu parametreVypisu,
             ParametreVyberu vyber,
@@ -58,7 +55,7 @@ namespace PisaciAutomat.Prikazy.Vykreslovanie
             sb.Append(VykreslovaciAutomat.NastavKurzor(1, 1));
             sb.Append(VykreslovaciAutomat.ZmazOdKurzoraPoKoniecRiadku());
 
-            sb.Append(VykreslovaciAutomat.NastavPozadie(p.OkrajVlavo - 2));
+            sb.Append(VykreslovaciAutomat.NastavPozadie(p2.OkrajVlavo - 2));
             sb.Append(Farby.AnsiStyl(Farby.FarbaIndikatoraPrikazRiadku()));
             sb.Append("> ");
 
@@ -144,13 +141,12 @@ namespace PisaciAutomat.Prikazy.Vykreslovanie
                 var stlpecCitania = _parametreVyberu.Zaciatok.HasValue ? _parametreVyberu.Zaciatok.Value.Stlpec : parametre.IndexStlpec - 1;
                 var pocet = _parametreVyberu.Zaciatok.HasValue ? _parametreVyberu.PocetZnakov : 1;
                 var stlpecPisania = _parametreVyberu.Zaciatok.HasValue ? parametre.StlpecKurzora + 1 : parametre.StlpecKurzora;
-
+                
                 var uprava = PrecitajRiadok(parametre,
                                 parametreVyberu,
                                 riadky,
                                 stlpecCitania,
                                 pocet);
-
 
                 sb.Append(VykreslovaciAutomat.NastavKurzor(parametre.RiadokKurzora + 1, stlpecPisania));
                 VykreslovaciAutomat.ShiftTextRightAndInsert(uprava, pocetZnakov, sb);
@@ -164,15 +160,16 @@ namespace PisaciAutomat.Prikazy.Vykreslovanie
                                 parametreVyberu,
                                 riadky,
                                 stlpecCitania,
-                                pocet);
+                                pocetPotrebnych);
 
                     sb.Append(VykreslovaciAutomat.NastavKurzor(parametre.RiadokKurzora + 1, stlpec.Value.StlpecKurzora + 1));
                     VykreslovaciAutomat.ShiftTextRightAndInsert(uprava, pocetPotrebnych, sb);
                 }
                 else
                 {
-                    sb.Append(VykreslovaciAutomat.NastavKurzor(parametre.RiadokKurzora + 1, parametre.SirkaKonzoly));
-                    VykreslovaciAutomat.ShiftTextRightAndInsert(VykreslovaciAutomat.NastavPozadie(1, Farby.FarbaPrikazRiadku()), 2, sb);
+                    sb.Append(VykreslovaciAutomat.NastavKurzor(parametre.RiadokKurzora + 1, parametre.SirkaKonzoly - pocetPotrebnych));
+                    VykreslovaciAutomat.ShiftTextRightAndInsert(VykreslovaciAutomat.NastavPozadie(pocetPotrebnych, Farby.FarbaPrikazRiadku()), pocetPotrebnych + 1, sb);
+                    
                 }
 
                 Kurzor.GoTo(indexRiadok, indexStlpec, parametre, riadky);

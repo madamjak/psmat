@@ -65,7 +65,8 @@ namespace PisaciAutomat.Prikazy
                     return r;
                 }
 
-                var typPrikazu = prikazovyRiadok.Read(parts[0].Pozicia, parts[0].Dlzka);
+                //sucastou tokenu prikazu je konecna medzera
+                var typPrikazu = prikazovyRiadok.Read(parts[0].Pozicia, parts[0].Dlzka - 1);
 
                 if (Vyhladavanie.CitacPrikazov.VyhladavaciePrikazy.Contains(typPrikazu))
                 {

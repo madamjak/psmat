@@ -24,7 +24,7 @@ namespace PisaciAutomat.Prikazy.Navigacia
                 var stlpec = prikaz.GoTo.Value.Pozicia;
 
                 if(riadok < 0 || riadok >= editor.Riadky().Count
-                    || stlpec < 0 || stlpec >= editor.Riadky()[riadok].Length())
+                    || stlpec < 0 || stlpec > editor.Riadky()[riadok].Length())
                 {
                     r.Success = false;
                     r.Hlaska = "Neexistujuca pozicia";
