@@ -1,4 +1,5 @@
-﻿using PisaciStroj.Lexer;
+﻿using PisaciAutomat.Config.Locale;
+using PisaciStroj.Lexer;
 using PisaciStroj.Pamat;
 using System.Collections.Generic;
 using System.IO;
@@ -34,7 +35,7 @@ namespace PisaciAutomat.Prikazy.Subory
 
                     if (invalid)
                     {
-                        r.Hlaska = "Zadaj validnu cestu.";
+                        r.Hlaska = Lokalizacia.Hlasky.ValidnaCesta;
                         return r;
                     }
 
@@ -47,7 +48,7 @@ namespace PisaciAutomat.Prikazy.Subory
                     if (existujue)
                     {
                         r.Potvrd = true;
-                        r.Dialog = "Subor existuje, prepisat? (a/n)";
+                        r.Dialog = Lokalizacia.Hlasky.SuborExistuje;
                     }
 
                     return r;

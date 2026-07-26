@@ -1,4 +1,5 @@
-﻿using PisaciStroj;
+﻿using PisaciAutomat.Config.Locale;
+using PisaciStroj;
 using PisaciStroj.Chyby;
 using PisaciStroj.Navigacia;
 using PisaciStroj.Parametre;
@@ -27,7 +28,7 @@ namespace PisaciAutomat.Prikazy.Navigacia
                     || stlpec < 0 || stlpec > editor.Riadky()[riadok].Length())
                 {
                     r.Success = false;
-                    r.Hlaska = "Neexistujuca pozicia";
+                    r.Hlaska = Lokalizacia.Hlasky.NeexistujucaPozicia;
                     return r;
                 }
 
@@ -43,7 +44,7 @@ namespace PisaciAutomat.Prikazy.Navigacia
                     Ex = ex
                 });
 
-                r.Hlaska = "Neocakavana chyba";
+                r.Hlaska = Lokalizacia.Hlasky.NeznamaChyba;
             }
 
             return r;

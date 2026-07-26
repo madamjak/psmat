@@ -16,6 +16,10 @@
     <None Update="Config\Lex\Jazyk.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Config\Locale\en.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <SubType>Component</SubType>
+    </None>
     <None Update="Config\UserConfig.Json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

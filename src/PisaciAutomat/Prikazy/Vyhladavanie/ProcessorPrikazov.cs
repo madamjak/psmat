@@ -1,4 +1,5 @@
-﻿using PisaciStroj;
+﻿using PisaciAutomat.Config.Locale;
+using PisaciStroj;
 using PisaciStroj.Navigacia;
 using PisaciStroj.Pamat;
 using PisaciStroj.Parametre;
@@ -11,8 +12,6 @@ namespace PisaciAutomat.Prikazy.Vyhladavanie
 {
     public static class ProcessorPrikazov
     {
-        private const string _ziadneVysledky = "Koniec vysledkov alebo ziadne vysledky.";
-
         public static HashSet<TypPrikazu> TypyVyhladavacihPrikazov = new HashSet<TypPrikazu>()
         { TypPrikazu.Vyhladaj, TypPrikazu.VyhladajReset, TypPrikazu.VyhladajDalsi, TypPrikazu.VyhladajPredosly, TypPrikazu.VyhladajNahrad, TypPrikazu.VyhladajNahradVsetky,
          TypPrikazu.GoToSlovo, TypPrikazu.GoToSlovo };
@@ -95,7 +94,7 @@ namespace PisaciAutomat.Prikazy.Vyhladavanie
 
                     if (vysl.PocetNajdenychSlov == 0)
                     {
-                        r.Hlaska = _ziadneVysledky;
+                        r.Hlaska = Lokalizacia.Hlasky.KoniecVysledkov;
                         return r;
                     }
 
@@ -118,7 +117,7 @@ namespace PisaciAutomat.Prikazy.Vyhladavanie
                 var s = vyhladavac.Vyhladaj(prikaz.VyhladavanyText, parametreVypisu, editor.Riadky(), obratene);
                 if (!s.HasValue)
                 {
-                    r.Hlaska = _ziadneVysledky;
+                    r.Hlaska = Lokalizacia.Hlasky.KoniecVysledkov;
                     return r;
                 }
 
@@ -149,7 +148,7 @@ namespace PisaciAutomat.Prikazy.Vyhladavanie
                 }
                 else
                 {
-                    r.Hlaska = _ziadneVysledky;
+                    r.Hlaska = Lokalizacia.Hlasky.KoniecVysledkov;
 
                     return r;
                 }
@@ -164,12 +163,12 @@ namespace PisaciAutomat.Prikazy.Vyhladavanie
                 if (pocetNahradenych > 0)
                 {
                     Kurzor.GoTo(aktualnyR, aktualnyS, parametreVypisu, editor.Riadky());
-                    r.Hlaska = string.Format("{0} uprav", pocetNahradenych);
+                    r.Hlaska = string.Format(Lokalizacia.Hlasky.PocetUprav, pocetNahradenych);
                     r.Success = true;
                 }
                 else
                 {
-                    r.Hlaska = _ziadneVysledky;
+                    r.Hlaska = Lokalizacia.Hlasky.KoniecVysledkov;
                 }
 
                 ResetVyhladavania(search);
