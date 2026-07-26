@@ -501,10 +501,12 @@ namespace PisaciStroj
         {
             var sb = new StringBuilder();
 
-            foreach (var riadok in _riadky)
+            for (int i = 0; i < _riadky.Count - 1; i++)
             {
-                sb.AppendLine(riadok.Read());
+                sb.AppendLine(_riadky[i].Read());
             }
+            
+            sb.Append(_riadky[_riadky.Count - 1].Read());
 
             _pamatOperacii.SuborUlozeny();
 
