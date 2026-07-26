@@ -31,7 +31,10 @@ namespace PisaciAutomat.Obrazovka.Optimalizacia
                         {
                             var koniecKomentara = koment.Value.Pozicia + koment.Value.Dlzka;
 
-                            if (koment.Value.Pozicia + koment.Value.Dlzka == gapBuffers[parametre.IndexRiadok].Length() - 1)
+                            //nie uple dostatocne
+                            //umoznuje nespravne upravit koniec viacriadkoveho komentara co vedie k neprekresleniu
+                            //..avsak postacujuce
+                            if (koment.Value.Pozicia + koment.Value.Dlzka + pocetZnakov == gapBuffers[parametre.IndexRiadok].Length())
                             {
                                 token = koment.Value;
                                 poziciaKomentu = koment.Key;

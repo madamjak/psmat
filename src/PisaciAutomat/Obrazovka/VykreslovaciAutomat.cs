@@ -123,7 +123,7 @@ namespace PisaciAutomat.Obrazovka
                 if (parametrePrekreslenia.OptimalizaciaPrekreslenia)
                 {
                     UpravEditorScreen(parametrePrekreslenia, parametre, search, parametreVyberu);
-                    PrekresliUpravenyRiadok(parametrePrekreslenia, parametre, search, parametreVyberu);
+                    PrekresliUpravenyRiadok(parametrePrekreslenia, parametre, search, parametreVyberu, true);
                     return _aktualnaObrazovka;
                 }
 
@@ -131,20 +131,27 @@ namespace PisaciAutomat.Obrazovka
             }
             else if (Optimalizacie.UpravPrecitanyText(parametrePrekreslenia, parametre, _precitanyText, _editor.Riadky(), _lexer))
             {
-                var tokenyRiadku = _precitanyText.Tokeny[parametre.IndexRiadok].Values.ToList();
-                var obsahovalRetazec = tokenyRiadku.Any(x => x.Typ == TypTokenu.Retazec);
-                
-                var noveTokeny = Optimalizacie.PrecitajTokenyRiadku(_precitanyText, _lexer, _editor.Riadky(), parametre.IndexRiadok);
-                var obsahujeRetazec = noveTokeny.Values.ToList().Any(x => x.Typ == TypTokenu.Retazec);
+                //tieto su specialne a pri uprave sa netreba obavat prekreslovania susednych slov
+                //predpoklad ze riadok typicky neobsahuje mnoho tokenov
+                var bolUprostredRetazcaAleboKomentara = _precitanyText.Tokeny[parametre.IndexRiadok].Values
+                                                            .Any(x => (x.Typ == TypTokenu.Retazec || x.Typ == TypTokenu.Komentar)
+                                                            && x.Pozicia <= parametre.IndexStlpec 
+                                                            && (parametre.IndexStlpec <= x.Pozicia + x.Dlzka
+                                                                || (parametre.IndexStlpec > 0 && parametre.IndexStlpec - 1 <= x.Pozicia + x.Dlzka)));
 
-                _precitanyText.Tokeny[parametre.IndexRiadok] = noveTokeny;
+                _precitanyText.Tokeny[parametre.IndexRiadok] = Optimalizacie.PrecitajTokenyRiadku(_precitanyText, _lexer, _editor.Riadky(), parametre.IndexRiadok);
 
-                var prekresliCely = obsahovalRetazec || obsahujeRetazec;
+                var jeUprostredRetazcaAleboKomentara = _precitanyText.Tokeny[parametre.IndexRiadok].Values
+                                                            .Any(x => (x.Typ == TypTokenu.Retazec || x.Typ == TypTokenu.Komentar)
+                                                            && x.Pozicia <= parametre.IndexStlpec && parametre.IndexStlpec <= x.Pozicia + x.Dlzka);
+
+                var prekresliCely = (bolUprostredRetazcaAleboKomentara && !jeUprostredRetazcaAleboKomentara)
+                                || (!bolUprostredRetazcaAleboKomentara && jeUprostredRetazcaAleboKomentara);
 
                 if (parametrePrekreslenia.OptimalizaciaPrekreslenia && !prekresliCely)
                 {
                     UpravEditorScreen(parametrePrekreslenia, parametre, search, parametreVyberu);
-                    PrekresliUpravenyRiadok(parametrePrekreslenia, parametre, search, parametreVyberu);
+                    PrekresliUpravenyRiadok(parametrePrekreslenia, parametre, search, parametreVyberu, jeUprostredRetazcaAleboKomentara);
                     return _aktualnaObrazovka;
                 }
 
@@ -157,7 +164,11 @@ namespace PisaciAutomat.Obrazovka
             }
         }
 
-        private void PrekresliUpravenyRiadok(ParametrePrekreslenia parametrePrekreslenia, ParametreVypisu parametre, ParametreVyhladavania search, ParametreVyberu parametreVyberu)
+        private void PrekresliUpravenyRiadok(ParametrePrekreslenia parametrePrekreslenia, 
+            ParametreVypisu parametre, 
+            ParametreVyhladavania search, 
+            ParametreVyberu parametreVyberu, 
+            bool jeUprostredRetazcaAleboKomentara)
         {
             var pocetZnakov = parametrePrekreslenia.KonecnySlpec - parametrePrekreslenia.ZaciatocnyStlpec;
             var mazanie = false;
@@ -171,75 +182,88 @@ namespace PisaciAutomat.Obrazovka
 
             var sb = new StringBuilder();
             sb.Append(NastavKurzorUnVisible());
+            //mazanie
             if (mazanie && !parametrePrekreslenia.LenPrekresli)
             {
                 var pocetPotrebnych = Math.Abs(pocetZnakov);
                 sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, parametre.StlpecKurzora + 1));
                 DeleteCharacterShiftTextLeft(pocetPotrebnych, sb);
 
-                //vyber aktualne slovo
+                //vyber aktualne slovo v pripade potreby prekreslit slova inou farbou po uprave napr pridanie medzery do retazca publicclass
                 var _navigovaciPrikaz = new NavigovaciPrikaz();
                 var _parametreVyberu = new ParametreVyberu();
-                if (parametre.IndexStlpec < _editor.Riadky()[parametre.IndexRiadok].Length() - 1)
+                if (!jeUprostredRetazcaAleboKomentara)
                 {
-                    _navigovaciPrikaz.Vyber = false;
-                    _navigovaciPrikaz.Typ = TypNavigacie.SlovoDoprava;
+                    if (parametre.IndexStlpec < _editor.Riadky()[parametre.IndexRiadok].Length() - 1)
+                    {
+                        _navigovaciPrikaz.Vyber = false;
+                        _navigovaciPrikaz.Typ = TypNavigacie.SlovoDoprava;
 
-                    Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
-                }
+                        Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
 
-                _navigovaciPrikaz.Vyber = true;
-                _navigovaciPrikaz.Typ = TypNavigacie.SlovoDolava;
-                _parametreVyberu = new ParametreVyberu();
+                        //naspat
+                        _navigovaciPrikaz.Vyber = true;
+                        _navigovaciPrikaz.Typ = TypNavigacie.SlovoDolava;
 
-                if (parametre.IndexStlpec > 0)
-                {
-                    Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
-                }
-                if (parametre.IndexStlpec > 0)
-                {
-                    Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
-                }
-                if (parametre.IndexStlpec > 0)
-                {
-                    Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
+                        if (parametre.IndexStlpec > 0)
+                        {
+                            Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
+                        }
+
+                        //mozna medzera a slovo spat
+                        if (parametre.IndexStlpec > 0)
+                        {
+                            Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
+                        }
+                        if (parametre.IndexStlpec > 0)
+                        {
+                            Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
+                        }
+                    }
+                    else
+                    {
+                        _navigovaciPrikaz.Vyber = true;
+                        _navigovaciPrikaz.Typ = TypNavigacie.SlovoDolava;
+
+                        //mozna medzera a slovo spat
+                        if (parametre.IndexStlpec > 0)
+                        {
+                            Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
+                        }
+                        if (parametre.IndexStlpec > 0)
+                        {
+                            Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
+                        }
+                    }
                 }
 
                 if (_parametreVyberu.Zaciatok.HasValue) 
-                { 
+                {
+                    //vrat sa naspat (prevencia napr. proti nespravnemu bracket highlight)
+                    Kurzor.GoTo(indexRiadok, indexStlpec, parametre, _editor.Riadky());
+
+                    var uprava = PrecitajRiadok(parametre,
+                                    search,
+                                    _precitanyText,
+                                    parametreVyberu,
+                                    _lexer,
+                                    _vyhladavac,
+                                    _editor.Riadky(),
+                                    parametre.IndexRiadok,
+                                    _parametreVyberu.Zaciatok.Value.Stlpec,
+                                    _parametreVyberu.PocetZnakov);
+
                     Kurzor.GoTo(indexRiadok, _parametreVyberu.Zaciatok.Value.Stlpec, parametre, _editor.Riadky());
+                    sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, parametre.StlpecKurzora + 1));
+                    ShiftTextRightAndInsert(uprava, -1, sb); //zda sa ze pouzitie -1 funguje dobre pre nahradu textu
                 }
-
-                sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, parametre.StlpecKurzora + 1));
-
-
-                var stlpecCitania = _parametreVyberu.Zaciatok.HasValue ? _parametreVyberu.Zaciatok.Value.Stlpec : parametre.IndexStlpec - 1;
-                var pocet = _parametreVyberu.Zaciatok.HasValue ? _parametreVyberu.PocetZnakov : 1;
-                var stlpecPisania = _parametreVyberu.Zaciatok.HasValue ? parametre.StlpecKurzora + 1 : parametre.StlpecKurzora;
-
-                //vyhni sa nespravnemu zvyrazneniu zatvorky...
-                Kurzor.GoTo(indexRiadok, _editor.Riadky()[parametre.IndexRiadok].Length(), parametre, _editor.Riadky());
-                var uprava = PrecitajRiadok(parametre,
-                                search,
-                                _precitanyText,
-                                parametreVyberu,
-                                _lexer,
-                                _vyhladavac,
-                                _editor.Riadky(),
-                                parametre.IndexRiadok,
-                                stlpecCitania,
-                                pocet);
-
-
-                sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, stlpecPisania));
-                ShiftTextRightAndInsert(uprava, pocetZnakov, sb);
 
                 var stlpec = KonecnyStlpecRiadkuObrazovky(parametre, _editor.Riadky()[parametre.IndexRiadok].Length());
 
                 if (stlpec.HasValue)
                 {
                     //ak treba zaplnit prazdne miesto na konci riadku
-                    uprava =
+                    var uprava =
                     PrecitajRiadok(parametre,
                                 search,
                                 _precitanyText,
@@ -255,9 +279,13 @@ namespace PisaciAutomat.Obrazovka
                     ShiftTextRightAndInsert(uprava, pocetPotrebnych, sb);
                 }
 
+                //vrat sa naspat
                 Kurzor.GoTo(indexRiadok, indexStlpec, parametre, _editor.Riadky());
                 sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, parametre.StlpecKurzora + 1));
             }
+
+
+            //vyber textu
             else if (parametrePrekreslenia.LenPrekresli)
             {
                 var stlpecCitania = parametrePrekreslenia.ZaciatocnyStlpec;
@@ -287,42 +315,73 @@ namespace PisaciAutomat.Obrazovka
                 Kurzor.GoTo(indexRiadok, indexStlpec, parametre, _editor.Riadky());
                 sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, parametre.StlpecKurzora + 1));
             }
+            
+            //zapis, podobne mazaniu
             else
             {
-                //vyber aktualne slovo
+                //pridaj dostatocny pocet miesta
+                Kurzor.GoTo(indexRiadok, indexStlpec - pocetZnakov, parametre, _editor.Riadky());
+                sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, parametre.StlpecKurzora + 1));
+                ShiftTextRightAndInsertSpace(pocetZnakov, sb);
+
+                //vyber aktualne slovo v pripade potreby prekreslit slova inou farbou po uprave napr pridanie medzery do retazca publicclass
                 var _navigovaciPrikaz = new NavigovaciPrikaz();
                 var _parametreVyberu = new ParametreVyberu();
-                if (parametre.IndexStlpec < _editor.Riadky()[parametre.IndexRiadok].Length() - 1)
+                if (!jeUprostredRetazcaAleboKomentara)
                 {
-                    _navigovaciPrikaz.Vyber = false;
-                    _navigovaciPrikaz.Typ = TypNavigacie.SlovoDoprava;
+                    //vrat sa naspat
+                    Kurzor.GoTo(indexRiadok, indexStlpec, parametre, _editor.Riadky());
 
-                    Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
-                }
-                
-                _navigovaciPrikaz.Vyber = true;
-                _navigovaciPrikaz.Typ = TypNavigacie.SlovoDolava;
-                _parametreVyberu = new ParametreVyberu();
-                
-                if (parametre.IndexStlpec > 0)
-                {
-                    Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
-                }
-                if(parametre.IndexStlpec > 0)
-                {
-                    Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
-                }
-                if (parametre.IndexStlpec > 0)
-                {
-                    Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
-                }
+                    if (parametre.IndexStlpec < _editor.Riadky()[parametre.IndexRiadok].Length() - 1)
+                    {
+                        _navigovaciPrikaz.Vyber = false;
+                        _navigovaciPrikaz.Typ = TypNavigacie.SlovoDoprava;
 
-                var stlpecCitania = _parametreVyberu.Zaciatok.HasValue ? _parametreVyberu.Zaciatok.Value.Stlpec : parametre.IndexStlpec - 1;
-                var pocet = Math.Min(_parametreVyberu.Zaciatok.HasValue ? _parametreVyberu.PocetZnakov : 1, parametre.Sirka - 1);
-                var stlpecPisania = _parametreVyberu.Zaciatok.HasValue ? parametre.StlpecKurzora + 1 : parametre.StlpecKurzora;
+                        Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
 
-                //vyhni sa nespravnemu zvyrazneniu zatvorky...
-                Kurzor.GoTo(indexRiadok, _editor.Riadky()[parametre.IndexRiadok].Length(), parametre, _editor.Riadky());
+                        //naspat
+                        _navigovaciPrikaz.Vyber = true;
+                        _navigovaciPrikaz.Typ = TypNavigacie.SlovoDolava;
+
+                        if (parametre.IndexStlpec > 0)
+                        {
+                            Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
+                        }
+
+                        //mozna medzera a slovo spat
+                        if (parametre.IndexStlpec > 0)
+                        {
+                            Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
+                        }
+                        if (parametre.IndexStlpec > 0)
+                        {
+                            Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
+                        }
+                    }
+                    else
+                    {
+                        _navigovaciPrikaz.Vyber = true;
+                        _navigovaciPrikaz.Typ = TypNavigacie.SlovoDolava;
+
+                        //mozna medzera a slovo spat
+                        if (parametre.IndexStlpec > 0)
+                        {
+                            Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
+                        }
+                        if (parametre.IndexStlpec > 0)
+                        {
+                            Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
+                        }
+                    }
+                }
+                                                
+                //prekresli upraveny znak / slova
+                var stlpecCitania = _parametreVyberu.Zaciatok.HasValue ? _parametreVyberu.Zaciatok.Value.Stlpec : parametre.IndexStlpec;
+                var pocet = Math.Min(_parametreVyberu.Zaciatok.HasValue ? _parametreVyberu.PocetZnakov : pocetZnakov, parametre.Sirka - 1);
+                var stlpecPisania = parametre.StlpecKurzora + 1;
+
+                //vrat sa naspat (prevencia napr. proti nespravnemu bracket highlight)
+                Kurzor.GoTo(indexRiadok, indexStlpec, parametre, _editor.Riadky());
 
                 var uprava = PrecitajRiadok(parametre,
                                 search,
@@ -334,18 +393,19 @@ namespace PisaciAutomat.Obrazovka
                                 parametre.IndexRiadok,
                                 stlpecCitania,
                                 pocet);
-                sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, stlpecPisania));
-                ShiftTextRightAndInsert(uprava, pocetZnakov, sb);
 
+                //zapis
+                sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, stlpecPisania));
+                ShiftTextRightAndInsert(uprava, -1, sb); //-1 nahradi text
+
+                //dana funkcia vrati stlpec v pripade ze je potrebne skryt znaky na konci riadku
                 var stlpec = KonecnyStlpecRiadkuObrazovky(parametre, _editor.Riadky()[parametre.IndexRiadok].Length());
 
                 if (stlpec.HasValue)
                 {
-                    //ak treba zaplnit prazdne miesto na konci riadku
                     sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, parametre.SirkaKonzoly));
                     ShiftTextRightAndInsert(" ", 2, sb);
                 }
-
 
                 Kurzor.GoTo(indexRiadok, indexStlpec, parametre, _editor.Riadky());
                 sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, parametre.StlpecKurzora + 1));
