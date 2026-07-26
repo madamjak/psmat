@@ -1,0 +1,21 @@
+﻿{
+	"Ano" : "y",
+    "PotvrdUkoncenie" : "Unsaved changes in file. Really quit? (y/n)",
+    "NeocakavanaChyba" : "Unexpected error, possible to report at {0}{1}{2} and attach log saved in file {3}{4}{5}",
+    "ZalohaSuboru" : "Backup of unsaved work saved in file {0}{1}{2}",
+    "NeznamaChyba" : "Unexpected error",
+                
+    "CisloRiadkuAStlpca" : "Enter number of line and column.",
+    "CestaKSuboru" : "Enter a path to file.",
+                
+    "PocetVysledkov" : "Found {0} results",
+    "KoniecVysledkov" : "End of results or no results.",
+    "PocetUprav" : "{0} changes.",
+
+    "ValidnaCesta" : "Enter a valid path.",
+    "SuborExistuje" : "The file exists, overwrite? (y/n)",
+    "UspesneUlozeny" : "Successfully saved.",
+    "ChybaPriUkladani" : "Error on saving.",
+
+    "NeexistujucaPozicia" : "Non-existing position."
+}

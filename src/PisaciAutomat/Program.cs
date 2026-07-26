@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using PisaciAutomat.Config;
+using PisaciAutomat.Config.Locale;
 using PisaciAutomat.Obrazovka;
 using PisaciAutomat.Prikazy;
 using PisaciAutomat.Subory;
@@ -83,6 +84,7 @@ namespace PisaciAutomat
 
             var config = NacitajConfig();
             NastavFarby(config);
+            NastavJazykEditora(config);
 
             _vyhladavac = new VyhladavaciAutomat();
             _editor = new PisaciStroj.Program(_vyhladavac);
@@ -135,7 +137,7 @@ namespace PisaciAutomat
             {
                 if (_typDialogu == TypDialogu.PotvrdUkoncenie)
                 {
-                    if (vstup.KeyChar == 'a')
+                    if (vstup.KeyChar == Lokalizacia.Hlasky.Ano[0])
                     {
                         _ukonci = true;
                     }
@@ -800,6 +802,43 @@ namespace PisaciAutomat
             }
         }
 
+        private void NastavJazykEditora(UserConfig config)
+        {
+            if(config == null)
+            {
+                Lokalizacia.NastavHlasky(null);
+            }
+
+            var jazyk = config.Jazyk;
+            try
+            {
+                var cesta = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, string.Format("Config/Locale/{0}.json", jazyk));
+
+                Hlasky konfig;
+
+                using (var file = File.Open(cesta, FileMode.Open))
+                {
+                    using (var reader = new StreamReader(file))
+                    {
+                        var s = reader.ReadToEnd();
+
+                        konfig = (Hlasky)JsonConvert.DeserializeObject(s, typeof(Hlasky));
+                    }
+                }
+
+                Lokalizacia.NastavHlasky(konfig);
+            }
+            catch (Exception ex)
+            {
+                ErrorLogger.GetInstance().Log(new Chyba()
+                {
+                    Ex = ex
+                });
+
+                Lokalizacia.NastavHlasky(null);
+            }
+        }
+
         public string UlozZalohu()
         {
             try 
@@ -892,7 +931,7 @@ namespace PisaciAutomat
             if (_editor.MaZmenu())
             {
                 _typDialogu = TypDialogu.PotvrdUkoncenie;
-                _dialog = "Neulozene zmeny v subore. Naozaj ukoncit? (a/n)";
+                _dialog = Lokalizacia.Hlasky.PotvrdUkoncenie;
             }
             else
             {

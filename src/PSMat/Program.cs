@@ -1,4 +1,5 @@
 ﻿using PisaciAutomat.Config;
+using PisaciAutomat.Config.Locale;
 using PisaciAutomat.Obrazovka;
 using PisaciStroj.Chyby;
 using PSMat.Windows;
@@ -73,7 +74,7 @@ namespace PSMat
                 logger.Log(new Chyba() { Ex = ex });
                 var cesta = logger.UlozDoSuboru();
                 var sprava =
-                    string.Format("Neocakavana chyba, mozne nahlasit na {0}{1}{2} a pridat zaznam ulozeny v subore {3}{4}{5}",
+                    string.Format(Lokalizacia.Hlasky.NeocakavanaChyba,
                     Farby.AnsiStyl(Farby.StylTextu.Cyan), 
                     "https://github.com/madamjak/psmat/issues/",
                     Farby.AnsiReset2(),
@@ -85,7 +86,8 @@ namespace PSMat
                 var cestaZalohy = PisaciAutomat.Program.GetInstance().UlozZalohu();
                 if (cestaZalohy != null)
                 {
-                    Console.Write(string.Format("Zaloha rozpracovanej prace ulozena v subore {0}{1}{2}", Farby.AnsiStyl(Farby.StylTextu.Yellow),
+                    Console.WriteLine();
+                    Console.Write(string.Format(Lokalizacia.Hlasky.ZalohaSuboru, Farby.AnsiStyl(Farby.StylTextu.Yellow),
                     cestaZalohy,
                     Farby.AnsiReset2()));
                 }

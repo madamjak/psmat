@@ -8,6 +8,8 @@ namespace PisaciAutomat.Config
     {
         public bool DarkMode { get; set; }
 
+        public string Jazyk { get; set; }
+
         public int? UndoLimit { get; set; }
     }
 }

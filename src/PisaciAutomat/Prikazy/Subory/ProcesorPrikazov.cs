@@ -1,4 +1,5 @@
-﻿using PisaciAutomat.Subory;
+﻿using PisaciAutomat.Config.Locale;
+using PisaciAutomat.Subory;
 using PisaciStroj;
 using PisaciStroj.Chyby;
 using PisaciStroj.Parametre;
@@ -28,7 +29,7 @@ namespace PisaciAutomat.Prikazy.Subory
                 }
 
                 r.Success = true;
-                r.Hlaska = "Uspesne ulozeny";
+                r.Hlaska = Lokalizacia.Hlasky.UspesneUlozeny;
             }
             catch(Exception ex)
             {
@@ -37,7 +38,7 @@ namespace PisaciAutomat.Prikazy.Subory
                     Ex = ex
                 });
 
-                r.Hlaska = "Chyba pri ukladani";
+                r.Hlaska = Lokalizacia.Hlasky.ChybaPriUkladani;
             }
 
             return r;

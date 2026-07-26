@@ -1,4 +1,5 @@
 ﻿using PisaciAutomat.Config;
+using PisaciAutomat.Config.Locale;
 using PisaciAutomat.Obrazovka;
 using PisaciStroj.Lexer;
 using PisaciStroj.Navigacia;
@@ -140,7 +141,7 @@ namespace PisaciAutomat.Prikazy.Vysledky
             VykreslovaciAutomat.VykresliInfoHlasku(_parametreVypisu, new Hlaska()
             {
                 Typ = TypHlasky.Info,
-                Sprava = string.Format("Najdenych {0} vysledkov", _riadky.Count)
+                Sprava = string.Format(Lokalizacia.Hlasky.PocetVysledkov, _riadky.Count)
             }, sb);
 
             var pocetRiadkov = 0;

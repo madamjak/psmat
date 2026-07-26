@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using PisaciAutomat.Config;
+using PisaciAutomat.Config.Locale;
 using PisaciAutomat.Obrazovka;
 using PisaciAutomat.Prikazy.Vykreslovanie;
 using PisaciAutomat.Prikazy.Vysledky;
@@ -104,7 +105,10 @@ namespace PisaciAutomat.Prikazy
                         NapisZnak(ch);
                     }
 
-                    return new PrikazovyAutomatResult();
+                    return new PrikazovyAutomatResult()
+                    {
+                        Hlaska = Lokalizacia.Hlasky.CestaKSuboru
+                    };
                 }
 
                 if (prikazZEditora.Value.ZobrazVysledky)
@@ -142,7 +146,7 @@ namespace PisaciAutomat.Prikazy
 
                     return new PrikazovyAutomatResult() 
                     {
-                        Hlaska = "Zadaj cislo riadku a stlpca."
+                        Hlaska = Lokalizacia.Hlasky.CisloRiadkuAStlpca
                     };
                 }
 
@@ -194,7 +198,7 @@ namespace PisaciAutomat.Prikazy
             }
             else if (_prikazNaPotvrdenie != null)
             {
-                if (vstup.KeyChar == 'a')
+                if (vstup.KeyChar == Lokalizacia.Hlasky.Ano[0])
                 {
                     return PotvrdPrikaz(_prikazNaPotvrdenie);
                 }
