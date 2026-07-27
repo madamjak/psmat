@@ -2,12 +2,16 @@
 using PisaciStroj.Lexer.Algoritmy;
 using PisaciStroj.Navigacia;
 using PisaciStroj.Pamat;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace PisaciStroj.Lexer
 {
     public class LexAutomat : ILexer
     {
+        private string _priponaSuboru;
+
         public static int RegexPrefix = 3;
         private AhoSethiUllman _sethiUllman;
         private MultipleDfaSimulator _dfa;
@@ -45,6 +49,7 @@ namespace PisaciStroj.Lexer
             _koniecKomentara = gramatika.KoniecKomentara;
             _zaciatokRetazca = gramatika.ZaciatokRetazca;
             _koniecRetazca = gramatika.KoniecRetazca;
+            _priponaSuboru = gramatika.Pripona;
 
             _lexerNastaveny = true;
         }
@@ -403,6 +408,26 @@ namespace PisaciStroj.Lexer
                         poziciaHlavy++;
 
                         continue;
+                    }
+
+                    if(!string.IsNullOrEmpty(_priponaSuboru) && _priponaSuboru.Equals(".json", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if(r.CharAt(poziciaHlavy) == ':')
+                        {
+                            try
+                            {
+                                var poslednyZaznam = rowResult.Last();
+                                var poslednyToken = poslednyZaznam.Value;
+                                if (poslednyToken.Typ == TypTokenu.Retazec)
+                                {
+                                    poslednyToken.Typ = TypTokenu.Identifikator;
+                                    rowResult[poslednyZaznam.Key] = poslednyToken;
+                                }
+                            }
+                            catch(Exception ex)
+                            {
+                            }
+                        }
                     }
 
                     if (_dfa.ReadSymbol(r.CharAt(poziciaHlavy)))
