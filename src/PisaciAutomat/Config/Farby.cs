@@ -151,7 +151,7 @@ namespace PisaciAutomat.Config
                 case StylTextu.NejakaZelena2:
                     return "\u001b[38;5;46m";
                 case StylTextu.NejakaCervena:
-                    return "\u001b[38;5;197m";
+                    return "\u001b[38;5;202m";
                 case StylTextu.NejakaOranzovaCiZlta:
                     return "\u001b[38;5;178m";
                 default:

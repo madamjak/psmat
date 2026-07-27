@@ -1,10 +1,7 @@
-﻿using Newtonsoft.Json;
-using PisaciAutomat.Config;
-using PisaciAutomat.Config.Locale;
+﻿using PisaciAutomat.Config.Locale;
 using PisaciAutomat.Obrazovka;
 using PisaciAutomat.Prikazy.Vykreslovanie;
 using PisaciAutomat.Prikazy.Vysledky;
-using PisaciStroj.Chyby;
 using PisaciStroj.Lexer;
 using PisaciStroj.Lexer.Algoritmy;
 using PisaciStroj.Navigacia;
@@ -13,9 +10,7 @@ using PisaciStroj.Parametre;
 using PisaciStroj.Vyhladavanie;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
-using static PisaciStroj.Vyhladavanie.VyhladavaciAutomat;
 
 namespace PisaciAutomat.Prikazy
 {
@@ -56,7 +51,6 @@ namespace PisaciAutomat.Prikazy
         //search results
         private VysledkovyAutomat _vysledky;
         private bool _resultsMode;
-        private bool _zmazHlasku;
 
         //vykreslovanie
         private VykreslovacCmd _vykreslovacCmd;
@@ -432,7 +426,6 @@ namespace PisaciAutomat.Prikazy
             if (r.Ukonci)
             {
                 _resultsMode = false;
-                _zmazHlasku = true;
                 return new PrikazovyAutomatResult()
                 {
                     ZavriRiadok = true,
@@ -442,7 +435,6 @@ namespace PisaciAutomat.Prikazy
             else if (r.ZavriVysledky)
             {
                 _resultsMode = false;
-                _zmazHlasku = true;
             }
 
             return new PrikazovyAutomatResult();
@@ -624,7 +616,7 @@ namespace PisaciAutomat.Prikazy
             }
         }
 
-        public void Prekresli(ParametrePrekreslenia p, StringBuilder sb, List<GapBuffer> riadkyEditora)
+        public void Prekresli(ParametrePrekreslenia p, StringBuilder sb, List<GapBuffer> riadkyEditora, Hlaska? hlaska)
         {
             _parametreVypisu.OkrajVlavo = p.OkrajVlavo;
             _parametreVykreslovania.OkrajVlavo = p.OkrajVlavo;
@@ -650,11 +642,13 @@ namespace PisaciAutomat.Prikazy
 
                 return;
             }
-
-            if (_zmazHlasku)
+            else
             {
-                _vysledky.ZmazInfoHlasku(sb);
-                _zmazHlasku = false;
+                VykreslovaciAutomat.ZmazHlasku(sb);
+                if (hlaska.HasValue)
+                {
+                    VykreslovaciAutomat.VykresliInfoHlasku(hlaska.Value, sb);
+                }
             }
         }
 

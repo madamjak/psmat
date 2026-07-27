@@ -505,7 +505,7 @@ namespace PisaciAutomat
             if (_cmdMode)
             {
                 p.OkrajVlavo = _parametreVypisu.OkrajVlavo;
-                _cmdLineEditor.Prekresli(p, sb, _editor.Riadky());
+                _cmdLineEditor.Prekresli(p, sb, _editor.Riadky(), _hlaska);
             }
 
             _parametreVypisu.OkrajHore = p.OkrajHore;
