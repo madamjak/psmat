@@ -16,7 +16,7 @@ namespace PisaciAutomat.Config
             }
             else
             {
-                return string.Format("\u001b[102;1m");
+                return string.Format("\u001b[97;102;1m");
             }
         }
 
@@ -28,7 +28,7 @@ namespace PisaciAutomat.Config
             }
             else
             {
-                return string.Format("\u001b[101;1m");
+                return string.Format("\u001b[97;101;1m");
             }
         }
 
@@ -150,6 +150,10 @@ namespace PisaciAutomat.Config
                     return "\u001b[38;5;241m";
                 case StylTextu.NejakaZelena2:
                     return "\u001b[38;5;46m";
+                case StylTextu.NejakaCervena:
+                    return "\u001b[38;5;197m";
+                case StylTextu.NejakaOranzovaCiZlta:
+                    return "\u001b[38;5;178m";
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -188,6 +192,8 @@ namespace PisaciAutomat.Config
             NejakaZelena,
             NejakaZelenaBold,
             NejakaZelena2,
+            NejakaCervena,
+            NejakaOranzovaCiZlta
         }
 
         public static StylTextu VyberStylRegex(TypTokenu typ)
@@ -230,7 +236,7 @@ namespace PisaciAutomat.Config
                         return StylTextu.NejakaZelena;
                     case TypTokenu.Operator:
                     case TypTokenu.Symbol:
-                        return StylTextu.RedBold;
+                        return StylTextu.Standard;
                     case TypTokenu.Retazec:
                         return StylTextu.OrangeClassic;
                     case TypTokenu.Cislo:
@@ -255,13 +261,13 @@ namespace PisaciAutomat.Config
                     case TypTokenu.Symbol:
                         return StylTextu.Standard;
                     case TypTokenu.Retazec:
-                        return StylTextu.OrangeClassic;
+                        return StylTextu.NejakaCervena;
                     case TypTokenu.Cislo:
-                        return StylTextu.Standard;
+                        return StylTextu.OrangeClassic;
                     case TypTokenu.Komentar:
                         return StylTextu.GreenItalic;
                     case TypTokenu.Regex:
-                        return StylTextu.Fialova;
+                        return StylTextu.Green;
                     default:
                         return StylTextu.Standard;
                 }

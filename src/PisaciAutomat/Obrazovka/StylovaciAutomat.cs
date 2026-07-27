@@ -201,6 +201,10 @@ namespace PisaciAutomat.Obrazovka
                             {
                                 sb.Append(Farby.StylSearchResultExtra());
                             }
+                            else
+                            {
+                                sb.Append(AnsiStyl(StylTextu.Bold));
+                            }
                             sb.Append(riadok.Read(index, 1));
                             sb.Append(AnsiReset(pozadieRiadku));
                         } else if (dlzkaRegexTokenu > 0)

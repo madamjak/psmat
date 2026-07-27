@@ -21,6 +21,10 @@ namespace PisaciStroj.Lexer
 
         public string KoniecKomentara { get; set; }
 
+        public string ZaciatokRetazca { get; set; }
+
+        public string KoniecRetazca { get; set; }
+
         public LexPravidlo[] Pravidla { get; set; }
     }
 

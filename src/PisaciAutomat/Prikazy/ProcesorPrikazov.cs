@@ -1,5 +1,6 @@
 ﻿using PisaciAutomat.Config.Locale;
 using PisaciStroj;
+using PisaciStroj.Chyby;
 using PisaciStroj.Parametre;
 using PisaciStroj.Vyhladavanie;
 using System;
@@ -43,6 +44,10 @@ namespace PisaciAutomat.Prikazy
                 }
             }catch(Exception ex)
             {
+                ErrorLogger.GetInstance().Log(new Chyba()
+                {
+                    Ex = ex
+                });
                 r.Success = false;
                 r.Hlaska = Lokalizacia.Hlasky.NeznamaChyba;
                 return r;
