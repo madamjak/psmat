@@ -363,6 +363,11 @@ namespace PisaciAutomat.Prikazy
 
                     if (!string.IsNullOrEmpty(t))
                     {
+                        if (Zvyraznovac.MaVybranyText(_vyber))
+                        {
+                            ZmazVyber(true);
+                        }
+
                         NapisText(t);
                         _vyber = new ParametreVyberu();
                     }
