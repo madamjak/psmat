@@ -80,11 +80,14 @@ namespace PisaciAutomat
         private const int _okrajHore = 2;
         private void Konstruktor()
         {
-            NacitajLexGramatiku();
+            //pre istotu nastav predvolene hlasky (pre pripadne chybove hlasky)
+            Lokalizacia.NastavHlasky(null);
 
             var config = NacitajConfig();
-            NastavFarby(config);
             NastavJazykEditora(config);
+            NastavFarby(config);
+
+            NacitajLexGramatiku();
 
             _vyhladavac = new VyhladavaciAutomat();
             _editor = new PisaciStroj.Program(_vyhladavac);
@@ -502,7 +505,7 @@ namespace PisaciAutomat
             if (_cmdMode)
             {
                 p.OkrajVlavo = _parametreVypisu.OkrajVlavo;
-                _cmdLineEditor.Prekresli(p, sb, _editor.Riadky());
+                _cmdLineEditor.Prekresli(p, sb, _editor.Riadky(), _hlaska);
             }
 
             _parametreVypisu.OkrajHore = p.OkrajHore;
@@ -723,9 +726,9 @@ namespace PisaciAutomat
 
         private void NacitajLexGramatiku()
         {
+            var cesta = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Config\\Lex\\Jazyk.json");
             try
             {
-                var cesta = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Config/Lex/Jazyk.json");
 
                 KonfiguraciaJazyka konfig;
 
@@ -756,15 +759,23 @@ namespace PisaciAutomat
                 {
                     Ex = ex
                 });
+
+                _jazyky = new Dictionary<string, LexGramatika>(StringComparer.OrdinalIgnoreCase);
+
+                _hlaska = new Hlaska()
+                {
+                    Typ = TypHlasky.Chyba,
+                    Sprava = string.Format(Lokalizacia.Hlasky.KonfguracnySuborPoskodeny, cesta)
+                };
             }
         }
 
         private UserConfig NacitajConfig()
         {
+            var cesta = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Config\\UserConfig.json");
+
             try
             {
-                var cesta = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Config/UserConfig.json");
-
                 UserConfig konfig;
 
                 using (var file = File.Open(cesta, FileMode.Open))
@@ -785,6 +796,12 @@ namespace PisaciAutomat
                 {
                     Ex = ex
                 });
+
+                _hlaska = new Hlaska()
+                {
+                    Typ = TypHlasky.Chyba,
+                    Sprava = string.Format(Lokalizacia.Hlasky.KonfguracnySuborPoskodeny, cesta)
+                };
 
                 return null;
             }
@@ -807,6 +824,12 @@ namespace PisaciAutomat
                     {
                         Ex = ex
                     });
+
+                    _hlaska = new Hlaska()
+                    {
+                        Typ = TypHlasky.Chyba,
+                        Sprava = string.Format(Lokalizacia.Hlasky.ChybaGramatiky, pripona)
+                    };
                 }
             }
         }
@@ -815,14 +838,12 @@ namespace PisaciAutomat
         {
             if(config == null)
             {
-                Lokalizacia.NastavHlasky(null);
+                return;
             }
-
             var jazyk = config.Jazyk;
+            var cesta = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, string.Format("Config\\Locale\\{0}.json", jazyk));
             try
             {
-                var cesta = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, string.Format("Config/Locale/{0}.json", jazyk));
-
                 Hlasky konfig;
 
                 using (var file = File.Open(cesta, FileMode.Open))
@@ -844,7 +865,11 @@ namespace PisaciAutomat
                     Ex = ex
                 });
 
-                Lokalizacia.NastavHlasky(null);
+                _hlaska = new Hlaska()
+                {
+                    Typ = TypHlasky.Chyba,
+                    Sprava = string.Format(Lokalizacia.Hlasky.KonfguracnySuborPoskodeny, cesta)
+                };
             }
         }
 
@@ -888,7 +913,6 @@ namespace PisaciAutomat
 
             if (!File.Exists(cesta) && !Directory.Exists(cesta))
             {
-                using (var f = File.Create(cesta)) { };
                 _cestaKSuboru = Path.GetFullPath(cesta);
                 return;
             }

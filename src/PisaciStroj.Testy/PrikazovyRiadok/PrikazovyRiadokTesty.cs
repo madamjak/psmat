@@ -13,7 +13,7 @@ namespace PSMat.Testy.PrikazovyRiadok
         {
             var p = new PrikazovyAutomat();
 
-            p.Prekresli(new ParametrePrekreslenia(), new StringBuilder(), new List<GapBuffer>());
+            p.Prekresli(new ParametrePrekreslenia(), new StringBuilder(), new List<GapBuffer>(), null);
 
             PrikazovyAutomatResult r = null;
 
@@ -23,7 +23,7 @@ namespace PSMat.Testy.PrikazovyRiadok
 
                 r = p.SpracujVstup(vstup);
 
-                p.Prekresli(new ParametrePrekreslenia(), new StringBuilder(), new List<GapBuffer>());
+                p.Prekresli(new ParametrePrekreslenia(), new StringBuilder(), new List<GapBuffer>(), null);
             }
         }
     }

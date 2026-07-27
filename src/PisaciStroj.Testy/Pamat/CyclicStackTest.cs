@@ -30,22 +30,26 @@ namespace PSMat.Testy.Pamat
 
             stack.Push(new Operacia() { NovyText = "a" });
             stack.Push(new Operacia() { NovyText = "b" });
-            stack.Pop();
             stack.Push(new Operacia() { NovyText = "c" });
             stack.Push(new Operacia() { NovyText = "d" });
             stack.Push(new Operacia() { NovyText = "e" });
+            stack.Push(new Operacia() { NovyText = "f" });
+            stack.Pop();
+            stack.Pop();
+            stack.Push(new Operacia() { NovyText = "x" });
+            stack.Push(new Operacia() { NovyText = "y" });
 
             var o1 = stack.Pop();
-            var o1pass = o1.NovyText == "e";
+            var o1pass = o1.NovyText == "y";
 
             var o2 = stack.Pop();
-            var o2pass = o2.NovyText == "d";
+            var o2pass = o2.NovyText == "x";
 
             var o3 = stack.Pop();
-            var o3pass = o3.NovyText == "c";
+            var o3pass = o3.NovyText == "d";
 
             var o4 = stack.Pop();
-            var o4pass = o4.NovyText == "a";
+            var o4pass = o4.NovyText == "c";
 
             var o5pass = false;
             try
@@ -69,18 +73,20 @@ namespace PSMat.Testy.Pamat
             stack.Push(new Operacia() { NovyText = "c" });
             stack.Push(new Operacia() { NovyText = "d" });
             stack.Push(new Operacia() { NovyText = "e" });
+            stack.Push(new Operacia() { NovyText = "f" });
+            stack.Push(new Operacia() { NovyText = "g" });
 
             var o1 = stack.Pop();
-            var o1pass = o1.NovyText == "e";
+            var o1pass = o1.NovyText == "g";
 
             var o2 = stack.Pop();
-            var o2pass = o2.NovyText == "d";
+            var o2pass = o2.NovyText == "f";
 
             var o3 = stack.Pop();
-            var o3pass = o3.NovyText == "c";
+            var o3pass = o3.NovyText == "e";
 
             var o4 = stack.Pop();
-            var o4pass = o4.NovyText == "b";
+            var o4pass = o4.NovyText == "d";
 
             var o5pass = false;
             try

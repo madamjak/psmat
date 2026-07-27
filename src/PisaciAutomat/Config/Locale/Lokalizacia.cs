@@ -38,7 +38,10 @@
                 UspesneUlozeny = "Uspesne ulozeny",
                 ChybaPriUkladani = "Chyba pri ukladani",
 
-                NeexistujucaPozicia = "Neexistujuca pozicia"
+                NeexistujucaPozicia = "Neexistujuca pozicia",
+
+                KonfguracnySuborPoskodeny = "Konfiguracny subor {0} neexistuje alebo je poskodeny",
+                ChybaGramatiky = "Gramatika pre subory typu {0} obsahuje chybu"
             };
         }
     }
