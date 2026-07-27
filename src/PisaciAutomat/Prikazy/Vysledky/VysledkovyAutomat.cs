@@ -138,7 +138,7 @@ namespace PisaciAutomat.Prikazy.Vysledky
                 return;
             }
 
-            VykreslovaciAutomat.VykresliInfoHlasku(_parametreVypisu, new Hlaska()
+            VykreslovaciAutomat.VykresliInfoHlasku(new Hlaska()
             {
                 Typ = TypHlasky.Info,
                 Sprava = string.Format(Lokalizacia.Hlasky.PocetVysledkov, _riadky.Count)
@@ -218,11 +218,6 @@ namespace PisaciAutomat.Prikazy.Vysledky
                 sb.Append(VykreslovaciAutomat.NastavPozadie(_parametreVypisu.Sirka - dlzkaVykresleneho));
                 sb.Append(Farby.AnsiReset());
             }
-        }
-
-        internal void ZmazInfoHlasku(StringBuilder sb)
-        {
-            VykreslovaciAutomat.ZmazHlasku(sb);
         }
     }
 }
