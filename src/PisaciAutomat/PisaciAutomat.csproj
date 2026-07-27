@@ -20,6 +20,10 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <SubType>Component</SubType>
     </None>
+    <None Update="Config\Locale\sk.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <SubType>Component</SubType>
+    </None>
     <None Update="Config\UserConfig.Json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

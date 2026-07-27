@@ -72,25 +72,35 @@ namespace PSMat
                 
                 var logger = ErrorLogger.GetInstance();
                 logger.Log(new Chyba() { Ex = ex });
-                var cesta = logger.UlozDoSuboru();
-                var sprava =
-                    string.Format(Lokalizacia.Hlasky.NeocakavanaChyba,
-                    Farby.AnsiStyl(Farby.StylTextu.Cyan), 
-                    "https://github.com/madamjak/psmat/issues/",
-                    Farby.AnsiReset2(),
-                    Farby.AnsiStyl(Farby.StylTextu.Yellow), 
-                    cesta,
-                    Farby.AnsiReset2());
-                Console.WriteLine(VykreslovaciAutomat.VykresliChybu2(sprava));
 
-                var cestaZalohy = PisaciAutomat.Program.GetInstance().UlozZalohu();
-                if (cestaZalohy != null)
+                try
                 {
-                    Console.WriteLine();
-                    Console.Write(string.Format(Lokalizacia.Hlasky.ZalohaSuboru, Farby.AnsiStyl(Farby.StylTextu.Yellow),
-                    cestaZalohy,
-                    Farby.AnsiReset2()));
+                    var cesta = logger.UlozDoSuboru();
+                    var cestaZalohy = PisaciAutomat.Program.GetInstance().UlozZalohu();
+
+                    var sprava =
+                        string.Format(Lokalizacia.Hlasky.NeocakavanaChyba,
+                        Farby.AnsiStyl(Farby.StylTextu.Cyan),
+                        "https://github.com/madamjak/psmat/issues/",
+                        Farby.AnsiReset2(),
+                        Farby.AnsiStyl(Farby.StylTextu.Yellow),
+                        cesta,
+                        Farby.AnsiReset2());
+                    Console.WriteLine(VykreslovaciAutomat.VykresliChybu2(sprava));
+
+                    if (cestaZalohy != null)
+                    {
+                        Console.WriteLine();
+                        Console.Write(string.Format(Lokalizacia.Hlasky.ZalohaSuboru, Farby.AnsiStyl(Farby.StylTextu.Yellow),
+                        cestaZalohy,
+                        Farby.AnsiReset2()));
+                    }
                 }
+                catch
+                {
+                    Console.WriteLine(VykreslovaciAutomat.VykresliChybu2("Error when displaying error! Localisation config file corrupted."));
+                }
+                
             }
             finally
             {
