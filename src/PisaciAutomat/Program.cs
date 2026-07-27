@@ -313,6 +313,15 @@ namespace PisaciAutomat
 
                     if (!string.IsNullOrEmpty(_skopirovanyText))
                     {
+                        if (Zvyraznovac.MaVybranyText(_parametreVyberu))
+                        {
+                            ZmazVybranyText();
+                            if (_parametrePrekreslenia.OptimalizaciaPrekreslenia)
+                            {
+                                Prekresli(_parametrePrekreslenia);
+                                ResetMonitoruPrekreslenia(out indexRiadok, out indexStlpec, out offsetStlpec, out offsetRiadok, out dlzkaRiadku);
+                            }
+                        }
 
                         _editor.NapisText(_skopirovanyText, _parametreVypisu);
                         _parametreVyberu = new ParametreVyberu();
