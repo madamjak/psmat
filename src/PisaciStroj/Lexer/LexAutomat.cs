@@ -618,7 +618,7 @@ namespace PisaciStroj.Lexer
                         {
                             var koniecRetazca = r.Read(poziciaHlavy, _koniecRetazca.Length);
 
-                            if (koniecRetazca == _koniecRetazca && r.CharAt(poziciaHlavy - 1) != '\\')
+                            if (koniecRetazca == _koniecRetazca && (poziciaHlavy > 0 && r.CharAt(poziciaHlavy - 1) != '\\'))
                             {
                                 jeRetazec = false;
 
