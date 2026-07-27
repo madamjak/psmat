@@ -119,6 +119,8 @@
             "JednoriadkovyKomentar": null,
             "ZaciatokKomentara": null,
             "KoniecKomentara": null,
+            "ZaciatokRetazca": "\"",
+            "KoniecRetazca": "\"",
             "Pravidla":[
                 {
                     "TypTokenu":0,
