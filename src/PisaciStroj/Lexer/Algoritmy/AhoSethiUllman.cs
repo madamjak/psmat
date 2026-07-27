@@ -30,6 +30,7 @@ namespace Lexer.Algoritmy
 
         public DfaAutomaton BuildDfaForSearch(string regex)
         {
+            _shuntingYard = new ShuntingYard();
             var astTree = _shuntingYard.BuildTree(regex);
 
             astTree.PostorderTraversalToConstructFollowpos();

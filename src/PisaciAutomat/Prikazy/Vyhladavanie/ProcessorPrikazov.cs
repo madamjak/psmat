@@ -22,12 +22,26 @@ namespace PisaciAutomat.Prikazy.Vyhladavanie
             IPisaciStroj editor,
             IVyhladavac vyhladavac)
         {
+            try
+            {
+                return SpracujPrikazInternal(prikaz, search, parametreVypisu, editor, vyhladavac);
+            }
+            catch(Exception ex)
+            {
+                ResetVyhladavania(search);
+                throw;
+            }
+            
+        }
+
+        private static ProcessorPrikazovResult SpracujPrikazInternal(Prikaz prikaz, ParametreVyhladavania search, ParametreVypisu parametreVypisu, IPisaciStroj editor, IVyhladavac vyhladavac)
+        {
             var r = new ProcessorPrikazovResult()
             {
                 Success = true
             };
 
-            if(prikaz.Typ == TypPrikazu.GoToSlovo)
+            if (prikaz.Typ == TypPrikazu.GoToSlovo)
             {
                 search.VyhladaneSlovo = prikaz.GoTo;
                 var radok = Math.Max(0, prikaz.GoTo.Value.Riadok - 10);
@@ -37,7 +51,7 @@ namespace PisaciAutomat.Prikazy.Vyhladavanie
                 return r;
             }
 
-            if(prikaz.Typ == TypPrikazu.GoToPozicia)
+            if (prikaz.Typ == TypPrikazu.GoToPozicia)
             {
                 var radok = Math.Max(0, prikaz.GoTo.Value.Riadok - 10);
                 var stlpec = prikaz.GoTo.Value.Pozicia + prikaz.GoTo.Value.Dlzka;
@@ -60,7 +74,7 @@ namespace PisaciAutomat.Prikazy.Vyhladavanie
                     {
                         vyhladavac.NastavVyhladavanie(search.VyhladavanyText);
                     }
-                    
+
                 }
             }
 

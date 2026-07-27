@@ -33,12 +33,12 @@ namespace PisaciAutomat.Prikazy.Vykreslovanie
             bool chyba,
             bool chybaReset)
         {
-            if(p2 != null && p2.Necitaj)
+            if(p2 != null && p2.Necitaj && !p2.Resize)
             {
                 return string.Empty;
             }
 
-            if (p2 != null && p2.OptimalizaciaPrekreslenia && !chybaReset)
+            if (p2 != null && p2.OptimalizaciaPrekreslenia && !chybaReset && !p2.Resize)
             {
 
                 var bolUprostredRetazcaAleboKomentara = false;

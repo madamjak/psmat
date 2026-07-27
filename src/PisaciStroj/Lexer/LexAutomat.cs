@@ -15,6 +15,8 @@ namespace PisaciStroj.Lexer
         private string _komentar;
         public static string _zaciatokKomentara { get; private set; }
         public static string _koniecKomentara { get; private set; }
+        private string _zaciatokRetazca { get; set; }
+        private string _koniecRetazca { get; set; }
 
         public bool _lexerNastaveny { get; private set; }
 
@@ -41,6 +43,8 @@ namespace PisaciStroj.Lexer
             _komentar = gramatika.JednoriadkovyKomentar;
             _zaciatokKomentara = gramatika.ZaciatokKomentara;
             _koniecKomentara = gramatika.KoniecKomentara;
+            _zaciatokRetazca = gramatika.ZaciatokRetazca;
+            _koniecRetazca = gramatika.KoniecRetazca;
 
             _lexerNastaveny = true;
         }
@@ -95,7 +99,7 @@ namespace PisaciStroj.Lexer
             var t = new List<GapBuffer> { text };
             var z = new Dictionary<int, Dictionary<int, Zatvorka>>();
 
-            var tokeny = LexInternal(t, z, false, false);
+            var tokeny = LexInternal(t, z, false, true);
 
             return tokeny[0];
         }
@@ -209,25 +213,28 @@ namespace PisaciStroj.Lexer
 
                     if (jeKomentar)
                     {
-                        var koniecKomentara = r.Read(poziciaHlavy, _koniecKomentara.Length);
-                        if (!(koniecKomentara == _koniecKomentara))
+                        if (!string.IsNullOrEmpty(_koniecKomentara))
                         {
-                            poziciaHlavy++;
-                            komentar.Dlzka++;
-                            continue;
-                        }
-                        else
-                        {
-                            rowResult.Add(komentar.Pozicia, new Token()
+                            var koniecKomentara = r.Read(poziciaHlavy, _koniecKomentara.Length);
+                            if (!(koniecKomentara == _koniecKomentara))
                             {
-                                Typ = TypTokenu.Komentar,
-                                Pozicia = komentar.Pozicia,
-                                Dlzka = poziciaHlavy + _koniecKomentara.Length
-                            });
+                                poziciaHlavy++;
+                                komentar.Dlzka++;
+                                continue;
+                            }
+                            else
+                            {
+                                rowResult.Add(komentar.Pozicia, new Token()
+                                {
+                                    Typ = TypTokenu.Komentar,
+                                    Pozicia = komentar.Pozicia,
+                                    Dlzka = poziciaHlavy + _koniecKomentara.Length
+                                });
 
-                            jeKomentar = false;
-                            poziciaHlavy += koniecKomentara.Length;
-                            continue;
+                                jeKomentar = false;
+                                poziciaHlavy += koniecKomentara.Length;
+                                continue;
+                            }
                         }
 
                     }
@@ -269,42 +276,49 @@ namespace PisaciStroj.Lexer
 
                     if (jeRetazec)
                     {
-                        if (poziciaHlavy <= r.Length() - 2 && r.CharAt(poziciaHlavy) != '\\'
-                            && (r.CharAt(poziciaHlavy + 1) == '"' || r.CharAt(poziciaHlavy + 1) == '\''))
+                        if (!string.IsNullOrEmpty(_koniecRetazca))
                         {
-                            rowResult.Add(retazec.Pozicia, new Token()
+                            var koniecRetazca = r.Read(poziciaHlavy, _koniecRetazca.Length);
+
+                            if (koniecRetazca == _koniecRetazca && r.CharAt(poziciaHlavy - 1) != '\\')
                             {
-                                Typ = TypTokenu.Retazec,
-                                Pozicia = retazec.Pozicia,
-                                Dlzka = retazec.Dlzka + 2
+                                rowResult.Add(retazec.Pozicia, new Token()
+                                {
+                                    Typ = TypTokenu.Retazec,
+                                    Pozicia = retazec.Pozicia,
+                                    Dlzka = retazec.Dlzka + _koniecRetazca.Length
                             });
 
-                            jeRetazec = false;
+                                jeRetazec = false;
 
-                            poziciaHlavy += 2;
-                            continue;
-                        }
-                        else
-                        {
-                            retazec.Dlzka++;
-                            poziciaHlavy++;
+                                poziciaHlavy += _koniecRetazca.Length;
+                                continue;
+                            }
+                            else
+                            {
+                                retazec.Dlzka++;
+                                poziciaHlavy++;
 
-                            continue;
+                                continue;
+                            }
                         }
                     }
                     else
                     {
-                        
-                        if (r.CharAt(poziciaHlavy) == '"' || r.CharAt(poziciaHlavy) == '\'')
+                        if (!string.IsNullOrEmpty(_zaciatokRetazca))
                         {
-                            jeRetazec = true;
-                            retazec = new Token()
+                            var zaciatokRetazca = r.Read(poziciaHlavy, _zaciatokRetazca.Length);
+                            if (_zaciatokRetazca == zaciatokRetazca)
                             {
-                                Pozicia = poziciaHlavy,
-                                Dlzka = 1
+                                jeRetazec = true;
+                                retazec = new Token()
+                                {
+                                    Pozicia = poziciaHlavy,
+                                    Dlzka = _zaciatokRetazca.Length
                             };
-                            poziciaHlavy++;
-                            continue;
+                                poziciaHlavy++;
+                                continue;
+                            }
                         }
                     }
 
@@ -499,25 +513,28 @@ namespace PisaciStroj.Lexer
 
                     if (jeKomentar)
                     {
-                        var koniecKomentara = r.Read(poziciaHlavy, _koniecKomentara.Length);
-                        if (!(koniecKomentara == _koniecKomentara))
+                        if (!string.IsNullOrEmpty(_koniecKomentara))
                         {
-                            poziciaHlavy++;
-                            komentar.Dlzka++;
-                            continue;
-                        }
-                        else
-                        {
-                            rowResult.Add(komentar.Pozicia, new Token()
+                            var koniecKomentara = r.Read(poziciaHlavy, _koniecKomentara.Length);
+                            if (!(koniecKomentara == _koniecKomentara))
                             {
-                                Typ = TypTokenu.Komentar,
-                                Pozicia = komentar.Pozicia,
-                                Dlzka = poziciaHlavy + _koniecKomentara.Length - komentar.Pozicia
-                            });
+                                poziciaHlavy++;
+                                komentar.Dlzka++;
+                                continue;
+                            }
+                            else
+                            {
+                                rowResult.Add(komentar.Pozicia, new Token()
+                                {
+                                    Typ = TypTokenu.Komentar,
+                                    Pozicia = komentar.Pozicia,
+                                    Dlzka = poziciaHlavy + _koniecKomentara.Length - komentar.Pozicia
+                                });
 
-                            jeKomentar = false;
-                            poziciaHlavy += koniecKomentara.Length;
-                            continue;
+                                jeKomentar = false;
+                                poziciaHlavy += koniecKomentara.Length;
+                                continue;
+                            }
                         }
 
                     }
@@ -559,28 +576,36 @@ namespace PisaciStroj.Lexer
 
                     if (!jeRetazec)
                     {
-                        if (r.CharAt(poziciaHlavy) == '"' || r.CharAt(poziciaHlavy) == '\'')
+                        if (!string.IsNullOrEmpty(_zaciatokRetazca))
                         {
-                            jeRetazec = true;
-                            poziciaHlavy++;
-                            continue;
+                            var zaciatokRetazca = r.Read(poziciaHlavy, _zaciatokRetazca.Length);
+                            if (_zaciatokRetazca == zaciatokRetazca)
+                            {
+                                jeRetazec = true;
+                                poziciaHlavy += _zaciatokRetazca.Length;
+                                continue;
+                            }
                         }
                     }
                     else
                     {
-                        if (poziciaHlavy < r.Length() - 1 && r.CharAt(poziciaHlavy) != '\\'
-                            && (r.CharAt(poziciaHlavy + 1) == '"' || r.CharAt(poziciaHlavy + 1) == '\''))
+                        if (!string.IsNullOrEmpty(_koniecRetazca))
                         {
-                            jeRetazec = false;
+                            var koniecRetazca = r.Read(poziciaHlavy, _koniecRetazca.Length);
 
-                            poziciaHlavy += 2;
-                            continue;
-                        }
-                        else
-                        {
-                            poziciaHlavy++;
+                            if (koniecRetazca == _koniecRetazca && r.CharAt(poziciaHlavy - 1) != '\\')
+                            {
+                                jeRetazec = false;
 
-                            continue;
+                                poziciaHlavy += _koniecRetazca.Length;
+                                continue;
+                            }
+                            else
+                            {
+                                poziciaHlavy++;
+
+                                continue;
+                            }
                         }
                     }
 

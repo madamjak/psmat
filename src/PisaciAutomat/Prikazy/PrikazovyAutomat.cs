@@ -64,10 +64,7 @@ namespace PisaciAutomat.Prikazy
 
         public PrikazovyAutomat()
         {
-            var l = new LexAutomat(new LexGramatika() 
-                                    {
-                                        Pravidla = GramatikaPrikazov.Gramatika()
-                                    });
+            var l = new LexAutomat(GramatikaPrikazov.Gramatika());
 
             _vykreslovacCmd = new VykreslovacCmd(l);
 
@@ -629,7 +626,15 @@ namespace PisaciAutomat.Prikazy
 
             if (p.Resize || !_resultsMode)
             {
-                PrekresliPrikazovyRiadok(sb);
+                if (p.Resize)
+                {
+                    PrekresliPrikazovyRiadok(sb, p);
+                }
+                else
+                {
+                    PrekresliPrikazovyRiadok(sb, _parametreVykreslovania);
+                }
+                
             }
 
             if (_resultsMode)
@@ -654,7 +659,7 @@ namespace PisaciAutomat.Prikazy
 
             _parametreVykreslovania.OkrajVlavo = _parametreVypisu.OkrajVlavo;
 
-            PrekresliPrikazovyRiadok(sb);
+            PrekresliPrikazovyRiadok(sb, _parametreVykreslovania);
 
             var upraveny = sb.ToString();
             if (!string.IsNullOrEmpty(upraveny))
@@ -663,9 +668,9 @@ namespace PisaciAutomat.Prikazy
             }
         }
 
-        public void PrekresliPrikazovyRiadok(StringBuilder sb)
+        public void PrekresliPrikazovyRiadok(StringBuilder sb, ParametrePrekreslenia parametreVykreslovania)
         {
-            sb.Append(_vykreslovacCmd.PrecitajPrikazovyRiadok(_parametreVykreslovania,
+            sb.Append(_vykreslovacCmd.PrecitajPrikazovyRiadok(parametreVykreslovania,
                 _riadok,
                 _parametreVypisu,
                 _vyber,
