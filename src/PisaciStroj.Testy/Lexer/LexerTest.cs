@@ -16,7 +16,7 @@ namespace PSMat.Testy.Lexer
             r.Add(new TestResult()
             {
                 TestName = "JednoduchyLexerTest",
-                Pass = BasicTest()
+                Pass = JednoduchyLexerTest()
             });
             r.Add(new TestResult()
             {
@@ -34,7 +34,7 @@ namespace PSMat.Testy.Lexer
 
         public bool CmdLineRegexTest()
         {
-            var g = LexerStubs.CmdLineGramatika();
+            var g = PisaciAutomat.Prikazy.GramatikaPrikazov.Gramatika();
 
             ILexer lexer = new LexAutomat(g);
 
@@ -51,7 +51,7 @@ namespace PSMat.Testy.Lexer
                     {
                         Typ = TypTokenu.KlucoveSlovo,
                         Pozicia = 0,
-                        Dlzka = 5
+                        Dlzka = 6
                     } },
                 { 6, new Token()
                     {
@@ -162,9 +162,9 @@ namespace PSMat.Testy.Lexer
             return pass;
         }
 
-        public bool BasicTest()
+        public bool JednoduchyLexerTest()
         {
-            var g = LexerStubs.CmdLineGramatika();
+            var g = PisaciAutomat.Prikazy.GramatikaPrikazov.Gramatika();
 
             ILexer lexer = new LexAutomat(g);
 
@@ -181,7 +181,7 @@ namespace PSMat.Testy.Lexer
                     {
                         Typ = TypTokenu.KlucoveSlovo,
                         Pozicia = 0,
-                        Dlzka = 5
+                        Dlzka = 6
                     } },
                 { 6, new Token()
                     {
