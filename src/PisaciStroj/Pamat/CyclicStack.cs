@@ -24,10 +24,9 @@ namespace PisaciStroj.Pamat
             if (_top == _size)
             {
                 _top = 0;
-                _bottom = 1;
             }
-
-            if (_bottom > 0)
+            
+            if (_top == _bottom)
             {
                 _bottom++;
                 if(_bottom == _size)
@@ -48,26 +47,19 @@ namespace PisaciStroj.Pamat
 
             var item = _array[_top];
 
-            _top--;
-            if (_top < 0)
+            if (_top == _bottom)
             {
-                if(_bottom > 0)
+                _top = -1;
+                _bottom = 0;
+            }
+            else
+            {
+                _top--;
+                if (_top < 0)
                 {
                     _top = _size - 1;
                 }
-                else
-                {
-                    _bottom = 0;
-                }
             }
-            //else
-            //{
-            //    if(_top < _bottom)
-            //    {
-            //        _top = -1;
-            //        _bottom = 0;
-            //    }
-            //}
 
             return item;
         }

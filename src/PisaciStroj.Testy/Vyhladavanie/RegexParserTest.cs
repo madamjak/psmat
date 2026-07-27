@@ -14,9 +14,9 @@ namespace PSMat.Testy.Vyhladavanie
 
         public RegexParserTest()
         {
-            var gramatika = LexerStubs.CmdLineGramatika();
+            var g = PisaciAutomat.Prikazy.GramatikaPrikazov.Gramatika();
 
-            _lexer = new LexAutomat(gramatika);
+            _lexer = new LexAutomat(g);
         }
             
         public List<TestResult> Spust()

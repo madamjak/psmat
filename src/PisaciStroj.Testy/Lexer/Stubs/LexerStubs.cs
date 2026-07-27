@@ -12,20 +12,6 @@ namespace PSMat.Testy.Lexer.Stubs
 
     public static class LexerStubs
     {
-        public static LexGramatika CmdLineGramatika()
-        {
-            var p1 = new LexPravidlo()
-            {
-                TypTokenu = TypTokenu.KlucoveSlovo,
-                Regex = "((f.n.e.x.t)|(f.p.r.e.v)|(f.a.l.l)|(r.a.l.l)|(r.f.r.s.t)|(r.s.t)|(s.a.a.s)).\u0000"
-            };
-
-            var pravidla = new LexPravidlo[] { p1 };
-            return new LexGramatika()
-            {
-                Pravidla = pravidla
-            };
-        }
         internal static LexGramatika CSharpGramatika()
         {
             var p1 = new LexPravidlo()
@@ -64,6 +50,8 @@ namespace PSMat.Testy.Lexer.Stubs
                 JednoriadkovyKomentar = "//",
                 ZaciatokKomentara = "/*",
                 KoniecKomentara = "*/",
+                ZaciatokRetazca = "\"",
+                KoniecRetazca = "\"",
                 Pravidla = new LexPravidlo[] { p1, p2, p3, p4, p5, p6 }
             };
 
