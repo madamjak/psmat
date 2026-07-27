@@ -142,7 +142,7 @@ namespace PisaciStroj.Pamat
 
         internal bool MaZmenu()
         {
-            var ulozeny = _pocetOperaciiOdPoslUlozenia == 0;
+            var ulozeny = _posledneUlozenie.HasValue && _pocetOperaciiOdPoslUlozenia == 0;
 
             return !ulozeny;
         }

@@ -17,5 +17,7 @@
         public string UspesneUlozeny { get; set; }
         public string ChybaPriUkladani { get; set; }
         public string NeexistujucaPozicia { get; set; }
+        public string KonfguracnySuborPoskodeny { get; set; }
+        public string ChybaGramatiky { get; set; }
     }
 }
