@@ -181,10 +181,7 @@ namespace PisaciAutomat.Obrazovka
                     {
                         sb.Append(extraZvyrazni ? StylSearchResultExtra() : StylSearchResult());
                         sb.Append(riadok.Read(index, 1));
-                        if (dlzkaTokenu == 0)
-                        {
-                            sb.Append(AnsiReset(pozadieRiadku));
-                        }
+                        sb.Append(AnsiReset(pozadieRiadku));
                     }
 
                     dlzkaSlova--;
@@ -193,17 +190,13 @@ namespace PisaciAutomat.Obrazovka
 
                 if (dlzkaTokenu > 0)
                 {
-                    if(index >= offset)
+                    if(index >= offset && !precitalSlovo)
                     {
                         if (precitalZatvorku)
                         {
                             if (zvyrazniZatvorku)
                             {
                                 sb.Append(Farby.StylSearchResultExtra());
-                            }
-                            else
-                            {
-                                sb.Append(AnsiStyl(StylTextu.Bold));
                             }
                             sb.Append(riadok.Read(index, 1));
                             sb.Append(AnsiReset(pozadieRiadku));
@@ -214,12 +207,8 @@ namespace PisaciAutomat.Obrazovka
                             {
                                 sb.Append(AnsiStyl(rstyl));
                             }
-                            if (precitalSlovo)
-                            {
-                                sb.Append("\b");
-                            }
                             sb.Append(riadok.Read(index, 1));
-                            if (rstyl != StylTextu.Standard || precitalSlovo)
+                            if (rstyl != StylTextu.Standard)
                             {
                                 sb.Append(AnsiReset(pozadieRiadku));
                             }
@@ -231,12 +220,8 @@ namespace PisaciAutomat.Obrazovka
                             {
                                 sb.Append(AnsiStyl(styl));
                             }
-                            if (precitalSlovo)
-                            {
-                                sb.Append("\b");
-                            }
                             sb.Append(riadok.Read(index, 1));
-                            if (styl != StylTextu.Standard || precitalSlovo)
+                            if (styl != StylTextu.Standard)
                             {
                                 sb.Append(AnsiReset(pozadieRiadku));
                             }
@@ -271,7 +256,7 @@ namespace PisaciAutomat.Obrazovka
 
                 if (dlzkaZvyraznenehoTextu > 0)
                 {
-                    if(index >= offset)
+                    if(index >= offset && !precitalSlovo)
                     {
                         sb.Append(Farby.AnsiStyl(Farby.FarbaVysledkov()));
                         sb.Append("\b");

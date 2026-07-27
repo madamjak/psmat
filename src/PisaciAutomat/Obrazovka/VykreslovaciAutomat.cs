@@ -613,14 +613,14 @@ namespace PisaciAutomat.Obrazovka
                 sb.Append(ZmazOdKurzoraPoKoniecRiadku());
                 sb.Append(NastavKurzor(2, 1));
                 sb.Append(ZmazOdKurzoraPoKoniecRiadku());
-            }
-
-            if (hlaska.HasValue)
-            {
-                VykresliInfoHlasku(parametre, hlaska.Value, sb);
-            }else if (dialog != null)
-            {
-                VykresliDialog(parametre, dialog, sb);
+                if (hlaska.HasValue)
+                {
+                    VykresliInfoHlasku(hlaska.Value, sb);
+                }
+                else if (dialog != null)
+                {
+                    VykresliDialog(parametre, dialog, sb);
+                }
             }
 
             if (_aktualnaObrazovka == null || p.Resize)
@@ -647,11 +647,12 @@ namespace PisaciAutomat.Obrazovka
 
         public static void ZmazHlasku(StringBuilder sb)
         {
+            sb.Append(Farby.AnsiReset());
             sb.Append(NastavKurzor(2, 1));
             sb.Append(ZmazOdKurzoraPoKoniecRiadku());
         }
 
-        public static void VykresliInfoHlasku(ParametreVypisu parametre, Hlaska hlaska, StringBuilder sb)
+        public static void VykresliInfoHlasku(Hlaska hlaska, StringBuilder sb)
         {
             sb.Append(NastavKurzor(2, 1));
             sb.Append(ZmazOdKurzoraPoKoniecRiadku());
