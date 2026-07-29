@@ -123,8 +123,10 @@ namespace PisaciAutomat.Obrazovka
                 if (parametrePrekreslenia.OptimalizaciaPrekreslenia)
                 {
                     UpravEditorScreen(parametrePrekreslenia, parametre, search, parametreVyberu);
-                    PrekresliUpravenyRiadok(parametrePrekreslenia, parametre, search, parametreVyberu, true);
-                    return _aktualnaObrazovka;
+                    if(PrekresliUpravenyRiadok(parametrePrekreslenia, parametre, search, parametreVyberu, true))
+                    {
+                        return _aktualnaObrazovka;
+                    }
                 }
 
                 return Precitaj2(parametre, search, _precitanyText, _editor, parametreVyberu, _lexer, _vyhladavac);
@@ -151,8 +153,10 @@ namespace PisaciAutomat.Obrazovka
                 if (parametrePrekreslenia.OptimalizaciaPrekreslenia && !prekresliCely)
                 {
                     UpravEditorScreen(parametrePrekreslenia, parametre, search, parametreVyberu);
-                    PrekresliUpravenyRiadok(parametrePrekreslenia, parametre, search, parametreVyberu, jeUprostredRetazcaAleboKomentara);
-                    return _aktualnaObrazovka;
+                    if (PrekresliUpravenyRiadok(parametrePrekreslenia, parametre, search, parametreVyberu, true))
+                    {
+                        return _aktualnaObrazovka;
+                    }
                 }
 
                 return Precitaj2(parametre, search, _precitanyText, _editor, parametreVyberu, _lexer, _vyhladavac);
@@ -164,7 +168,7 @@ namespace PisaciAutomat.Obrazovka
             }
         }
 
-        private void PrekresliUpravenyRiadok(ParametrePrekreslenia parametrePrekreslenia, 
+        private bool PrekresliUpravenyRiadok(ParametrePrekreslenia parametrePrekreslenia, 
             ParametreVypisu parametre, 
             ParametreVyhladavania search, 
             ParametreVyberu parametreVyberu, 
@@ -179,6 +183,7 @@ namespace PisaciAutomat.Obrazovka
 
             var indexRiadok = parametre.IndexRiadok;
             var indexStlpec = parametre.IndexStlpec;
+            var offsetStlpec = parametre.OffsetStlpec;
 
             var sb = new StringBuilder();
             sb.Append(NastavKurzorUnVisible());
@@ -374,6 +379,15 @@ namespace PisaciAutomat.Obrazovka
                         }
                     }
                 }
+
+                //prekresli cely
+                if (_parametreVyberu.Zaciatok.HasValue)
+                {
+                    if(offsetStlpec != parametre.OffsetStlpec)
+                    {
+                        return false;
+                    }
+                }
                                                 
                 //prekresli upraveny znak / slova
                 var stlpecCitania = _parametreVyberu.Zaciatok.HasValue ? _parametreVyberu.Zaciatok.Value.Stlpec : parametre.IndexStlpec;
@@ -411,6 +425,7 @@ namespace PisaciAutomat.Obrazovka
                 sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, parametre.StlpecKurzora + 1));
             }
             Console.Write(sb.ToString());
+            return true;
         }
 
         public struct PoziciaNaRiadku
