@@ -14,6 +14,10 @@ namespace PisaciAutomat.Subory
         /// <returns>True if the file appears to be text; otherwise false.</returns>
         public static bool IsTextFile(string filePath)
         {
+            return true;
+
+            //nefunguje to uplne spolahlivo
+            /*
             try
             {
                 // Read only a small chunk to determine type
@@ -30,8 +34,8 @@ namespace PisaciAutomat.Subory
                 if (buffer.Take(bytesRead).Any(b => b == 0))
                     return false;
 
-                // Try decoding as UTF-8
-                string text = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                // Try decoding as UTF-16
+                string text = Encoding.BigEndianUnicode.GetString(buffer, 0, bytesRead);
 
                 // If decoding produces replacement characters, it's likely binary
                 if (text.Contains('\uFFFD'))
@@ -43,6 +47,7 @@ namespace PisaciAutomat.Subory
             {
                 return false;
             }
+            */
         }
     }
 }
