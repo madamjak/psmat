@@ -21,7 +21,7 @@ namespace PisaciStroj.Formatovanie
                 var dlzka = riadky[riadok].Length();
                 stlpec = Math.Min(dlzka, maxDlzka);
 
-                if(stlpec == dlzka)
+                if (stlpec == dlzka)
                 {
                     riadok++;
                     continue;
@@ -36,7 +36,7 @@ namespace PisaciStroj.Formatovanie
                     continue;
                 }
 
-                
+
                 var p = new NavigovaciPrikaz()
                 {
                     Typ = TypNavigacie.SlovoDolava
@@ -52,33 +52,31 @@ namespace PisaciStroj.Formatovanie
 
                     Navigator.Naviguj(p, parametreVypisu, riadky, new ParametreVyberu());
                 }
-                
-                if(parametreVypisu.IndexStlpec == 0)
+
+                if (parametreVypisu.IndexStlpec == 0)
                 {
                     //nie jednoducho rozdelitelny riadok
 
                     p.Typ = TypNavigacie.Doprava;
-                    if(riadky[riadok].CharAt(parametreVypisu.IndexStlpec) == ' ')
-                {
-                    p.Typ = TypNavigacie.SlovoDolava;
-                    Navigator.Naviguj(p, parametreVypisu, riadky, new ParametreVyberu());
+                    if (riadky[riadok].CharAt(parametreVypisu.IndexStlpec) == ' ')
+                    {
+                        Navigator.Naviguj(p, parametreVypisu, riadky, new ParametreVyberu());
                     }
 
                     while (true)
                     {
                         if (parametreVypisu.IndexStlpec == riadky[riadok].Length() || riadky[riadok].CharAt(parametreVypisu.IndexStlpec) == ' ')
-                    {
-                        break;
-                    }
-                }
+                        {
+                            break;
+                        }
 
-                        
+
                         Navigator.Naviguj(p, parametreVypisu, riadky, new ParametreVyberu());
                     }
 
-                    if(parametreVypisu.IndexStlpec == riadky[riadok].Length())
-                {
-                        
+                    if (parametreVypisu.IndexStlpec == riadky[riadok].Length())
+                    {
+
                         riadok++;
                         continue;
                     }
