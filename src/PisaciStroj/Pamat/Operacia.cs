@@ -7,7 +7,8 @@
         VyhladajNahrad,
         VyhladajNahradVsetky,
         PridajOdsek,
-        ZmazOdsek
+        ZmazOdsek,
+        Zalom
     }
 
     public class Operacia

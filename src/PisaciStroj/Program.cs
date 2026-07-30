@@ -35,6 +35,8 @@ namespace PisaciStroj
         void PridajMultiLineOkraj(ParametreVypisu parametreVypisu, ParametreVyberu parametreVyberu);
         void ZmazOkraj(ParametreVypisu parametreVypisu, ParametreVyberu parametreVyberu);
         void ZmazMultiLineOkraj(ParametreVypisu parametreVypisu, ParametreVyberu parametreVyberu);
+
+        int ZalomRiadky(ParametreVypisu parametreVypisu);
     }
 
     public class Program : IPisaciStroj
@@ -238,7 +240,8 @@ namespace PisaciStroj
             else if (operacia.Typ == TypOperacie.VyhladajNahrad 
                 || operacia.Typ == TypOperacie.VyhladajNahradVsetky
                 || operacia.Typ == TypOperacie.PridajOdsek
-                || operacia.Typ == TypOperacie.ZmazOdsek)
+                || operacia.Typ == TypOperacie.ZmazOdsek
+                || operacia.Typ == TypOperacie.Zalom)
             {
                 var pocetOperacii = operacia.PocetOperacii;
                 while (true)
@@ -294,7 +297,8 @@ namespace PisaciStroj
             else if (operacia.Typ == TypOperacie.VyhladajNahrad 
                 || operacia.Typ == TypOperacie.VyhladajNahradVsetky 
                 || operacia.Typ == TypOperacie.PridajOdsek
-                || operacia.Typ == TypOperacie.ZmazOdsek)
+                || operacia.Typ == TypOperacie.ZmazOdsek
+                || operacia.Typ == TypOperacie.Zalom)
             {
                 var pocetOperacii = operacia.PocetOperacii;
                 while (true)
@@ -726,6 +730,23 @@ namespace PisaciStroj
             Kurzor.GoTo(vratSaNariadok, vratSaNaStlpec, parametreVypisu, _riadky);
 
             _okraj -= pocetZnakov;
+        }
+
+        public int ZalomRiadky(ParametreVypisu parametreVypisu)
+        {
+            var operacia = new Operacia()
+            {
+                Typ = TypOperacie.Zalom
+            };
+
+            operacia.PocetOperacii = ZalomenieRiadkov.Zalom(this, parametreVypisu);
+
+            if(operacia.PocetOperacii > 0)
+            {
+                _pamatOperacii.PridajOperaciuNaVratenie(operacia);
+            }
+
+            return operacia.PocetOperacii;
         }
     }
 }
