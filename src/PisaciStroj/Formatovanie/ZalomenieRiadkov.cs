@@ -15,11 +15,13 @@ namespace PisaciStroj.Formatovanie
             var riadky = editor.Riadky();
             Kurzor.GoTo(riadok, stlpec, parametreVypisu, riadky);
 
-            while(riadok < riadky.Count)
+            var maxDlzka = parametreVypisu.Sirka - 2;
+            while (riadok < riadky.Count)
             {
-                stlpec = Math.Min(riadky[riadok].Length(), parametreVypisu.Sirka);
+                var dlzka = riadky[riadok].Length();
+                stlpec = Math.Min(dlzka, maxDlzka);
 
-                if(stlpec < parametreVypisu.Sirka)
+                if(stlpec == dlzka)
                 {
                     riadok++;
                     continue;
@@ -37,29 +39,49 @@ namespace PisaciStroj.Formatovanie
                 
                 var p = new NavigovaciPrikaz()
                 {
-                    Typ = TypNavigacie.SlovoDoprava
+                    Typ = TypNavigacie.SlovoDolava
                 };
                 Navigator.Naviguj(p, parametreVypisu, riadky, new ParametreVyberu());
 
-                var koniecSlova = parametreVypisu.IndexStlpec;
-
                 while (true)
+                {
+                    if (parametreVypisu.IndexStlpec == 0 || riadky[riadok].CharAt(parametreVypisu.IndexStlpec) == ' ')
+                    {
+                        break;
+                    }
+
+                    Navigator.Naviguj(p, parametreVypisu, riadky, new ParametreVyberu());
+                }
+                
+                if(parametreVypisu.IndexStlpec == 0)
+                {
+                    //nie jednoducho rozdelitelny riadok
+
+                    p.Typ = TypNavigacie.Doprava;
+                    if(riadky[riadok].CharAt(parametreVypisu.IndexStlpec) == ' ')
                 {
                     p.Typ = TypNavigacie.SlovoDolava;
                     Navigator.Naviguj(p, parametreVypisu, riadky, new ParametreVyberu());
+                    }
 
-                    if (riadky[riadok].CharAt(parametreVypisu.IndexStlpec) == ' ')
+                    while (true)
+                    {
+                        if (parametreVypisu.IndexStlpec == riadky[riadok].Length() || riadky[riadok].CharAt(parametreVypisu.IndexStlpec) == ' ')
                     {
                         break;
                     }
                 }
 
-                var zaciatokSlova = parametreVypisu.IndexStlpec;
+                        
+                        Navigator.Naviguj(p, parametreVypisu, riadky, new ParametreVyberu());
+                    }
 
-                //nie jednoducho rozdelitelny riadok
-                if(koniecSlova - zaciatokSlova >= parametreVypisu.Sirka)
+                    if(parametreVypisu.IndexStlpec == riadky[riadok].Length())
                 {
-                    Kurzor.GoTo(riadok, koniecSlova, parametreVypisu, riadky);
+                        
+                        riadok++;
+                        continue;
+                    }
                 }
 
                 editor.NapisText(Environment.NewLine, parametreVypisu);
