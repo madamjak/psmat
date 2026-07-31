@@ -153,7 +153,7 @@ namespace PisaciAutomat.Obrazovka
                 if (parametrePrekreslenia.OptimalizaciaPrekreslenia && !prekresliCely)
                 {
                     UpravEditorScreen(parametrePrekreslenia, parametre, search, parametreVyberu);
-                    if (PrekresliUpravenyRiadok(parametrePrekreslenia, parametre, search, parametreVyberu, true))
+                    if (PrekresliUpravenyRiadok(parametrePrekreslenia, parametre, search, parametreVyberu, jeUprostredRetazcaAleboKomentara))
                     {
                         return _aktualnaObrazovka;
                     }
@@ -199,47 +199,7 @@ namespace PisaciAutomat.Obrazovka
                 var _parametreVyberu = new ParametreVyberu();
                 if (!jeUprostredRetazcaAleboKomentara)
                 {
-                    if (parametre.IndexStlpec < _editor.Riadky()[parametre.IndexRiadok].Length() - 1)
-                    {
-                        _navigovaciPrikaz.Vyber = false;
-                        _navigovaciPrikaz.Typ = TypNavigacie.SlovoDoprava;
-
-                        Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
-
-                        //naspat
-                        _navigovaciPrikaz.Vyber = true;
-                        _navigovaciPrikaz.Typ = TypNavigacie.SlovoDolava;
-
-                        if (parametre.IndexStlpec > 0)
-                        {
-                            Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
-                        }
-
-                        //mozna medzera a slovo spat
-                        if (parametre.IndexStlpec > 0)
-                        {
-                            Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
-                        }
-                        if (parametre.IndexStlpec > 0)
-                        {
-                            Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
-                        }
-                    }
-                    else
-                    {
-                        _navigovaciPrikaz.Vyber = true;
-                        _navigovaciPrikaz.Typ = TypNavigacie.SlovoDolava;
-
-                        //mozna medzera a slovo spat
-                        if (parametre.IndexStlpec > 0)
-                        {
-                            Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
-                        }
-                        if (parametre.IndexStlpec > 0)
-                        {
-                            Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
-                        }
-                    }
+                    VyberSlovaNaPrekreslenie(parametre, _editor.Riadky(), _parametreVyberu, _navigovaciPrikaz);
                 }
 
                 if (_parametreVyberu.Zaciatok.HasValue) 
@@ -337,47 +297,7 @@ namespace PisaciAutomat.Obrazovka
                     //vrat sa naspat
                     Kurzor.GoTo(indexRiadok, indexStlpec, parametre, _editor.Riadky());
 
-                    if (parametre.IndexStlpec < _editor.Riadky()[parametre.IndexRiadok].Length() - 1)
-                    {
-                        _navigovaciPrikaz.Vyber = false;
-                        _navigovaciPrikaz.Typ = TypNavigacie.SlovoDoprava;
-
-                        Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
-
-                        //naspat
-                        _navigovaciPrikaz.Vyber = true;
-                        _navigovaciPrikaz.Typ = TypNavigacie.SlovoDolava;
-
-                        if (parametre.IndexStlpec > 0)
-                        {
-                            Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
-                        }
-
-                        //mozna medzera a slovo spat
-                        if (parametre.IndexStlpec > 0)
-                        {
-                            Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
-                        }
-                        if (parametre.IndexStlpec > 0)
-                        {
-                            Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
-                        }
-                    }
-                    else
-                    {
-                        _navigovaciPrikaz.Vyber = true;
-                        _navigovaciPrikaz.Typ = TypNavigacie.SlovoDolava;
-
-                        //mozna medzera a slovo spat
-                        if (parametre.IndexStlpec > 0)
-                        {
-                            Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
-                        }
-                        if (parametre.IndexStlpec > 0)
-                        {
-                            Navigator.Naviguj(_navigovaciPrikaz, parametre, _editor.Riadky(), _parametreVyberu);
-                        }
-                    }
+                    VyberSlovaNaPrekreslenie(parametre, _editor.Riadky(), _parametreVyberu, _navigovaciPrikaz);
                 }
 
                 //prekresli cely
@@ -426,6 +346,64 @@ namespace PisaciAutomat.Obrazovka
             }
             Console.Write(sb.ToString());
             return true;
+        }
+
+        public static void VyberSlovaNaPrekreslenie(ParametreVypisu parametre,
+            List<GapBuffer> riadky,
+            ParametreVyberu _parametreVyberu,
+            NavigovaciPrikaz _navigovaciPrikaz)
+        {
+            _navigovaciPrikaz.Vyber = false;
+            _navigovaciPrikaz.Typ = TypNavigacie.SlovoDoprava;
+
+            if(parametre.IndexStlpec < riadky[parametre.IndexRiadok].Length())
+            {
+                Navigator.Naviguj(_navigovaciPrikaz, parametre, riadky, _parametreVyberu);
+            }
+
+            while (true)
+            {
+                if (parametre.IndexStlpec == riadky[parametre.IndexRiadok].Length()
+                    || riadky[parametre.IndexRiadok].CharAt(parametre.IndexStlpec) == ' ')
+                {
+                    break;
+                }
+
+                Navigator.Naviguj(_navigovaciPrikaz, parametre, riadky, _parametreVyberu);
+            }
+
+            //naspat
+            _navigovaciPrikaz.Vyber = true;
+            _navigovaciPrikaz.Typ = TypNavigacie.SlovoDolava;
+
+            if (parametre.IndexStlpec > 0)
+            {
+                Navigator.Naviguj(_navigovaciPrikaz, parametre, riadky, _parametreVyberu);
+            }
+            while (true)
+            {
+                if (parametre.IndexStlpec == 0 || riadky[parametre.IndexRiadok].CharAt(parametre.IndexStlpec) == ' ')
+                {
+                    break;
+                }
+
+                Navigator.Naviguj(_navigovaciPrikaz, parametre, riadky, _parametreVyberu);
+            }
+
+            //slovo nalavo od medzery
+            if (parametre.IndexStlpec > 0)
+            {
+                Navigator.Naviguj(_navigovaciPrikaz, parametre, riadky, _parametreVyberu);
+            }
+            while (true)
+            {
+                if (parametre.IndexStlpec == 0 || riadky[parametre.IndexRiadok].CharAt(parametre.IndexStlpec) == ' ')
+                {
+                    break;
+                }
+
+                Navigator.Naviguj(_navigovaciPrikaz, parametre, riadky, _parametreVyberu);
+            }
         }
 
         public struct PoziciaNaRiadku
