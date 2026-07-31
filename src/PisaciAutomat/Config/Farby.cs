@@ -129,6 +129,10 @@ namespace PisaciAutomat.Config
                 case StylTextu.RedBold:
                     return "\u001b[1;38;5;196m";
                 case StylTextu.Red:
+                    return "\u001b[31m";
+                case StylTextu.BrightRed:
+                    return "\u001b[91m";
+                case StylTextu.Red196:
                     return "\u001b[38;5;196m";
                 case StylTextu.Cyan:
                     return "\u001b[38;5;87m";
@@ -193,7 +197,9 @@ namespace PisaciAutomat.Config
             NejakaZelenaBold,
             NejakaZelena2,
             NejakaCervena,
-            NejakaOranzovaCiZlta
+            NejakaOranzovaCiZlta,
+            BrightRed,
+            Red196
         }
 
         public static StylTextu VyberStylRegex(TypTokenu typ)
@@ -271,6 +277,18 @@ namespace PisaciAutomat.Config
                     default:
                         return StylTextu.Standard;
                 }
+            }
+        }
+
+        internal static string StylZatvorky()
+        {
+            if (DarkMode)
+            {
+                return string.Format("{0}", AnsiStyl(StylTextu.Red196));
+            }
+            else
+            {
+                return string.Format("{0}", AnsiStyl(StylTextu.Red196));
             }
         }
 
