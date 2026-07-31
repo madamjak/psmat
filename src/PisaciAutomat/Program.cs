@@ -914,6 +914,8 @@ namespace PisaciAutomat
             if (!File.Exists(cesta) && !Directory.Exists(cesta))
             {
                 _cestaKSuboru = Path.GetFullPath(cesta);
+
+                NastavLex();
                 return;
             }
 
