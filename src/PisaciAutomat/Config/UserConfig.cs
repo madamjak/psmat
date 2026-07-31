@@ -11,5 +11,7 @@ namespace PisaciAutomat.Config
         public string Jazyk { get; set; }
 
         public int? UndoLimit { get; set; }
+
+        public bool BracketHighlighted { get; set; }
     }
 }

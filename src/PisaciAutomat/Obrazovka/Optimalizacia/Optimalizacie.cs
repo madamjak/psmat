@@ -93,26 +93,23 @@ namespace PisaciAutomat.Obrazovka
         public static Dictionary<int, Token> PrecitajTokenyRiadku(LexResult lexResult, ILexer lexer, List<GapBuffer> riadky, int i)
         {
             Dictionary<int, Token> tokeny;
-            Dictionary<int, Token> komentare = null;
-            if (lexResult.Komentare == null || !lexResult.Komentare.TryGetValue(i, out komentare))
+            Dictionary<int, Token> noveTokeny = null;
+            if (lexResult.Komentare == null || !lexResult.Komentare.TryGetValue(i, out noveTokeny))
             {
-                komentare = new Dictionary<int, Token>();
+                noveTokeny = new Dictionary<int, Token>();
             }
 
             tokeny = lexer.LexPreEditor(riadky[i]);
-            var noveTokeny = new Dictionary<int, Token>();
 
             foreach (var to in tokeny)
             {
                 var zvyrazniToken = true;
-                foreach (var koment in komentare)
+                foreach (var koment in noveTokeny)
                 {
-                    if (koment.Key <= to.Key && to.Key <= koment.Key + koment.Value.Dlzka)
+                    if (koment.Key <= to.Key && to.Key < koment.Key + koment.Value.Dlzka)
                     {
                         zvyrazniToken = false;
                     }
-
-                    noveTokeny.TryAdd(koment.Key, koment.Value);
                 }
 
                 if (zvyrazniToken)

@@ -115,6 +115,12 @@ namespace PisaciAutomat
                 Farby.DarkMode = true;
             }
 
+            var bh = config != null ? config.BracketHighlighted : false;
+            if (bh)
+            {
+                Farby.BracketHighlighted = true;
+            }
+
             Console.Write(Farby.AnsiReset());
 
             //nastav kurzor

@@ -8,6 +8,8 @@ namespace PisaciAutomat.Config
     {
         public static bool DarkMode { get; set; }
 
+        public static bool BracketHighlighted { get; set; }
+
         public static string StylSearchResult()
         {
             if (DarkMode)

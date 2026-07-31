@@ -200,7 +200,10 @@ namespace PisaciAutomat.Obrazovka
                             }
                             else
                             {
-                                sb.Append(Farby.StylZatvorky());
+                                if (Farby.BracketHighlighted)
+                                {
+                                    sb.Append(Farby.StylZatvorky());
+                                }
                             }
                             sb.Append(riadok.Read(index, 1));
                             sb.Append(AnsiReset(pozadieRiadku));
@@ -250,7 +253,10 @@ namespace PisaciAutomat.Obrazovka
                         }
                         else
                         {
-                            sb.Append(Farby.StylZatvorky());
+                            if (Farby.BracketHighlighted)
+                            {
+                                sb.Append(Farby.StylZatvorky());
+                            }
                         }
                         sb.Append(riadok.Read(index, 1));
                         sb.Append(AnsiReset(pozadieRiadku));
