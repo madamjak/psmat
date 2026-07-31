@@ -138,47 +138,7 @@ namespace PisaciAutomat.Prikazy.Vykreslovanie
                 var _parametreVyberu = new ParametreVyberu();
                 if (!jeUprostredRetazca)
                 {
-                    if (parametre.IndexStlpec < riadky[parametre.IndexRiadok].Length() - 1)
-                    {
-                        _navigovaciPrikaz.Vyber = false;
-                        _navigovaciPrikaz.Typ = TypNavigacie.SlovoDoprava;
-
-                        Navigator.Naviguj(_navigovaciPrikaz, parametre, riadky, _parametreVyberu);
-
-                        //naspat
-                        _navigovaciPrikaz.Vyber = true;
-                        _navigovaciPrikaz.Typ = TypNavigacie.SlovoDolava;
-
-                        if (parametre.IndexStlpec > 0)
-                        {
-                            Navigator.Naviguj(_navigovaciPrikaz, parametre, riadky, _parametreVyberu);
-                        }
-
-                        //mozna medzera a slovo spat
-                        if (parametre.IndexStlpec > 0)
-                        {
-                            Navigator.Naviguj(_navigovaciPrikaz, parametre, riadky, _parametreVyberu);
-                        }
-                        if (parametre.IndexStlpec > 0)
-                        {
-                            Navigator.Naviguj(_navigovaciPrikaz, parametre, riadky, _parametreVyberu);
-                        }
-                    }
-                    else
-                    {
-                        _navigovaciPrikaz.Vyber = true;
-                        _navigovaciPrikaz.Typ = TypNavigacie.SlovoDolava;
-
-                        //mozna medzera a slovo spat
-                        if (parametre.IndexStlpec > 0)
-                        {
-                            Navigator.Naviguj(_navigovaciPrikaz, parametre, riadky, _parametreVyberu);
-                        }
-                        if (parametre.IndexStlpec > 0)
-                        {
-                            Navigator.Naviguj(_navigovaciPrikaz, parametre, riadky, _parametreVyberu);
-                        }
-                    }
+                    VykreslovaciAutomat.VyberSlovaNaPrekreslenie(parametre, riadky, _parametreVyberu, _navigovaciPrikaz);
                 }
 
                 if (_parametreVyberu.Zaciatok.HasValue)
@@ -265,47 +225,7 @@ namespace PisaciAutomat.Prikazy.Vykreslovanie
                     //vrat sa naspat
                     Kurzor.GoTo(indexRiadok, indexStlpec, parametre, riadky);
 
-                    if (parametre.IndexStlpec < riadky[parametre.IndexRiadok].Length() - 1)
-                    {
-                        _navigovaciPrikaz.Vyber = false;
-                        _navigovaciPrikaz.Typ = TypNavigacie.SlovoDoprava;
-
-                        Navigator.Naviguj(_navigovaciPrikaz, parametre, riadky, _parametreVyberu);
-
-                        //naspat
-                        _navigovaciPrikaz.Vyber = true;
-                        _navigovaciPrikaz.Typ = TypNavigacie.SlovoDolava;
-
-                        if (parametre.IndexStlpec > 0)
-                        {
-                            Navigator.Naviguj(_navigovaciPrikaz, parametre, riadky, _parametreVyberu);
-                        }
-
-                        //mozna medzera a slovo spat
-                        if (parametre.IndexStlpec > 0)
-                        {
-                            Navigator.Naviguj(_navigovaciPrikaz, parametre, riadky, _parametreVyberu);
-                        }
-                        if (parametre.IndexStlpec > 0)
-                        {
-                            Navigator.Naviguj(_navigovaciPrikaz, parametre, riadky, _parametreVyberu);
-                        }
-                    }
-                    else
-                    {
-                        _navigovaciPrikaz.Vyber = true;
-                        _navigovaciPrikaz.Typ = TypNavigacie.SlovoDolava;
-
-                        //mozna medzera a slovo spat
-                        if (parametre.IndexStlpec > 0)
-                        {
-                            Navigator.Naviguj(_navigovaciPrikaz, parametre, riadky, _parametreVyberu);
-                        }
-                        if (parametre.IndexStlpec > 0)
-                        {
-                            Navigator.Naviguj(_navigovaciPrikaz, parametre, riadky, _parametreVyberu);
-                        }
-                    }
+                    VykreslovaciAutomat.VyberSlovaNaPrekreslenie(parametre, riadky, _parametreVyberu, _navigovaciPrikaz);
                 }
 
                 //prekresli upraveny znak / slova
