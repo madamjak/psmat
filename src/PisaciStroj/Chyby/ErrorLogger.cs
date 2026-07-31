@@ -43,7 +43,11 @@ namespace PisaciStroj.Chyby
 
         public void Log(Chyba chyba)
         {
-            _sb.AppendLine(string.Format("{0}|{1}|{2}|{3}|{4}", DateTime.Now.ToString("yyy-MM-dd-HH-mm-ss"), chyba.Parametre, chyba.Ex.Message, chyba.Ex.StackTrace, chyba.Ex.InnerException));
+            _sb.AppendLine(string.Format("{0}|{1}|{2}|{3}|{4}", DateTime.Now.ToString("yyy-MM-dd-HH-mm-ss"), 
+                chyba.Parametre, 
+                string.Format("\"{0}\"", chyba.Ex.Message), 
+                chyba.Ex.StackTrace, 
+                chyba.Ex.InnerException));
             _chyba = true;
         }
 
@@ -57,7 +61,7 @@ namespace PisaciStroj.Chyby
                     Directory.CreateDirectory(dir);
                 }
 
-                var cesta = Path.Combine(dir, string.Format("error-{0}.txt", DateTime.Now.ToString("yyy-MM-dd-HH-mm-ss")));
+                var cesta = Path.Combine(dir, string.Format("error-{0}.psmerr", DateTime.Now.ToString("yyy-MM-dd-HH-mm-ss")));
                 
                 using (var writer = new StreamWriter(Path.GetFullPath(cesta)))
                 {
