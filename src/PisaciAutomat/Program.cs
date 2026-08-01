@@ -512,9 +512,18 @@ namespace PisaciAutomat
             {
                 p.OkrajVlavo = _parametreVypisu.OkrajVlavo;
                 _cmdLineEditor.Prekresli(p, sb, _editor.Riadky(), _hlaska);
-            }
 
-            _parametreVypisu.OkrajHore = p.OkrajHore;
+                //v pripade zobrazenia vysledkov 'fall' uprav poziciu kurzora na zaklade novej vysky
+                if(p.OkrajHore != _parametreVypisu.OkrajHore)
+                {
+                    var iRiadok = _parametreVypisu.IndexRiadok;
+                    var iStlpec = _parametreVypisu.IndexStlpec;
+                    Kurzor.GoTo(0, 0, _parametreVypisu, _editor.Riadky());
+                    
+                    _parametreVypisu.OkrajHore = p.OkrajHore;
+                    Kurzor.GoTo(iRiadok, iStlpec, _parametreVypisu, _editor.Riadky());
+                }
+            }
 
             var screen = _vykreslovaciAutomat.Precitaj(_parametreVypisu, _search, _parametreVyberu, p);
 
