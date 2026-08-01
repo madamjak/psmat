@@ -77,6 +77,8 @@ namespace PisaciAutomat.Prikazy.Vysledky
             else if (vstup.Key == ConsoleKey.Escape)
             {
                 _riadky = null;
+                _parametreVypisu.OffsetRiadok = 0;
+                _parametreVypisu.Riadok = 0;
                 r.ZavriVysledky = true;
             }
             else if ((vstup.Modifiers & ConsoleModifiers.Control) == ConsoleModifiers.Control)
@@ -84,6 +86,8 @@ namespace PisaciAutomat.Prikazy.Vysledky
                 if (vstup.Key == ConsoleKey.Q)
                 {
                     _riadky = null;
+                    _parametreVypisu.OffsetRiadok = 0;
+                    _parametreVypisu.Riadok = 0;
                     r.ZavriVysledky = true;
                     r.Ukonci = true;
                 }
