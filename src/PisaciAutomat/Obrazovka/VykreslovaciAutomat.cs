@@ -202,6 +202,18 @@ namespace PisaciAutomat.Obrazovka
                     VyberSlovaNaPrekreslenie(parametre, _editor.Riadky(), _parametreVyberu, _navigovaciPrikaz);
                 }
 
+                //prekresli cely
+                if (_parametreVyberu.Zaciatok.HasValue)
+                {
+                    if (offsetStlpec != parametre.OffsetStlpec)
+                    {
+                        //vrat sa naspat
+                        Kurzor.GoTo(indexRiadok, indexStlpec, parametre, _editor.Riadky());
+
+                        return false;
+                    }
+                }
+
                 if (_parametreVyberu.Zaciatok.HasValue) 
                 {
                     //vrat sa naspat (prevencia napr. proti nespravnemu bracket highlight)
@@ -242,6 +254,9 @@ namespace PisaciAutomat.Obrazovka
 
                     sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, stlpec.Value.StlpecKurzora + 1));
                     ShiftTextRightAndInsert(uprava, pocetPotrebnych, sb);
+
+                    sb.Append(NastavKurzor(parametre.RiadokKurzora + 1, parametre.SirkaKonzoly));
+                    ShiftTextRightAndInsert(" ", 2, sb);
                 }
 
                 //vrat sa naspat
@@ -305,6 +320,9 @@ namespace PisaciAutomat.Obrazovka
                 {
                     if(offsetStlpec != parametre.OffsetStlpec)
                     {
+                        //vrat sa naspat
+                        Kurzor.GoTo(indexRiadok, indexStlpec, parametre, _editor.Riadky());
+
                         return false;
                     }
                 }
