@@ -225,9 +225,11 @@ namespace PisaciAutomat
                 }
                 else
                 {
+                    var offsetStl = _parametreVypisu.OffsetStlpec;
                     Kurzor.PosunKurzorDoprava(_parametreVypisu, _editor.Riadky());
 
                     ResetMonitoruPrekreslenia(out indexRiadok, out indexStlpec, out offsetStlpec, out offsetRiadok, out dlzkaRiadku);
+                    offsetStlpec = offsetStl;
 
                     _editor.ZmazText(_parametreVypisu);
 
