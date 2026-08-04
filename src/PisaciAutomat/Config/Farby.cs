@@ -154,6 +154,8 @@ namespace PisaciAutomat.Config
                     return "\u001b[38;5;16m";
                 case StylTextu.Siva:
                     return "\u001b[38;5;241m";
+                case StylTextu.Siva2:
+                    return "\u001b[38;5;248m";
                 case StylTextu.NejakaZelena2:
                     return "\u001b[38;5;46m";
                 case StylTextu.NejakaCervena:
@@ -179,6 +181,7 @@ namespace PisaciAutomat.Config
             Underline,
             FaintBold,
             Siva,
+            Siva2,
             FaintItalic,
             GreenItalic,
             Green,
@@ -302,7 +305,7 @@ namespace PisaciAutomat.Config
             }
             else
             {
-                return string.Format("{0}{1}{2}  \u001b[0m", AnsiReset(), AnsiStyl(StylTextu.Siva), cislo);
+                return string.Format("{0}{1}{2}  \u001b[0m", AnsiReset(), AnsiStyl(StylTextu.Siva2), cislo);
             }
             
         }
