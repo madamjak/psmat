@@ -66,9 +66,10 @@ namespace PisaciAutomat.Prikazy.Vykreslovanie
 
                 if (!prekresliCely)
                 {
-                    PrekresliUpravenyRiadok(p2, parametreVypisu, vyber, riadok, riadky, jeUprostredRetazcaAleboKomentara);
-
-                    return string.Empty;
+                    if(PrekresliUpravenyRiadok(p2, parametreVypisu, vyber, riadky, jeUprostredRetazcaAleboKomentara))
+                    {
+                        return string.Empty;
+                    }
                 }
             }
 
@@ -106,10 +107,9 @@ namespace PisaciAutomat.Prikazy.Vykreslovanie
         }
 
         //copypaste z VykreslovaciAutomat
-        private void PrekresliUpravenyRiadok(ParametrePrekreslenia parametrePrekreslenia, 
+        private bool PrekresliUpravenyRiadok(ParametrePrekreslenia parametrePrekreslenia, 
             ParametreVypisu parametre, 
             ParametreVyberu parametreVyberu,
-            GapBuffer riadok,
             List<GapBuffer> riadky,
             bool jeUprostredRetazca)
         {
@@ -122,6 +122,7 @@ namespace PisaciAutomat.Prikazy.Vykreslovanie
 
             var indexRiadok = parametre.IndexRiadok;
             var indexStlpec = parametre.IndexStlpec;
+            var offsetStlpec = parametre.OffsetStlpec;
 
             var sb = new StringBuilder();
             sb.Append(VykreslovaciAutomat.NastavKurzorUnVisible());
@@ -155,6 +156,17 @@ namespace PisaciAutomat.Prikazy.Vykreslovanie
                     Kurzor.GoTo(indexRiadok, _parametreVyberu.Zaciatok.Value.Stlpec, parametre, riadky);
                     sb.Append(VykreslovaciAutomat.NastavKurzor(parametre.RiadokKurzora + 1, parametre.StlpecKurzora + 1));
                     VykreslovaciAutomat.ShiftTextRightAndInsert(uprava, -1, sb); //zda sa ze pouzitie -1 funguje dobre pre nahradu textu
+                }
+
+                if (_parametreVyberu.Zaciatok.HasValue)
+                {
+                    if (offsetStlpec != parametre.OffsetStlpec)
+                    {
+                        //vrat sa naspat
+                        Kurzor.GoTo(indexRiadok, indexStlpec, parametre, riadky);
+
+                        return false;
+                    }
                 }
 
                 var stlpec = VykreslovaciAutomat.KonecnyStlpecRiadkuObrazovky(parametre, riadky[parametre.IndexRiadok].Length());
@@ -228,6 +240,18 @@ namespace PisaciAutomat.Prikazy.Vykreslovanie
                     VykreslovaciAutomat.VyberSlovaNaPrekreslenie(parametre, riadky, _parametreVyberu, _navigovaciPrikaz);
                 }
 
+                //prekresli cely
+                if (_parametreVyberu.Zaciatok.HasValue)
+                {
+                    if (offsetStlpec != parametre.OffsetStlpec)
+                    {
+                        //vrat sa naspat
+                        Kurzor.GoTo(indexRiadok, indexStlpec, parametre, riadky);
+
+                        return false;
+                    }
+                }
+
                 //prekresli upraveny znak / slova
                 var stlpecCitania = _parametreVyberu.Zaciatok.HasValue ? _parametreVyberu.Zaciatok.Value.Stlpec : parametre.IndexStlpec;
                 var pocet = Math.Min(_parametreVyberu.Zaciatok.HasValue ? _parametreVyberu.PocetZnakov : pocetZnakov, parametre.Sirka - 1);
@@ -260,6 +284,8 @@ namespace PisaciAutomat.Prikazy.Vykreslovanie
             }
             
             Console.Write(sb.ToString());
+
+            return true;
         }
 
         private string PrecitajRiadok(ParametreVypisu parametre, 
