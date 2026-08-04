@@ -63,18 +63,22 @@ namespace PisaciStroj.Navigacia
                 parametreVypisu.Riadok--;
                 if (parametreVypisu.Riadok < 0)
                 {
-                    parametreVypisu.OffsetRiadok -= parametreVypisu.Vyska;
-                    if (parametreVypisu.OffsetRiadok < 0)
-                    {
-                        parametreVypisu.OffsetRiadok = 0;
-                    }
+                    parametreVypisu.OffsetRiadok += parametreVypisu.Riadok;
+                    parametreVypisu.Riadok = 0;
 
-                    parametreVypisu.Riadok = parametreVypisu.Vyska - 1;
+                    //riesenie nizsie funguje ako 'page up'
+                    //parametreVypisu.OffsetRiadok -= parametreVypisu.Vyska;
+                    //if (parametreVypisu.OffsetRiadok < 0)
+                    //{
+                    //    parametreVypisu.OffsetRiadok = 0;
+                    //}
 
-                    if(!(parametreVypisu.IndexRiadok < riadky.Count))
-                    {
-                        NastavIndexRiadku(parametreVypisu, riadky, riadky.Count - 1);
-                    }
+                    //parametreVypisu.Riadok = parametreVypisu.Vyska - 1;
+
+                    //if(!(parametreVypisu.IndexRiadok < riadky.Count))
+                    //{
+                    //    NastavIndexRiadku(parametreVypisu, riadky, riadky.Count - 1);
+                    //}
                 }
 
                 if(parametreVypisu.IndexRiadok < riadky.Count)
